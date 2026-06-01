@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    "crates/oxide-dev-tools-core",
+    "crates/oxide-dev-tools-cli",
+]
+resolver = "2"

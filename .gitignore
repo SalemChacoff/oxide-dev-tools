@@ -1,0 +1,40 @@
+# Rust build artifacts
+/target
+
+# === IDEs & Editors ===
+
+# Common
+*~
+
+# JetBrains (IntelliJ, CLion, RustRover, etc.)
+/.idea
+*.iml
+
+# VS Code
+/.vscode
+
+# Zed
+/.zed
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim / Neovim
+*.swp
+*.swo
+.nvim/
+Session.vim
+
+# Emacs
+\#*\#
+.dir-locals.el
+.projectile
+
+# Eclipse
+/.settings
+/.project
+/.classpath
+
+# Helix
+/.helix

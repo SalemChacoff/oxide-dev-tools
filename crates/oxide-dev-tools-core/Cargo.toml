@@ -1,0 +1,30 @@
+[package]
+name = "oxide-dev-tools-core"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+description = "Core library for oxide-dev-tools"
+
+[dependencies.uuid]
+version = "1.23.1"
+features = [
+    "v1",          # timestamp + node
+    "v3",          # MD5 namespace
+    "v4",          # random
+    "v5",          # SHA-1 namespace
+    "v6",          # reordered timestamp
+    "v7",          # unix timestamp
+    "v8",          # custom
+    "md5",
+    "sha1",
+]
+
+
+[dependencies.ulid]
+version = "1.2.1"
+
+[dependencies.nanoid]
+version = "0.5.0"
+
+[dependencies.rand]
+version = "0.8.4"

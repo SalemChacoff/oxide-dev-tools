@@ -1,0 +1,28 @@
+cognitive-complexity-threshold = 15
+type-complexity-threshold = 250
+
+min-ident-chars-threshold = 2
+
+vec-box-size-threshold = 4096
+
+literal-representation-threshold = 10000
+
+too-many-arguments-threshold = 7
+too-many-lines-threshold = 100
+
+array-size-threshold = 512000
+
+enum-variant-size-threshold = 200
+large-error-threshold = 128
+
+
+disallowed-names = ["foo", "bar", "baz", "TODO"]
+
+disallowed-types = []
+
+disallowed-methods = []
+
+warn-on-all-wildcard-imports = true
+
+allow-expect-in-tests = true
+allow-unwrap-in-tests = true
