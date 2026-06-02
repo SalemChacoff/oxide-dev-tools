@@ -1,6 +1,7 @@
 use std::time::SystemTime;
 use uuid::{Uuid, timestamp::Timestamp};
 
+#[derive(Debug)]
 pub enum IdKind {
     UuidV1,
     UuidV3,
@@ -108,4 +109,238 @@ fn now_timestamp() -> Timestamp {
 fn system_time_to_timestamp(t: SystemTime) -> Timestamp {
     let dur = t.duration_since(std::time::UNIX_EPOCH).unwrap();
     Timestamp::from_unix(uuid::NoContext, dur.as_secs(), dur.subsec_nanos())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::time::{Duration, UNIX_EPOCH};
+    use uuid::Version;
+
+    // ------------------------------------------------------------------
+    // Helpers
+    // ------------------------------------------------------------------
+
+    fn parse(s: &str) -> Uuid {
+        Uuid::parse_str(s).expect("not a valid UUID")
+    }
+
+    fn known_time() -> SystemTime {
+        UNIX_EPOCH + Duration::from_secs(1_234_567_890)
+    }
+
+    // ------------------------------------------------------------------
+    // UUID v1 — timestamp + MAC
+    // ------------------------------------------------------------------
+
+    #[test]
+    fn v1_default_is_rfc4122() {
+        let id = gen_uuid_v1(None);
+        let u = parse(&id);
+        assert_eq!(u.get_version(), Some(Version::Mac));
+        assert_eq!(u.get_variant(), uuid::Variant::RFC4122);
+    }
+
+    #[test]
+    fn v1_with_fixed_time() {
+        let id = gen_uuid_v1(Some(known_time()));
+        let u = parse(&id);
+        assert_eq!(u.get_version(), Some(Version::Mac));
+    }
+
+    // ------------------------------------------------------------------
+    // UUID v3 — MD5 namespace, deterministic
+    // ------------------------------------------------------------------
+
+    #[test]
+    fn v3_default_is_rfc4122() {
+        let id = gen_uuid_v3();
+        let u = parse(&id);
+        assert_eq!(u.get_version(), Some(Version::Md5));
+        assert_eq!(u.get_variant(), uuid::Variant::RFC4122);
+    }
+
+    #[test]
+    fn v3_is_deterministic() {
+        let ns = uuid::Uuid::NAMESPACE_DNS;
+        let a = gen_uuid_v3_with(&ns, b"example.com");
+        let b = gen_uuid_v3_with(&ns, b"example.com");
+        assert_eq!(a, b);
+    }
+
+    #[test]
+    fn v3_different_inputs_differ() {
+        let ns = uuid::Uuid::NAMESPACE_DNS;
+        let a = gen_uuid_v3_with(&ns, b"foo");
+        let b = gen_uuid_v3_with(&ns, b"bar");
+        assert_ne!(a, b);
+    }
+
+    // ------------------------------------------------------------------
+    // UUID v4 — random
+    // ------------------------------------------------------------------
+
+    #[test]
+    fn v4_is_rfc4122() {
+        let id = gen_uuid_v4();
+        let u = parse(&id);
+        assert_eq!(u.get_version(), Some(Version::Random));
+        assert_eq!(u.get_variant(), uuid::Variant::RFC4122);
+    }
+
+    #[test]
+    fn v4_unique_across_1000_samples() {
+        let mut set = std::collections::HashSet::new();
+        for _ in 0..1_000 {
+            assert!(set.insert(gen_uuid_v4()), "collision detected");
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // UUID v5 — SHA-1 namespace, deterministic
+    // ------------------------------------------------------------------
+
+    #[test]
+    fn v5_default_is_rfc4122() {
+        let id = gen_uuid_v5();
+        let u = parse(&id);
+        assert_eq!(u.get_version(), Some(Version::Sha1));
+        assert_eq!(u.get_variant(), uuid::Variant::RFC4122);
+    }
+
+    #[test]
+    fn v5_is_deterministic() {
+        let ns = uuid::Uuid::NAMESPACE_DNS;
+        let a = gen_uuid_v5_with(&ns, b"example.com");
+        let b = gen_uuid_v5_with(&ns, b"example.com");
+        assert_eq!(a, b);
+    }
+
+    // ------------------------------------------------------------------
+    // UUID v6 — reordered timestamp + MAC
+    // ------------------------------------------------------------------
+
+    #[test]
+    fn v6_default_is_rfc4122() {
+        let id = gen_uuid_v6(None);
+        let u = parse(&id);
+        assert_eq!(u.get_version(), Some(Version::SortMac));
+        assert_eq!(u.get_variant(), uuid::Variant::RFC4122);
+    }
+
+    #[test]
+    fn v6_with_fixed_time() {
+        let id = gen_uuid_v6(Some(known_time()));
+        let u = parse(&id);
+        assert_eq!(u.get_version(), Some(Version::SortMac));
+    }
+
+    // ------------------------------------------------------------------
+    // UUID v7 — unix timestamp + random
+    // ------------------------------------------------------------------
+
+    #[test]
+    fn v7_default_is_rfc4122() {
+        let id = gen_uuid_v7(None);
+        let u = parse(&id);
+        assert_eq!(u.get_version(), Some(Version::SortRand));
+        assert_eq!(u.get_variant(), uuid::Variant::RFC4122);
+    }
+
+    #[test]
+    fn v7_with_fixed_time() {
+        let id = gen_uuid_v7(Some(known_time()));
+        let u = parse(&id);
+        assert_eq!(u.get_version(), Some(Version::SortRand));
+    }
+
+    #[test]
+    fn v7_unique_across_1000_samples() {
+        let mut set = std::collections::HashSet::new();
+        for _ in 0..1_000 {
+            assert!(set.insert(gen_uuid_v7(None)), "collision detected");
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // UUID v8 — custom
+    // ------------------------------------------------------------------
+
+    #[test]
+    fn v8_is_valid_uuid() {
+        let id = gen_uuid_v8();
+        let u = parse(&id); // panics if invalid format
+        assert_eq!(u.get_version(), Some(Version::Custom));
+    }
+
+    // ------------------------------------------------------------------
+    // ULID — 26-char Crockford base32
+    // ------------------------------------------------------------------
+
+    #[test]
+    fn ulid_has_correct_length() {
+        let id = gen_ulid();
+        assert_eq!(id.len(), 26);
+    }
+
+    #[test]
+    fn ulid_uses_crockford_base32() {
+        let id = gen_ulid();
+        assert!(
+            id.chars().all(|c| c.is_ascii_uppercase() || c.is_ascii_digit()),
+            "ULID contains invalid characters: {id}"
+        );
+    }
+
+    // ------------------------------------------------------------------
+    // NanoID — 21-char URL-safe alphabet
+    // ------------------------------------------------------------------
+
+    #[test]
+    fn nanoid_has_default_length() {
+        let id = gen_nanoid();
+        assert_eq!(id.len(), 21);
+    }
+
+    #[test]
+    fn nanoid_uses_url_safe_alphabet() {
+        let id = gen_nanoid();
+        assert!(
+            id.chars().all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-'),
+            "NanoID contains invalid characters: {id}"
+        );
+    }
+
+    // ------------------------------------------------------------------
+    // generate() dispatch — all implemented kinds produce something
+    // ------------------------------------------------------------------
+
+    #[test]
+    fn generate_returns_non_empty_for_all_kinds() {
+        for kind in &[
+            IdKind::UuidV1,
+            IdKind::UuidV3,
+            IdKind::UuidV4,
+            IdKind::UuidV5,
+            IdKind::UuidV6,
+            IdKind::UuidV7,
+            IdKind::UuidV8,
+            IdKind::Ulid,
+            IdKind::NanoId,
+        ] {
+            let id = generate(match kind {
+                IdKind::UuidV1 => IdKind::UuidV1,
+                IdKind::UuidV3 => IdKind::UuidV3,
+                IdKind::UuidV4 => IdKind::UuidV4,
+                IdKind::UuidV5 => IdKind::UuidV5,
+                IdKind::UuidV6 => IdKind::UuidV6,
+                IdKind::UuidV7 => IdKind::UuidV7,
+                IdKind::UuidV8 => IdKind::UuidV8,
+                IdKind::Ulid => IdKind::Ulid,
+                IdKind::NanoId => IdKind::NanoId,
+                _ => unreachable!(),
+            });
+            assert!(!id.is_empty(), "{kind:?} produced an empty string");
+        }
+    }
 }
