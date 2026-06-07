@@ -3,12 +3,12 @@ use uuid::{Uuid, timestamp::Timestamp};
 
 #[derive(Debug)]
 pub enum IdKind {
-    UuidV1,
+    UuidV1(Option<SystemTime>),
     UuidV3,
     UuidV4,
     UuidV5,
-    UuidV6,
-    UuidV7,
+    UuidV6(Option<SystemTime>),
+    UuidV7(Option<SystemTime>),
     UuidV8,
     Ulid,
     NanoId,
@@ -18,14 +18,14 @@ pub enum IdKind {
     KsuId,
 }
 
-pub fn generate(kind: IdKind) -> String {
+pub fn generate_id(kind: IdKind) -> String {
     match kind {
-        IdKind::UuidV1 => gen_uuid_v1(None),
+        IdKind::UuidV1(time) => gen_uuid_v1(time),
         IdKind::UuidV3 => gen_uuid_v3(),
         IdKind::UuidV4 => gen_uuid_v4(),
         IdKind::UuidV5 => gen_uuid_v5(),
-        IdKind::UuidV6 => gen_uuid_v6(None),
-        IdKind::UuidV7 => gen_uuid_v7(None),
+        IdKind::UuidV6(time) => gen_uuid_v6(time),
+        IdKind::UuidV7(time) => gen_uuid_v7(time),
         IdKind::UuidV8 => gen_uuid_v8(),
         IdKind::Ulid => gen_ulid(),
         IdKind::NanoId => gen_nanoid(),
@@ -37,55 +37,55 @@ pub fn generate(kind: IdKind) -> String {
 
 const NODE_ID: [u8; 6] = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
 
-pub fn gen_uuid_v1(time: Option<SystemTime>) -> String {
+fn gen_uuid_v1(time: Option<SystemTime>) -> String {
     let ts = time.map_or_else(now_timestamp, system_time_to_timestamp);
     Uuid::new_v1(ts, &NODE_ID).to_string()
 }
 
 // -------- UUID v3/v5 (namespace + name) --------
 
-pub fn gen_uuid_v3() -> String {
+fn gen_uuid_v3() -> String {
     Uuid::new_v3(&uuid::Uuid::NAMESPACE_DNS, b"example.com").to_string()
 }
 
 // UUID v3 with custom namespace
-pub fn gen_uuid_v3_with(ns: &uuid::Uuid, name: &[u8]) -> String {
+fn gen_uuid_v3_with(ns: &uuid::Uuid, name: &[u8]) -> String {
     Uuid::new_v3(ns, name).to_string()
 }
 
 // -------- UUID v4 --------
 
-pub fn gen_uuid_v4() -> String {
+fn gen_uuid_v4() -> String {
     uuid::Uuid::new_v4().to_string()
 }
 
 // -------- UUID v5 --------
 
-pub fn gen_uuid_v5() -> String {
+fn gen_uuid_v5() -> String {
     Uuid::new_v5(&uuid::Uuid::NAMESPACE_DNS, b"example.com").to_string()
 }
 
-pub fn gen_uuid_v5_with(ns: &uuid::Uuid, name: &[u8]) -> String {
+fn gen_uuid_v5_with(ns: &uuid::Uuid, name: &[u8]) -> String {
     Uuid::new_v5(ns, name).to_string()
 }
 
 // -------- UUID v6 (reordered timestamp + node) --------
 
-pub fn gen_uuid_v6(time: Option<SystemTime>) -> String {
+fn gen_uuid_v6(time: Option<SystemTime>) -> String {
     let ts = time.map_or_else(now_timestamp, system_time_to_timestamp);
     Uuid::new_v6(ts, &NODE_ID).to_string()
 }
 
 // -------- UUID v7 (unix timestamp + random) --------
 
-pub fn gen_uuid_v7(time: Option<SystemTime>) -> String {
+fn gen_uuid_v7(time: Option<SystemTime>) -> String {
     let ts = time.map_or_else(now_timestamp, system_time_to_timestamp);
     Uuid::new_v7(ts).to_string()
 }
 
 // -------- UUID v8 (custom) --------
 
-pub fn gen_uuid_v8() -> String {
+fn gen_uuid_v8() -> String {
     // Example: fill 16 bytes with your own scheme
     let bytes: [u8; 16] = rand::random();
     Uuid::new_v8(bytes).to_string()
@@ -93,10 +93,11 @@ pub fn gen_uuid_v8() -> String {
 
 // -------- Other ID types --------
 
-pub fn gen_ulid() -> String {
+fn gen_ulid() -> String {
     ulid::Ulid::new().to_string()
 }
-pub fn gen_nanoid() -> String {
+
+fn gen_nanoid() -> String {
     nanoid::nanoid!()
 }
 
@@ -318,26 +319,28 @@ mod tests {
     #[test]
     fn generate_returns_non_empty_for_all_kinds() {
         for kind in &[
-            IdKind::UuidV1,
+            IdKind::UuidV1(None),
+            IdKind::UuidV6(None),
             IdKind::UuidV3,
             IdKind::UuidV4,
             IdKind::UuidV5,
-            IdKind::UuidV6,
-            IdKind::UuidV7,
+            IdKind::UuidV6(None),
+            IdKind::UuidV7(None),
             IdKind::UuidV8,
             IdKind::Ulid,
             IdKind::NanoId,
         ] {
-            let id = generate(match kind {
-                IdKind::UuidV1 => IdKind::UuidV1,
+            let id = generate_id(match kind {
+                IdKind::UuidV1(_) => IdKind::UuidV1(None),
                 IdKind::UuidV3 => IdKind::UuidV3,
                 IdKind::UuidV4 => IdKind::UuidV4,
                 IdKind::UuidV5 => IdKind::UuidV5,
-                IdKind::UuidV6 => IdKind::UuidV6,
-                IdKind::UuidV7 => IdKind::UuidV7,
+                IdKind::UuidV6(_) => IdKind::UuidV6(None),
+                IdKind::UuidV7(_) => IdKind::UuidV7(None),
                 IdKind::UuidV8 => IdKind::UuidV8,
                 IdKind::Ulid => IdKind::Ulid,
                 IdKind::NanoId => IdKind::NanoId,
+                IdKind::KsuId => IdKind::KsuId,
                 _ => unreachable!(),
             });
             assert!(!id.is_empty(), "{kind:?} produced an empty string");
