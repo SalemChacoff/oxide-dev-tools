@@ -456,6 +456,7 @@ dependencies = [
  "chrono",
  "clap",
  "oxide-dev-tools-core",
+ "uuid",
 ]
 
 [[package]]

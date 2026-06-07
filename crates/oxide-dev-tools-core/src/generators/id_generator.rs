@@ -4,9 +4,9 @@ use uuid::{Uuid, timestamp::Timestamp};
 #[derive(Debug)]
 pub enum IdKind {
     UuidV1(Option<SystemTime>),
-    UuidV3,
+    UuidV3(Option<(uuid::Uuid, Vec<u8>)>),
     UuidV4,
-    UuidV5,
+    UuidV5(Option<(uuid::Uuid, Vec<u8>)>),
     UuidV6(Option<SystemTime>),
     UuidV7(Option<SystemTime>),
     UuidV8,
@@ -21,9 +21,15 @@ pub enum IdKind {
 pub fn generate_id(kind: IdKind) -> String {
     match kind {
         IdKind::UuidV1(time) => gen_uuid_v1(time),
-        IdKind::UuidV3 => gen_uuid_v3(),
+        IdKind::UuidV3(params) => match params {
+            Some((ns, name)) => gen_uuid_v3_with(&ns, &name),
+            None => gen_uuid_v3(),
+        },
         IdKind::UuidV4 => gen_uuid_v4(),
-        IdKind::UuidV5 => gen_uuid_v5(),
+        IdKind::UuidV5(params) => match params {
+            Some((ns, name)) => gen_uuid_v5_with(&ns, &name),
+            None => gen_uuid_v5(),
+        },
         IdKind::UuidV6(time) => gen_uuid_v6(time),
         IdKind::UuidV7(time) => gen_uuid_v7(time),
         IdKind::UuidV8 => gen_uuid_v8(),
@@ -65,6 +71,7 @@ fn gen_uuid_v5() -> String {
     Uuid::new_v5(&uuid::Uuid::NAMESPACE_DNS, b"example.com").to_string()
 }
 
+// UUID v5 with custom namespace
 fn gen_uuid_v5_with(ns: &uuid::Uuid, name: &[u8]) -> String {
     Uuid::new_v5(ns, name).to_string()
 }
@@ -321,9 +328,9 @@ mod tests {
         for kind in &[
             IdKind::UuidV1(None),
             IdKind::UuidV6(None),
-            IdKind::UuidV3,
+            IdKind::UuidV3(None),
             IdKind::UuidV4,
-            IdKind::UuidV5,
+            IdKind::UuidV5(None),
             IdKind::UuidV6(None),
             IdKind::UuidV7(None),
             IdKind::UuidV8,
@@ -332,9 +339,9 @@ mod tests {
         ] {
             let id = generate_id(match kind {
                 IdKind::UuidV1(_) => IdKind::UuidV1(None),
-                IdKind::UuidV3 => IdKind::UuidV3,
+                IdKind::UuidV3(_) => IdKind::UuidV3(None),
                 IdKind::UuidV4 => IdKind::UuidV4,
-                IdKind::UuidV5 => IdKind::UuidV5,
+                IdKind::UuidV5(_) => IdKind::UuidV5(None),
                 IdKind::UuidV6(_) => IdKind::UuidV6(None),
                 IdKind::UuidV7(_) => IdKind::UuidV7(None),
                 IdKind::UuidV8 => IdKind::UuidV8,

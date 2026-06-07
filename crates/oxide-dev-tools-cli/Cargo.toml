@@ -13,3 +13,4 @@ path = "src/main.rs"
 oxide-dev-tools-core = { path = "../oxide-dev-tools-core" }
 clap = { version = "4", features = ["derive"] }
 chrono = "0.4"
+uuid = { version = "1.23.1" }
