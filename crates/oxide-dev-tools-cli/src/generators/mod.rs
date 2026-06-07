@@ -14,6 +14,7 @@ pub struct GenArgs {
 pub enum GenKind {
     /// Generate UUIDs (v1–v8), ULIDs, NanoIDs, etc.
     Id(id_generator::IdArgs),
+    /// Generate cryptographic keys (e.g. RSA, Ed25519, Passwords)
     Key(key_generator::KeyArgs),
     // Data(),
     // File(),
