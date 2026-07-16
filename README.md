@@ -125,7 +125,7 @@ The project follows a two-crate architecture:
 - [x] Workspace architecture (core + CLI)
 
 ### Phase 2 — Key & Data Generators
-- [ ] Password generator (configurable length, character sets)
+- [x] Password generator (configurable length, character sets)
 - [ ] Token generator (configurable length, random/secure)
 - [ ] Lorem ipsum generator
 - [ ] Fake data generator (personas, addresses, companies)
