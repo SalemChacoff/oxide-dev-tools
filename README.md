@@ -45,6 +45,9 @@ cargo build --release
 # The binary is at: ./target/release/oxide
 # Optional: copy it to your PATH
 cp ./target/release/oxide ~/.cargo/bin/
+
+# Or install directly from the workspace
+cargo install --path crates/oxide-dev-tools-cli
 ```
 
 ### Requirements
@@ -74,8 +77,15 @@ oxide gen id nanoid
 # Generate a ULID
 oxide gen id ulid
 
+```bash
 # Generate a password
 oxide gen key pass
+
+# Generate a random token (hex, 32 bytes)
+oxide gen key token
+
+# Generate a base64 token
+oxide gen key token --encoding base64
 
 # Show help
 oxide --help
@@ -126,7 +136,7 @@ The project follows a two-crate architecture:
 
 ### Phase 2 — Key & Data Generators
 - [x] Password generator (configurable length, character sets)
-- [ ] Token generator (configurable length, random/secure)
+- [x] Token generator (configurable length, hex/base64)
 - [ ] Lorem ipsum generator
 - [ ] Fake data generator (personas, addresses, companies)
 - [ ] Sample file generator (CSV, JSON, YAML)
@@ -186,20 +196,20 @@ The project follows a two-crate architecture:
 ## Development
 
 ```bash
-# Build
-cargo build
-
 # Run tests
 cargo test
 
+# Run tests with nextest (requires cargo-nextest)
+cargo nextest run --workspace --all-features --locked
+
 # Run the CLI
-cargo run -- gen id uuidv4
+cargo run -p oxide-dev-tools-cli -- gen id uuidv4
 
 # Lint
-cargo clippy
+cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
 
 # Format
-cargo fmt
+cargo fmt --workspace
 ```
 
 ---

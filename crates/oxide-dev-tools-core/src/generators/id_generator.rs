@@ -1,41 +1,65 @@
+use std::fmt;
 use std::time::SystemTime;
 use uuid::{Uuid, timestamp::Timestamp};
 
-#[derive(Debug)]
-pub enum IdKind {
-    UuidV1(Option<SystemTime>),
-    UuidV3(Option<(uuid::Uuid, Vec<u8>)>),
-    UuidV4,
-    UuidV5(Option<(uuid::Uuid, Vec<u8>)>),
-    UuidV6(Option<SystemTime>),
-    UuidV7(Option<SystemTime>),
-    UuidV8,
-    Ulid,
-    NanoId,
-    Cuid2,
-    Snowflake,
-    ObjectId,
-    KsuId,
+/// Errors that can occur when generating an ID.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum IdError {
+    /// The requested ID kind is not yet implemented.
+    Unsupported(String),
 }
 
-pub fn generate_id(kind: IdKind) -> String {
+impl fmt::Display for IdError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            IdError::Unsupported(kind) => write!(f, "unsupported ID kind: {kind}"),
+        }
+    }
+}
+
+impl std::error::Error for IdError {}
+
+/// Kinds of identifiers that can be generated.
+#[derive(Debug)]
+pub enum IdKind {
+    /// UUID v1 (timestamp + node).
+    UuidV1(Option<SystemTime>),
+    /// UUID v3 (MD5 namespace + name, deterministic).
+    UuidV3(Option<(uuid::Uuid, Vec<u8>)>),
+    /// UUID v4 (random).
+    UuidV4,
+    /// UUID v5 (SHA-1 namespace + name, deterministic).
+    UuidV5(Option<(uuid::Uuid, Vec<u8>)>),
+    /// UUID v6 (reordered timestamp + node).
+    UuidV6(Option<SystemTime>),
+    /// UUID v7 (Unix timestamp + random).
+    UuidV7(Option<SystemTime>),
+    /// UUID v8 (custom / experimental).
+    UuidV8,
+    /// ULID (26-char Crockford base32).
+    Ulid,
+    /// NanoID (21-char URL-safe).
+    NanoId,
+}
+
+/// Generate an identifier according to `kind`.
+pub fn generate_id(kind: IdKind) -> Result<String, IdError> {
     match kind {
-        IdKind::UuidV1(time) => gen_uuid_v1(time),
-        IdKind::UuidV3(params) => match params {
+        IdKind::UuidV1(time) => Ok(gen_uuid_v1(time)),
+        IdKind::UuidV3(params) => Ok(match params {
             Some((ns, name)) => gen_uuid_v3_with(&ns, &name),
             None => gen_uuid_v3(),
-        },
-        IdKind::UuidV4 => gen_uuid_v4(),
-        IdKind::UuidV5(params) => match params {
+        }),
+        IdKind::UuidV4 => Ok(gen_uuid_v4()),
+        IdKind::UuidV5(params) => Ok(match params {
             Some((ns, name)) => gen_uuid_v5_with(&ns, &name),
             None => gen_uuid_v5(),
-        },
-        IdKind::UuidV6(time) => gen_uuid_v6(time),
-        IdKind::UuidV7(time) => gen_uuid_v7(time),
-        IdKind::UuidV8 => gen_uuid_v8(),
-        IdKind::Ulid => gen_ulid(),
-        IdKind::NanoId => gen_nanoid(),
-        _ => todo!(),
+        }),
+        IdKind::UuidV6(time) => Ok(gen_uuid_v6(time)),
+        IdKind::UuidV7(time) => Ok(gen_uuid_v7(time)),
+        IdKind::UuidV8 => Ok(gen_uuid_v8()),
+        IdKind::Ulid => Ok(gen_ulid()),
+        IdKind::NanoId => Ok(gen_nanoid()),
     }
 }
 
@@ -54,24 +78,18 @@ fn gen_uuid_v3() -> String {
     Uuid::new_v3(&uuid::Uuid::NAMESPACE_DNS, b"example.com").to_string()
 }
 
-// UUID v3 with custom namespace
 fn gen_uuid_v3_with(ns: &uuid::Uuid, name: &[u8]) -> String {
     Uuid::new_v3(ns, name).to_string()
 }
-
-// -------- UUID v4 --------
 
 fn gen_uuid_v4() -> String {
     uuid::Uuid::new_v4().to_string()
 }
 
-// -------- UUID v5 --------
-
 fn gen_uuid_v5() -> String {
     Uuid::new_v5(&uuid::Uuid::NAMESPACE_DNS, b"example.com").to_string()
 }
 
-// UUID v5 with custom namespace
 fn gen_uuid_v5_with(ns: &uuid::Uuid, name: &[u8]) -> String {
     Uuid::new_v5(ns, name).to_string()
 }
@@ -93,7 +111,6 @@ fn gen_uuid_v7(time: Option<SystemTime>) -> String {
 // -------- UUID v8 (custom) --------
 
 fn gen_uuid_v8() -> String {
-    // Example: fill 16 bytes with your own scheme
     let bytes: [u8; 16] = rand::random();
     Uuid::new_v8(bytes).to_string()
 }
@@ -125,10 +142,6 @@ mod tests {
     use std::time::{Duration, UNIX_EPOCH};
     use uuid::Version;
 
-    // ------------------------------------------------------------------
-    // Helpers
-    // ------------------------------------------------------------------
-
     fn parse(s: &str) -> Uuid {
         Uuid::parse_str(s).expect("not a valid UUID")
     }
@@ -136,10 +149,6 @@ mod tests {
     fn known_time() -> SystemTime {
         UNIX_EPOCH + Duration::from_secs(1_234_567_890)
     }
-
-    // ------------------------------------------------------------------
-    // UUID v1 — timestamp + MAC
-    // ------------------------------------------------------------------
 
     #[test]
     fn v1_default_is_rfc4122() {
@@ -155,10 +164,6 @@ mod tests {
         let u = parse(&id);
         assert_eq!(u.get_version(), Some(Version::Mac));
     }
-
-    // ------------------------------------------------------------------
-    // UUID v3 — MD5 namespace, deterministic
-    // ------------------------------------------------------------------
 
     #[test]
     fn v3_default_is_rfc4122() {
@@ -179,14 +184,10 @@ mod tests {
     #[test]
     fn v3_different_inputs_differ() {
         let ns = uuid::Uuid::NAMESPACE_DNS;
-        let a = gen_uuid_v3_with(&ns, b"foo");
-        let b = gen_uuid_v3_with(&ns, b"bar");
+        let a = gen_uuid_v3_with(&ns, b"alpha");
+        let b = gen_uuid_v3_with(&ns, b"beta");
         assert_ne!(a, b);
     }
-
-    // ------------------------------------------------------------------
-    // UUID v4 — random
-    // ------------------------------------------------------------------
 
     #[test]
     fn v4_is_rfc4122() {
@@ -204,10 +205,6 @@ mod tests {
         }
     }
 
-    // ------------------------------------------------------------------
-    // UUID v5 — SHA-1 namespace, deterministic
-    // ------------------------------------------------------------------
-
     #[test]
     fn v5_default_is_rfc4122() {
         let id = gen_uuid_v5();
@@ -224,10 +221,6 @@ mod tests {
         assert_eq!(a, b);
     }
 
-    // ------------------------------------------------------------------
-    // UUID v6 — reordered timestamp + MAC
-    // ------------------------------------------------------------------
-
     #[test]
     fn v6_default_is_rfc4122() {
         let id = gen_uuid_v6(None);
@@ -242,10 +235,6 @@ mod tests {
         let u = parse(&id);
         assert_eq!(u.get_version(), Some(Version::SortMac));
     }
-
-    // ------------------------------------------------------------------
-    // UUID v7 — unix timestamp + random
-    // ------------------------------------------------------------------
 
     #[test]
     fn v7_default_is_rfc4122() {
@@ -270,20 +259,12 @@ mod tests {
         }
     }
 
-    // ------------------------------------------------------------------
-    // UUID v8 — custom
-    // ------------------------------------------------------------------
-
     #[test]
     fn v8_is_valid_uuid() {
         let id = gen_uuid_v8();
-        let u = parse(&id); // panics if invalid format
+        let u = parse(&id);
         assert_eq!(u.get_version(), Some(Version::Custom));
     }
-
-    // ------------------------------------------------------------------
-    // ULID — 26-char Crockford base32
-    // ------------------------------------------------------------------
 
     #[test]
     fn ulid_has_correct_length() {
@@ -300,10 +281,6 @@ mod tests {
         );
     }
 
-    // ------------------------------------------------------------------
-    // NanoID — 21-char URL-safe alphabet
-    // ------------------------------------------------------------------
-
     #[test]
     fn nanoid_has_default_length() {
         let id = gen_nanoid();
@@ -319,15 +296,10 @@ mod tests {
         );
     }
 
-    // ------------------------------------------------------------------
-    // generate() dispatch — all implemented kinds produce something
-    // ------------------------------------------------------------------
-
     #[test]
     fn generate_returns_non_empty_for_all_kinds() {
-        for kind in &[
+        let kinds = vec![
             IdKind::UuidV1(None),
-            IdKind::UuidV6(None),
             IdKind::UuidV3(None),
             IdKind::UuidV4,
             IdKind::UuidV5(None),
@@ -336,21 +308,10 @@ mod tests {
             IdKind::UuidV8,
             IdKind::Ulid,
             IdKind::NanoId,
-        ] {
-            let id = generate_id(match kind {
-                IdKind::UuidV1(_) => IdKind::UuidV1(None),
-                IdKind::UuidV3(_) => IdKind::UuidV3(None),
-                IdKind::UuidV4 => IdKind::UuidV4,
-                IdKind::UuidV5(_) => IdKind::UuidV5(None),
-                IdKind::UuidV6(_) => IdKind::UuidV6(None),
-                IdKind::UuidV7(_) => IdKind::UuidV7(None),
-                IdKind::UuidV8 => IdKind::UuidV8,
-                IdKind::Ulid => IdKind::Ulid,
-                IdKind::NanoId => IdKind::NanoId,
-                IdKind::KsuId => IdKind::KsuId,
-                _ => unreachable!(),
-            });
-            assert!(!id.is_empty(), "{kind:?} produced an empty string");
+        ];
+        for kind in kinds {
+            let id = generate_id(kind).expect("should generate id");
+            assert!(!id.is_empty());
         }
     }
 }

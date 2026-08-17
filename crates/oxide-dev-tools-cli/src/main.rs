@@ -1,5 +1,6 @@
 use clap::{Parser, Subcommand};
 
+mod error;
 mod generators;
 
 #[derive(Parser)]
@@ -11,20 +12,19 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Tool {
-    /// Generate IDs, ULIDs, NanoIDs, etc.
+    /// Generate IDs, ULIDs, NanoIDs, passwords, tokens, etc.
     Gen(generators::GenArgs),
-    // Future tools:
-    // Compare(comparators::CompareArgs),
-    // Codec(codec::CodecArgs), This is for encoding/decoding base64, zip, pem, pfx, etc
-    // Converter(converters::ConverterArgs)
-    // Text(text::TextArgs)
-    // Validator(validators::ValidatorArgs)
 }
 
 fn main() {
     let cli = Cli::parse();
 
-    match cli.tool {
+    let result = match cli.tool {
         Tool::Gen(args) => generators::exec(args),
+    };
+
+    if let Err(e) = result {
+        eprintln!("Error: {e}");
+        std::process::exit(1);
     }
 }
