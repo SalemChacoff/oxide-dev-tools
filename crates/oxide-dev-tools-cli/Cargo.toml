@@ -1,8 +1,9 @@
 [package]
 name = "oxide-dev-tools-cli"
-version = "0.1.0"
-edition = "2024"
-license = "MIT"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
 description = "CLI tool for oxide-dev-tools"
 
 [[bin]]
@@ -11,6 +12,6 @@ path = "src/main.rs"
 
 [dependencies]
 oxide-dev-tools-core = { path = "../oxide-dev-tools-core" }
-clap = { version = "4", features = ["derive"] }
-chrono = "0.4"
-uuid = { version = "1.23.1" }
+clap = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }

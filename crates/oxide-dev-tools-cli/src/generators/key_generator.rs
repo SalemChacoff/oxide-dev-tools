@@ -1,7 +1,9 @@
-use clap::{Args, Subcommand};
+use clap::{Args, Subcommand, ValueEnum};
 use oxide_dev_tools_core::*;
 
-/// `oxide gen id [subcommand]` — ID generator dispatch
+use crate::error::CliError;
+
+/// `oxide gen key [subcommand]` — key/token generator dispatch
 #[derive(Args)]
 pub struct KeyArgs {
     #[command(subcommand)]
@@ -30,17 +32,39 @@ pub enum KeyCmd {
         no_digits: bool,
 
         /// Include special characters (!@#$%^&*)
-        /// Change boolean value to String value to pass the SpecialChars
         #[arg(short = 's', long = "special")]
         special: bool,
     },
 
-    /// Generate a token
+    /// Generate a random token
     #[command(name = "token")]
-    Token,
+    Token {
+        /// Number of random bytes to generate (hex output is 2× this length)
+        #[arg(short = 'l', long = "length", default_value_t = 32)]
+        length: usize,
+
+        /// Output encoding
+        #[arg(short = 'e', long = "encoding", value_enum, default_value_t = TokenCmdEncoding::Hex)]
+        encoding: TokenCmdEncoding,
+    },
 }
 
-pub fn exec(args: KeyArgs) {
+#[derive(Debug, Clone, Copy, ValueEnum)]
+pub enum TokenCmdEncoding {
+    Hex,
+    Base64,
+}
+
+impl From<TokenCmdEncoding> for TokenEncoding {
+    fn from(e: TokenCmdEncoding) -> Self {
+        match e {
+            TokenCmdEncoding::Hex => TokenEncoding::Hex,
+            TokenCmdEncoding::Base64 => TokenEncoding::Base64,
+        }
+    }
+}
+
+pub fn exec(args: KeyArgs) -> Result<(), CliError> {
     match args.kind {
         KeyCmd::Pass {
             length,
@@ -56,14 +80,77 @@ pub fn exec(args: KeyArgs) {
                 digits: !no_digits,
                 special,
             };
-
-            // Validate if has at least one character type
-            if !opts.lowercase && !opts.uppercase && !opts.digits && !opts.special {
-                eprintln!("Error: At least one character type must be enabled");
-                return;
-            }
-            println!("{}", generate_key(KeyKind::Password(opts)));
+            println!("{}", generate_key(KeyKind::Password(opts))?);
         }
-        KeyCmd::Token => println!("{}", generate_key(KeyKind::Token)),
+        KeyCmd::Token { length, encoding } => {
+            let opts = TokenOptions {
+                length,
+                encoding: encoding.into(),
+            };
+            println!("{}", generate_key(KeyKind::Token(opts))?);
+        }
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn exec_pass_default() {
+        assert!(
+            exec(KeyArgs {
+                kind: KeyCmd::Pass {
+                    length: 16,
+                    no_lowercase: false,
+                    no_uppercase: false,
+                    no_digits: false,
+                    special: false,
+                }
+            })
+            .is_ok()
+        );
+    }
+
+    #[test]
+    fn exec_pass_no_character_set_errors() {
+        let result = exec(KeyArgs {
+            kind: KeyCmd::Pass {
+                length: 16,
+                no_lowercase: true,
+                no_uppercase: true,
+                no_digits: true,
+                special: false,
+            },
+        });
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("character set"));
+    }
+
+    #[test]
+    fn exec_token_hex_default() {
+        assert!(
+            exec(KeyArgs {
+                kind: KeyCmd::Token {
+                    length: 32,
+                    encoding: TokenCmdEncoding::Hex,
+                }
+            })
+            .is_ok()
+        );
+    }
+
+    #[test]
+    fn exec_token_base64() {
+        assert!(
+            exec(KeyArgs {
+                kind: KeyCmd::Token {
+                    length: 30,
+                    encoding: TokenCmdEncoding::Base64,
+                }
+            })
+            .is_ok()
+        );
     }
 }

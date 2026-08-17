@@ -3,6 +3,8 @@ pub mod key_generator;
 
 use clap::{Args, Subcommand};
 
+use crate::error::CliError;
+
 /// `oxide gen ...` — entry point for all generators
 #[derive(Args)]
 pub struct GenArgs {
@@ -14,17 +16,13 @@ pub struct GenArgs {
 pub enum GenKind {
     /// Generate UUIDs (v1–v8), ULIDs, NanoIDs, etc.
     Id(id_generator::IdArgs),
-    /// Generate cryptographic keys (e.g. RSA, Ed25519, Passwords)
+    /// Generate cryptographic keys (e.g. passwords, tokens).
     Key(key_generator::KeyArgs),
-    // Data(),
-    // File(),
 }
 
-pub fn exec(args: GenArgs) {
+pub fn exec(args: GenArgs) -> Result<(), CliError> {
     match args.kind {
         GenKind::Id(args) => id_generator::exec(args),
         GenKind::Key(args) => key_generator::exec(args),
-        // GenKind::Data(args) => data::exec(args),
-        // GenKind::File(args) => file::exec(args),
     }
 }
