@@ -27,11 +27,7 @@ uuid = { version = "1.23.1", features = [
 ] }
 ulid = "3.0.0"
 nanoid = "0.5.0"
-<<<<<<< HEAD
-rand = "0.9"
-=======
 rand = "0.10"
->>>>>>> 6855e4404b7a9d9481e4433a94942a5efbee8592
 chrono = "0.4"
 base64 = "0.23.1"
 
