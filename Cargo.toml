@@ -25,7 +25,7 @@ uuid = { version = "1.23.1", features = [
     "md5",
     "sha1",
 ] }
-ulid = "1.2.1"
+ulid = "3.0.0"
 nanoid = "0.5.0"
 rand = "0.8"
 chrono = "0.4"
