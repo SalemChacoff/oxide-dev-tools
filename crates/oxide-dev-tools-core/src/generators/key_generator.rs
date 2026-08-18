@@ -1,6 +1,6 @@
 use std::fmt;
 
-use rand::seq::SliceRandom;
+use rand::seq::{IndexedRandom, SliceRandom};
 
 /// Errors that can occur when generating a key/token.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -83,7 +83,7 @@ fn gen_password(opts: &PasswordOptions) -> Result<String, KeyError> {
         return Err(KeyError::NoCharacterSet);
     }
 
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let mut password = Vec::with_capacity(opts.length);
 
     // Guarantee at least one character from each selected set.
