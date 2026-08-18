@@ -118,7 +118,7 @@ fn gen_uuid_v8() -> String {
 // -------- Other ID types --------
 
 fn gen_ulid() -> String {
-    ulid::Ulid::new().to_string()
+    ulid::Ulid::generate().to_string()
 }
 
 fn gen_nanoid() -> String {
