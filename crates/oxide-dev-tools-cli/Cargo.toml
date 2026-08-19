@@ -11,7 +11,7 @@ name = "oxide"
 path = "src/main.rs"
 
 [dependencies]
-oxide-dev-tools-core = { path = "../oxide-dev-tools-core" }
+oxide-dev-tools-core = { path = "../oxide-dev-tools-core", version = "0.1.0" }
 clap = { workspace = true }
 chrono = { workspace = true }
 uuid = { workspace = true }

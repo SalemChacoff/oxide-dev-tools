@@ -1,12 +1,34 @@
 version: 2
 updates:
-  - package-ecosystem: cargo
-    directory: /
+  - package-ecosystem: "cargo"
+    directory: "/"
     schedule:
-      interval: weekly
-    open-pull-requests-limit: 10
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    # Only touch Cargo.lock and bump the Cargo.toml requirement when the
+    # current range does not already include the new version.
+    versioning-strategy: "auto"
+    labels:
+      - "dependencies"
+      - "cargo"
+    groups:
+      cargo-deps:
+        patterns:
+          - "*"
+    commit-message:
+      prefix: "chore(deps)"
 
-  - package-ecosystem: github-actions
-    directory: /
+  - package-ecosystem: "github-actions"
+    directory: "/"
     schedule:
-      interval: weekly
+      interval: "monthly"
+    open-pull-requests-limit: 5
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+    commit-message:
+      prefix: "chore(deps)"
