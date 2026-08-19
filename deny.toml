@@ -22,10 +22,21 @@ db-urls = ["https://github.com/RustSec/advisory-db"]
 ignore = []
 
 [bans]
-multiple-versions = "warn"
-wildcards = "warn"
+multiple-versions = "deny"
+wildcards = "deny"
+# Older duplicate versions kept only because they come from
+# semver-incompatible transitive deps that cannot be unified:
+#   - rand 0.9.x / rand_core 0.9.x / getrandom 0.3.x: pulled in by nanoid 0.5.0
+#   - r-efi 5.x and syn 2.x: only present in the target-independent graph
+skip = [
+    { name = "getrandom", version = "0.3.4" },
+    { name = "r-efi", version = "5.3.0" },
+    { name = "rand", version = "0.9.5" },
+    { name = "rand_core", version = "0.9.5" },
+    { name = "syn", version = "2.0.119" },
+]
 
 [sources]
-unknown-registry = "warn"
-unknown-git = "warn"
+unknown-registry = "deny"
+unknown-git = "deny"
 allow-registry = ["https://github.com/rust-lang/crates.io-index"]
