@@ -10,7 +10,7 @@ updates:
     open-pull-requests-limit: 5
     # Only touch Cargo.lock and bump the Cargo.toml requirement when the
     # current range does not already include the new version.
-    versioning-strategy: "increase-if-necessary"
+    versioning-strategy: "auto"
     labels:
       - "dependencies"
       - "cargo"
