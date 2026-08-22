@@ -421,7 +421,12 @@ mod tests {
             ..Default::default()
         };
         let text = generate_lorem(LoremKind::Sentences(opts)).unwrap();
-        assert!(text.starts_with("Lorem ipsum dolor sit amet "));
+        // The first sentence can be exactly the five opening words, in which
+        // case the opening is followed by a period instead of a space.
+        let after = text
+            .strip_prefix("Lorem ipsum dolor sit amet")
+            .expect("text must start with the classical opening");
+        assert!(after.starts_with(' ') || after.starts_with('.'));
         let first = text.split('.').next().unwrap();
         assert!(first.split_whitespace().count() >= 5);
     }
@@ -502,7 +507,12 @@ mod tests {
             ..Default::default()
         };
         let text = generate_lorem(LoremKind::Paragraphs(opts)).unwrap();
-        assert!(text.starts_with("Lorem ipsum dolor sit amet "));
+        // The first sentence can be exactly the five opening words, in which
+        // case the opening is followed by a period instead of a space.
+        let after = text
+            .strip_prefix("Lorem ipsum dolor sit amet")
+            .expect("text must start with the classical opening");
+        assert!(after.starts_with(' ') || after.starts_with('.'));
     }
 
     #[test]
