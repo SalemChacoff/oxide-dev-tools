@@ -14,6 +14,7 @@ A fast, unified CLI toolkit for developers — generators, validators, comparato
 |---|---|
 | **ID Generator** (`oxide gen id`) | UUID v1–v8, ULID, NanoID |
 | **Key Generator** (`oxide gen key`) | Passwords, Tokens, JWTs (HS256) |
+| **Data Generator** (`oxide gen lorem`) | Lorem ipsum words, sentences, paragraphs |
 
 ### 🚧 Planned / In progress
 
@@ -24,7 +25,7 @@ A fast, unified CLI toolkit for developers — generators, validators, comparato
 | **Text Utilities** | Case conversion, slugify, count (words/lines/chars), truncate, encode/decode |
 | **Codecs** | Base64, hex, URL encode, PEM/PFX parsing, ZIP compression |
 | **Converters** | Timestamp ↔ date, units, JSON ↔ YAML, color formats |
-| **Data Generator** | Lorem ipsum, fake personas (name, email, address, phone), sample CSV/JSON data |
+| **Data Generator** | Fake personas (name, email, address, phone), sample CSV/JSON data |
 | **File Generator** | Boilerplate scaffolding (gitignore, license, Dockerfile, CI configs) |
 | **Structural Analyzers** | Analyze JSON/YAML/XML structure, file tree, dependency graph |
 
@@ -94,10 +95,23 @@ oxide gen key jwt '{"sub":"user-1","exp":1750000000}' --secret my-secret
 
 > Note: on Windows shells, JSON quoting differs — e.g. `oxide gen key jwt "{\"sub\":\"user-1\"}" --secret my-secret`.
 
+# Generate 10 lorem ipsum words
+oxide gen lorem words
+
+# Generate 20 lorem ipsum words starting with the classic opener
+oxide gen lorem words --length 20 --start
+
+# Generate 3 lorem ipsum sentences (4–12 words each)
+oxide gen lorem sentences
+
+# Generate 2 paragraphs of 5 sentences each, starting with the classic opener
+oxide gen lorem paragraphs --length 2 --sentences-per-paragraph 5 --start
+
 # Show help
 oxide --help
 oxide gen --help
 oxide gen id --help
+oxide gen lorem --help
 ```
 
 ---
@@ -113,6 +127,7 @@ oxide-dev-tools/
 │   │       │   ├── id_generator.rs   # UUID v1–v8, ULID, NanoID + planned IDs
 │   │       │   ├── jwt_generator.rs  # JWT (HS256) generation
 │   │       │   ├── key_generator.rs  # Password, token generation
+│   │       │   ├── lorem_generator.rs # Lorem ipsum words, sentences, paragraphs
 │   │       │   └── mod.rs
 │   │       └── lib.rs
 │   └── oxide-dev-tools-cli/    # CLI binary — clap-based argument parsing
@@ -120,6 +135,7 @@ oxide-dev-tools/
 │           ├── generators/     # CLI subcommand wrappers for generators
 │           │   ├── id_generator.rs
 │           │   ├── key_generator.rs
+│           │   ├── lorem_generator.rs
 │           │   └── mod.rs
 │           └── main.rs
 ├── Cargo.toml                  # Workspace manifest
@@ -145,7 +161,7 @@ The project follows a two-crate architecture:
 ### Phase 2 — Key & Data Generators
 - [x] Password generator (configurable length, character sets)
 - [x] Token generator (configurable length, hex/base64, JWT)
-- [ ] Lorem ipsum generator
+- [x] Lorem ipsum generator
 - [ ] Fake data generator (personas, addresses, companies)
 - [ ] Sample file generator (CSV, JSON, YAML)
 

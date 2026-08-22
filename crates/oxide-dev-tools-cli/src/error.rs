@@ -6,6 +6,7 @@ pub enum CliError {
     Id(oxide_dev_tools_core::IdError),
     Jwt(oxide_dev_tools_core::JwtError),
     Key(oxide_dev_tools_core::KeyError),
+    Lorem(oxide_dev_tools_core::LoremError),
     Argument(String),
 }
 
@@ -15,6 +16,7 @@ impl fmt::Display for CliError {
             CliError::Id(e) => write!(f, "{e}"),
             CliError::Jwt(e) => write!(f, "{e}"),
             CliError::Key(e) => write!(f, "{e}"),
+            CliError::Lorem(e) => write!(f, "{e}"),
             CliError::Argument(msg) => write!(f, "{msg}"),
         }
     }
@@ -26,6 +28,7 @@ impl std::error::Error for CliError {
             CliError::Id(e) => Some(e),
             CliError::Jwt(e) => Some(e),
             CliError::Key(e) => Some(e),
+            CliError::Lorem(e) => Some(e),
             CliError::Argument(_) => None,
         }
     }
@@ -46,6 +49,12 @@ impl From<oxide_dev_tools_core::JwtError> for CliError {
 impl From<oxide_dev_tools_core::KeyError> for CliError {
     fn from(e: oxide_dev_tools_core::KeyError) -> Self {
         CliError::Key(e)
+    }
+}
+
+impl From<oxide_dev_tools_core::LoremError> for CliError {
+    fn from(e: oxide_dev_tools_core::LoremError) -> Self {
+        CliError::Lorem(e)
     }
 }
 

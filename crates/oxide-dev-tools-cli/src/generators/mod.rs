@@ -1,5 +1,6 @@
 pub mod id_generator;
 pub mod key_generator;
+pub mod lorem_generator;
 
 use clap::{Args, Subcommand};
 
@@ -18,11 +19,14 @@ pub enum GenKind {
     Id(id_generator::IdArgs),
     /// Generate cryptographic keys (e.g. passwords, tokens).
     Key(key_generator::KeyArgs),
+    /// Generate lorem ipsum words, sentences, and paragraphs.
+    Lorem(lorem_generator::LoremArgs),
 }
 
 pub fn exec(args: GenArgs) -> Result<(), CliError> {
     match args.kind {
         GenKind::Id(args) => id_generator::exec(args),
         GenKind::Key(args) => key_generator::exec(args),
+        GenKind::Lorem(args) => lorem_generator::exec(args),
     }
 }
