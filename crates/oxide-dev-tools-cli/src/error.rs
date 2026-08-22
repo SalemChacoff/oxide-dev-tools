@@ -4,6 +4,7 @@ use std::fmt;
 #[derive(Debug)]
 pub enum CliError {
     Id(oxide_dev_tools_core::IdError),
+    Jwt(oxide_dev_tools_core::JwtError),
     Key(oxide_dev_tools_core::KeyError),
     Argument(String),
 }
@@ -12,6 +13,7 @@ impl fmt::Display for CliError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             CliError::Id(e) => write!(f, "{e}"),
+            CliError::Jwt(e) => write!(f, "{e}"),
             CliError::Key(e) => write!(f, "{e}"),
             CliError::Argument(msg) => write!(f, "{msg}"),
         }
@@ -22,6 +24,7 @@ impl std::error::Error for CliError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
             CliError::Id(e) => Some(e),
+            CliError::Jwt(e) => Some(e),
             CliError::Key(e) => Some(e),
             CliError::Argument(_) => None,
         }
@@ -31,6 +34,12 @@ impl std::error::Error for CliError {
 impl From<oxide_dev_tools_core::IdError> for CliError {
     fn from(e: oxide_dev_tools_core::IdError) -> Self {
         CliError::Id(e)
+    }
+}
+
+impl From<oxide_dev_tools_core::JwtError> for CliError {
+    fn from(e: oxide_dev_tools_core::JwtError) -> Self {
+        CliError::Jwt(e)
     }
 }
 

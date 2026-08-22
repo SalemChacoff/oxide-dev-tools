@@ -26,12 +26,14 @@ wildcards = "deny"
 # semver-incompatible transitive deps that cannot be unified:
 #   - rand 0.9.x / rand_core 0.9.x / getrandom 0.3.x: pulled in by nanoid 0.5.0
 #   - r-efi 5.x and syn 2.x: only present in the target-independent graph
+#   - cpufeatures 0.2.x: pulled in by sha2 0.10.x (chacha20 needs 0.3.x)
 skip = [
     { name = "getrandom", version = "0.3.4" },
     { name = "r-efi", version = "5.3.0" },
     { name = "rand", version = "0.9.5" },
     { name = "rand_core", version = "0.9.5" },
     { name = "syn", version = "2.0.119" },
+    { name = "cpufeatures", version = "0.2.17" },
 ]
 
 [sources]

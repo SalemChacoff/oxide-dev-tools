@@ -13,7 +13,7 @@ A fast, unified CLI toolkit for developers — generators, validators, comparato
 | Category | Tools |
 |---|---|
 | **ID Generator** (`oxide gen id`) | UUID v1–v8, ULID, NanoID |
-| **Key Generator** (`oxide gen key`) | Passwords, Tokens |
+| **Key Generator** (`oxide gen key`) | Passwords, Tokens, JWTs (HS256) |
 
 ### 🚧 Planned / In progress
 
@@ -77,7 +77,6 @@ oxide gen id nanoid
 # Generate a ULID
 oxide gen id ulid
 
-```bash
 # Generate a password
 oxide gen key pass
 
@@ -86,6 +85,14 @@ oxide gen key token
 
 # Generate a base64 token
 oxide gen key token --encoding base64
+
+# Generate an HS256 JWT from a JSON payload (expires in 1 hour)
+oxide gen key jwt '{"sub":"user-1"}' --secret my-secret --exp 1h
+
+# JWT with an explicit expiry claim (payload "exp" wins over --exp)
+oxide gen key jwt '{"sub":"user-1","exp":1750000000}' --secret my-secret
+
+> Note: on Windows shells, JSON quoting differs — e.g. `oxide gen key jwt "{\"sub\":\"user-1\"}" --secret my-secret`.
 
 # Show help
 oxide --help
@@ -104,6 +111,7 @@ oxide-dev-tools/
 │   │   └── src/
 │   │       ├── generators/
 │   │       │   ├── id_generator.rs   # UUID v1–v8, ULID, NanoID + planned IDs
+│   │       │   ├── jwt_generator.rs  # JWT (HS256) generation
 │   │       │   ├── key_generator.rs  # Password, token generation
 │   │       │   └── mod.rs
 │   │       └── lib.rs
@@ -136,7 +144,7 @@ The project follows a two-crate architecture:
 
 ### Phase 2 — Key & Data Generators
 - [x] Password generator (configurable length, character sets)
-- [x] Token generator (configurable length, hex/base64)
+- [x] Token generator (configurable length, hex/base64, JWT)
 - [ ] Lorem ipsum generator
 - [ ] Fake data generator (personas, addresses, companies)
 - [ ] Sample file generator (CSV, JSON, YAML)
