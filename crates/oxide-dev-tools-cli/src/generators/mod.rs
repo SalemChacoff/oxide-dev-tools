@@ -1,3 +1,4 @@
+pub mod fake_generator;
 pub mod id_generator;
 pub mod key_generator;
 pub mod lorem_generator;
@@ -15,7 +16,9 @@ pub struct GenArgs {
 
 #[derive(Subcommand)]
 pub enum GenKind {
-    /// Generate UUIDs (v1–v8), ULIDs, NanoIDs, etc.
+    /// Generate fake data (personas, names, emails, phones, addresses, companies)
+    Fake(fake_generator::FakeArgs),
+    /// Generate IDs (UUIDs (v1–v8), ULIDs, NanoIDs, etc.).
     Id(id_generator::IdArgs),
     /// Generate cryptographic keys (e.g. passwords, tokens).
     Key(key_generator::KeyArgs),
@@ -25,6 +28,7 @@ pub enum GenKind {
 
 pub fn exec(args: GenArgs) -> Result<(), CliError> {
     match args.kind {
+        GenKind::Fake(args) => fake_generator::exec(args),
         GenKind::Id(args) => id_generator::exec(args),
         GenKind::Key(args) => key_generator::exec(args),
         GenKind::Lorem(args) => lorem_generator::exec(args),

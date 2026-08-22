@@ -15,6 +15,7 @@ A fast, unified CLI toolkit for developers — generators, validators, comparato
 | **ID Generator** (`oxide gen id`) | UUID v1–v8, ULID, NanoID |
 | **Key Generator** (`oxide gen key`) | Passwords, Tokens, JWTs (HS256) |
 | **Data Generator** (`oxide gen lorem`) | Lorem ipsum words, sentences, paragraphs |
+| **Data Generator** (`oxide gen fake`) | Fake personas, names, emails, phones, addresses, companies |
 
 ### 🚧 Planned / In progress
 
@@ -25,7 +26,7 @@ A fast, unified CLI toolkit for developers — generators, validators, comparato
 | **Text Utilities** | Case conversion, slugify, count (words/lines/chars), truncate, encode/decode |
 | **Codecs** | Base64, hex, URL encode, PEM/PFX parsing, ZIP compression |
 | **Converters** | Timestamp ↔ date, units, JSON ↔ YAML, color formats |
-| **Data Generator** | Fake personas (name, email, address, phone), sample CSV/JSON data |
+| **Data Generator** | Fake personas, names, emails, phones, addresses, companies; sample CSV/JSON data |
 | **File Generator** | Boilerplate scaffolding (gitignore, license, Dockerfile, CI configs) |
 | **Structural Analyzers** | Analyze JSON/YAML/XML structure, file tree, dependency graph |
 
@@ -107,11 +108,40 @@ oxide gen lorem sentences
 # Generate 2 paragraphs of 5 sentences each, starting with the classic opener
 oxide gen lorem paragraphs --length 2 --sentences-per-paragraph 5 --start
 
+# Generate a full fake persona (name, email, phone, address, company, job)
+oxide gen fake person
+
+# Generate a random first name, surname, and full name
+oxide gen fake name
+oxide gen fake surname
+oxide gen fake fullname
+
+# Generate a fake email address and a US phone number
+oxide gen fake email
+oxide gen fake phone
+
+# Generate a fake street address (street, city, country)
+oxide gen fake address
+
+# Generate a random city, country, company, job title, and username
+oxide gen fake city
+oxide gen fake country
+oxide gen fake company
+oxide gen fake job
+oxide gen fake username
+
+# Generate 10 emails, one per line
+oxide gen fake email --count 10
+
+# Generate 3 persona cards, separated by blank lines
+oxide gen fake person --count 3
+
 # Show help
 oxide --help
 oxide gen --help
 oxide gen id --help
 oxide gen lorem --help
+oxide gen fake --help
 ```
 
 ---
@@ -124,6 +154,7 @@ oxide-dev-tools/
 │   ├── oxide-dev-tools-core/   # Core library — all logic lives here
 │   │   └── src/
 │   │       ├── generators/
+│   │       │   ├── fake_generator.rs  # Fake personas, names, emails, phones, addresses
 │   │       │   ├── id_generator.rs   # UUID v1–v8, ULID, NanoID + planned IDs
 │   │       │   ├── jwt_generator.rs  # JWT (HS256) generation
 │   │       │   ├── key_generator.rs  # Password, token generation
@@ -132,8 +163,9 @@ oxide-dev-tools/
 │   │       └── lib.rs
 │   └── oxide-dev-tools-cli/    # CLI binary — clap-based argument parsing
 │       └── src/
-│           ├── generators/     # CLI subcommand wrappers for generators
-│           │   ├── id_generator.rs
+│   │           ├── generators/     # CLI subcommand wrappers for generators
+│   │           │   ├── fake_generator.rs
+│   │           │   ├── id_generator.rs
 │           │   ├── key_generator.rs
 │           │   ├── lorem_generator.rs
 │           │   └── mod.rs
@@ -162,7 +194,7 @@ The project follows a two-crate architecture:
 - [x] Password generator (configurable length, character sets)
 - [x] Token generator (configurable length, hex/base64, JWT)
 - [x] Lorem ipsum generator
-- [ ] Fake data generator (personas, addresses, companies)
+- [x] Fake data generator (personas, addresses, companies, etc)
 - [ ] Sample file generator (CSV, JSON, YAML)
 
 ### Phase 3 — Codecs & Converters
