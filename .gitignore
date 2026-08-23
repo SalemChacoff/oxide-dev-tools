@@ -38,3 +38,10 @@ Session.vim
 
 # Helix
 /.helix
+
+# === AI Agent tooling ===
+
+# Agent skill definitions and guidance files
+.agents/
+AGENTS.md
+SKILL.md

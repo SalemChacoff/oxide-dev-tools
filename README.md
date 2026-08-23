@@ -13,7 +13,10 @@ A fast, unified CLI toolkit for developers — generators, validators, comparato
 | Category | Tools |
 |---|---|
 | **ID Generator** (`oxide gen id`) | UUID v1–v8, ULID, NanoID |
-| **Key Generator** (`oxide gen key`) | Passwords, Tokens |
+| **Key Generator** (`oxide gen key`) | Passwords, Tokens, JWTs (HS256) |
+| **Data Generator** (`oxide gen lorem`) | Lorem ipsum words, sentences, paragraphs |
+| **Data Generator** (`oxide gen fake`) | Fake personas, names, emails, phones, addresses, companies |
+| **Sample File Generator** (`oxide gen sample`) | PDF, PNG, JPG files with exact sizes, dimensions, colors, tamper variants |
 
 ### 🚧 Planned / In progress
 
@@ -24,7 +27,7 @@ A fast, unified CLI toolkit for developers — generators, validators, comparato
 | **Text Utilities** | Case conversion, slugify, count (words/lines/chars), truncate, encode/decode |
 | **Codecs** | Base64, hex, URL encode, PEM/PFX parsing, ZIP compression |
 | **Converters** | Timestamp ↔ date, units, JSON ↔ YAML, color formats |
-| **Data Generator** | Lorem ipsum, fake personas (name, email, address, phone), sample CSV/JSON data |
+| **Data Generator** | Fake personas, names, emails, phones, addresses, companies; sample CSV/JSON data |
 | **File Generator** | Boilerplate scaffolding (gitignore, license, Dockerfile, CI configs) |
 | **Structural Analyzers** | Analyze JSON/YAML/XML structure, file tree, dependency graph |
 
@@ -77,7 +80,6 @@ oxide gen id nanoid
 # Generate a ULID
 oxide gen id ulid
 
-```bash
 # Generate a password
 oxide gen key pass
 
@@ -87,10 +89,76 @@ oxide gen key token
 # Generate a base64 token
 oxide gen key token --encoding base64
 
+# Generate an HS256 JWT from a JSON payload (expires in 1 hour)
+oxide gen key jwt '{"sub":"user-1"}' --secret my-secret --exp 1h
+
+# JWT with an explicit expiry claim (payload "exp" wins over --exp)
+oxide gen key jwt '{"sub":"user-1","exp":1750000000}' --secret my-secret
+
+> Note: on Windows shells, JSON quoting differs — e.g. `oxide gen key jwt "{\"sub\":\"user-1\"}" --secret my-secret`.
+
+# Generate 10 lorem ipsum words
+oxide gen lorem words
+
+# Generate 20 lorem ipsum words starting with the classic opener
+oxide gen lorem words --length 20 --start
+
+# Generate 3 lorem ipsum sentences (4–12 words each)
+oxide gen lorem sentences
+
+# Generate 2 paragraphs of 5 sentences each, starting with the classic opener
+oxide gen lorem paragraphs --length 2 --sentences-per-paragraph 5 --start
+
+# Generate a full fake persona (name, email, phone, address, company, job)
+oxide gen fake person
+
+# Generate a random first name, surname, and full name
+oxide gen fake name
+oxide gen fake surname
+oxide gen fake fullname
+
+# Generate a fake email address and a US phone number
+oxide gen fake email
+oxide gen fake phone
+
+# Generate a fake street address (street, city, country)
+oxide gen fake address
+
+# Generate a random city, country, company, job title, and username
+oxide gen fake city
+oxide gen fake country
+oxide gen fake company
+oxide gen fake job
+oxide gen fake username
+
+# Generate 10 emails, one per line
+oxide gen fake email --count 10
+
+# Generate 3 persona cards, separated by blank lines
+oxide gen fake person --count 3
+
+# Generate a 5kb PDF with custom text
+oxide gen sample pdf --size 5kb --text "invoice #1"
+
+# Generate a 5MB red PNG (dimensions auto-picked to fit the size)
+oxide gen sample png --size 5mb --color red --output ./upload.png
+
+# Generate a 2MB JPEG and write it with a .txt extension (extension tests)
+oxide gen sample jpg --size 2mb --wrong-ext txt
+
+# Generate a PDF with zeroed magic bytes (magic-byte tests)
+oxide gen sample pdf --size 5kb --tamper magic
+
+# Stream a sample file straight into a multipart upload
+oxide gen sample pdf --size 5kb --output - | curl -F "file=@-;filename=sample.pdf" http://localhost:8080/upload
+
 # Show help
 oxide --help
 oxide gen --help
 oxide gen id --help
+oxide gen lorem --help
+oxide gen fake --help
+oxide gen sample --help
 ```
 
 ---
@@ -102,17 +170,24 @@ oxide-dev-tools/
 ├── crates/
 │   ├── oxide-dev-tools-core/   # Core library — all logic lives here
 │   │   └── src/
-│   │       ├── generators/
-│   │       │   ├── id_generator.rs   # UUID v1–v8, ULID, NanoID + planned IDs
-│   │       │   ├── key_generator.rs  # Password, token generation
-│   │       │   └── mod.rs
+│       │       ├── generators/
+│       │       │   ├── fake_generator.rs  # Fake personas, names, emails, phones, addresses
+│       │       │   ├── id_generator.rs   # UUID v1–v8, ULID, NanoID + planned IDs
+│       │       │   ├── jwt_generator.rs  # JWT (HS256) generation
+│       │       │   ├── key_generator.rs  # Password, token generation
+│       │       │   ├── lorem_generator.rs # Lorem ipsum words, sentences, paragraphs
+│       │       │   ├── sample_file_generator.rs # Sample PDF/PNG/JPG files with exact sizes
+│       │       │   └── mod.rs
 │   │       └── lib.rs
 │   └── oxide-dev-tools-cli/    # CLI binary — clap-based argument parsing
 │       └── src/
-│           ├── generators/     # CLI subcommand wrappers for generators
-│           │   ├── id_generator.rs
-│           │   ├── key_generator.rs
-│           │   └── mod.rs
+│   │           ├── generators/     # CLI subcommand wrappers for generators
+│   │           │   ├── fake_generator.rs
+│               │   ├── id_generator.rs
+│               │   ├── key_generator.rs
+│               │   ├── lorem_generator.rs
+│               │   ├── sample_file_generator.rs
+│               │   └── mod.rs
 │           └── main.rs
 ├── Cargo.toml                  # Workspace manifest
 └── README.md
@@ -136,10 +211,10 @@ The project follows a two-crate architecture:
 
 ### Phase 2 — Key & Data Generators
 - [x] Password generator (configurable length, character sets)
-- [x] Token generator (configurable length, hex/base64)
-- [ ] Lorem ipsum generator
-- [ ] Fake data generator (personas, addresses, companies)
-- [ ] Sample file generator (CSV, JSON, YAML)
+- [x] Token generator (configurable length, hex/base64, JWT)
+- [x] Lorem ipsum generator
+- [x] Fake data generator (personas, addresses, companies, etc)
+- [x] Sample file generator (PDF, PNG, JPG)
 
 ### Phase 3 — Codecs & Converters
 - [ ] Base64 encode/decode
