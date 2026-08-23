@@ -7,3 +7,6 @@ pub use generators::key_generator::{KeyError, KeyKind, PasswordOptions, TokenEnc
 pub use generators::lorem_generator::{
     LoremError, LoremKind, ParagraphOptions, SentenceOptions, WordOptions, generate_lorem,
 };
+pub use generators::sample_file_generator::{
+    JpgOptions, PdfOptions, PngOptions, SampleError, SampleKind, TamperKind, generate_sample_file,
+};

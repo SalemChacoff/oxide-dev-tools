@@ -16,6 +16,7 @@ A fast, unified CLI toolkit for developers — generators, validators, comparato
 | **Key Generator** (`oxide gen key`) | Passwords, Tokens, JWTs (HS256) |
 | **Data Generator** (`oxide gen lorem`) | Lorem ipsum words, sentences, paragraphs |
 | **Data Generator** (`oxide gen fake`) | Fake personas, names, emails, phones, addresses, companies |
+| **Sample File Generator** (`oxide gen sample`) | PDF, PNG, JPG files with exact sizes, dimensions, colors, tamper variants |
 
 ### 🚧 Planned / In progress
 
@@ -136,12 +137,28 @@ oxide gen fake email --count 10
 # Generate 3 persona cards, separated by blank lines
 oxide gen fake person --count 3
 
+# Generate a 5kb PDF with custom text
+oxide gen sample pdf --size 5kb --text "invoice #1"
+
+# Generate a 5MB red PNG (dimensions auto-picked to fit the size)
+oxide gen sample png --size 5mb --color red --output ./upload.png
+
+# Generate a 2MB JPEG and write it with a .txt extension (extension tests)
+oxide gen sample jpg --size 2mb --wrong-ext txt
+
+# Generate a PDF with zeroed magic bytes (magic-byte tests)
+oxide gen sample pdf --size 5kb --tamper magic
+
+# Stream a sample file straight into a multipart upload
+oxide gen sample pdf --size 5kb --output - | curl -F "file=@-;filename=sample.pdf" http://localhost:8080/upload
+
 # Show help
 oxide --help
 oxide gen --help
 oxide gen id --help
 oxide gen lorem --help
 oxide gen fake --help
+oxide gen sample --help
 ```
 
 ---
@@ -153,22 +170,24 @@ oxide-dev-tools/
 ├── crates/
 │   ├── oxide-dev-tools-core/   # Core library — all logic lives here
 │   │   └── src/
-│   │       ├── generators/
-│   │       │   ├── fake_generator.rs  # Fake personas, names, emails, phones, addresses
-│   │       │   ├── id_generator.rs   # UUID v1–v8, ULID, NanoID + planned IDs
-│   │       │   ├── jwt_generator.rs  # JWT (HS256) generation
-│   │       │   ├── key_generator.rs  # Password, token generation
-│   │       │   ├── lorem_generator.rs # Lorem ipsum words, sentences, paragraphs
-│   │       │   └── mod.rs
+│       │       ├── generators/
+│       │       │   ├── fake_generator.rs  # Fake personas, names, emails, phones, addresses
+│       │       │   ├── id_generator.rs   # UUID v1–v8, ULID, NanoID + planned IDs
+│       │       │   ├── jwt_generator.rs  # JWT (HS256) generation
+│       │       │   ├── key_generator.rs  # Password, token generation
+│       │       │   ├── lorem_generator.rs # Lorem ipsum words, sentences, paragraphs
+│       │       │   ├── sample_file_generator.rs # Sample PDF/PNG/JPG files with exact sizes
+│       │       │   └── mod.rs
 │   │       └── lib.rs
 │   └── oxide-dev-tools-cli/    # CLI binary — clap-based argument parsing
 │       └── src/
 │   │           ├── generators/     # CLI subcommand wrappers for generators
 │   │           │   ├── fake_generator.rs
-│   │           │   ├── id_generator.rs
-│           │   ├── key_generator.rs
-│           │   ├── lorem_generator.rs
-│           │   └── mod.rs
+│               │   ├── id_generator.rs
+│               │   ├── key_generator.rs
+│               │   ├── lorem_generator.rs
+│               │   ├── sample_file_generator.rs
+│               │   └── mod.rs
 │           └── main.rs
 ├── Cargo.toml                  # Workspace manifest
 └── README.md
@@ -195,7 +214,7 @@ The project follows a two-crate architecture:
 - [x] Token generator (configurable length, hex/base64, JWT)
 - [x] Lorem ipsum generator
 - [x] Fake data generator (personas, addresses, companies, etc)
-- [ ] Sample file generator (CSV, JSON, YAML)
+- [x] Sample file generator (PDF, PNG, JPG)
 
 ### Phase 3 — Codecs & Converters
 - [ ] Base64 encode/decode

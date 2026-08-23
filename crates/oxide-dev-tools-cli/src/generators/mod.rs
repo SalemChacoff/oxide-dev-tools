@@ -2,6 +2,7 @@ pub mod fake_generator;
 pub mod id_generator;
 pub mod key_generator;
 pub mod lorem_generator;
+pub mod sample_file_generator;
 
 use clap::{Args, Subcommand};
 
@@ -24,6 +25,8 @@ pub enum GenKind {
     Key(key_generator::KeyArgs),
     /// Generate lorem ipsum words, sentences, and paragraphs.
     Lorem(lorem_generator::LoremArgs),
+    /// Generate sample files (PDF, PNG, JPG) for testing upload endpoints.
+    Sample(sample_file_generator::SampleArgs),
 }
 
 pub fn exec(args: GenArgs) -> Result<(), CliError> {
@@ -32,5 +35,6 @@ pub fn exec(args: GenArgs) -> Result<(), CliError> {
         GenKind::Id(args) => id_generator::exec(args),
         GenKind::Key(args) => key_generator::exec(args),
         GenKind::Lorem(args) => lorem_generator::exec(args),
+        GenKind::Sample(args) => sample_file_generator::exec(args),
     }
 }
