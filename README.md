@@ -17,6 +17,7 @@ A fast, unified CLI toolkit for developers — generators, validators, comparato
 | **Data Generator** (`oxide gen lorem`) | Lorem ipsum words, sentences, paragraphs |
 | **Data Generator** (`oxide gen fake`) | Fake personas, names, emails, phones, addresses, companies |
 | **Sample File Generator** (`oxide gen sample`) | PDF, PNG, JPG files with exact sizes, dimensions, colors, tamper variants |
+| **Codecs** (`oxide codec`) | Base64 encode/decode (standard and URL-safe) |
 
 ### 🚧 Planned / In progress
 
@@ -152,6 +153,16 @@ oxide gen sample pdf --size 5kb --tamper magic
 # Stream a sample file straight into a multipart upload
 oxide gen sample pdf --size 5kb --output - | curl -F "file=@-;filename=sample.pdf" http://localhost:8080/upload
 
+# Encode text as base64
+oxide codec base64 encode "hello world"
+
+# Decode base64 back into text
+oxide codec base64 decode "aGVsbG8gd29ybGQ="
+
+# URL-safe, unpadded base64 (JWT style)
+oxide codec base64 encode "hello" --url
+oxide codec base64 decode "aGVsbG8" --url
+
 # Show help
 oxide --help
 oxide gen --help
@@ -159,6 +170,8 @@ oxide gen id --help
 oxide gen lorem --help
 oxide gen fake --help
 oxide gen sample --help
+oxide codec --help
+oxide codec base64 --help
 ```
 
 ---
@@ -170,6 +183,9 @@ oxide-dev-tools/
 ├── crates/
 │   ├── oxide-dev-tools-core/   # Core library — all logic lives here
 │   │   └── src/
+│       │       ├── codecs/          # Codec implementations (base64, hex, URL, ...)
+│       │       │   ├── base64_codec.rs
+│       │       │   └── mod.rs
 │       │       ├── generators/
 │       │       │   ├── fake_generator.rs  # Fake personas, names, emails, phones, addresses
 │       │       │   ├── id_generator.rs   # UUID v1–v8, ULID, NanoID + planned IDs
@@ -181,6 +197,9 @@ oxide-dev-tools/
 │   │       └── lib.rs
 │   └── oxide-dev-tools-cli/    # CLI binary — clap-based argument parsing
 │       └── src/
+│   │           ├── codecs/          # CLI wrappers for codecs
+│   │           │   ├── base64_codec.rs
+│   │           │   └── mod.rs
 │   │           ├── generators/     # CLI subcommand wrappers for generators
 │   │           │   ├── fake_generator.rs
 │               │   ├── id_generator.rs
@@ -217,7 +236,7 @@ The project follows a two-crate architecture:
 - [x] Sample file generator (PDF, PNG, JPG)
 
 ### Phase 3 — Codecs & Converters
-- [ ] Base64 encode/decode
+- [x] Base64 encode/decode
 - [ ] Hex encode/decode
 - [ ] URL encode/decode
 - [ ] Timestamp converter (Unix ↔ ISO 8601 ↔ human-readable)
