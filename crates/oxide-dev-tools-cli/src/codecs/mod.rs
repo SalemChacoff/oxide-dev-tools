@@ -1,4 +1,5 @@
 pub mod base64_codec;
+pub mod hex_codec;
 
 use clap::{Args, Subcommand};
 
@@ -15,10 +16,13 @@ pub struct CodecArgs {
 pub enum CodecKind {
     /// Encode and decode base64 data.
     Base64(base64_codec::Base64Args),
+    /// Encode and decode hex data.
+    Hex(hex_codec::HexArgs),
 }
 
 pub fn exec(args: CodecArgs) -> Result<(), CliError> {
     match args.kind {
         CodecKind::Base64(args) => base64_codec::exec(args),
+        CodecKind::Hex(args) => hex_codec::exec(args),
     }
 }
