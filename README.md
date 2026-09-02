@@ -18,6 +18,7 @@ A fast, unified CLI toolkit for developers — generators, validators, comparato
 | **Data Generator** (`oxide gen fake`) | Fake personas, names, emails, phones, addresses, companies |
 | **Sample File Generator** (`oxide gen sample`) | PDF, PNG, JPG files with exact sizes, dimensions, colors, tamper variants |
 | **Codecs** (`oxide codec`) | Base64 encode/decode (standard and URL-safe), Hex encode/decode, URL encode/decode |
+| **Converters** (`oxide convert`) | Timestamp ↔ Unix/ISO 8601/RFC 2822/human-readable, with units, precision, and timezones |
 
 ### 🚧 Planned / In progress
 
@@ -27,7 +28,7 @@ A fast, unified CLI toolkit for developers — generators, validators, comparato
 | **Comparators** | Diff text, JSON, directories; semantic version compare |
 | **Text Utilities** | Case conversion, slugify, count (words/lines/chars), truncate, encode/decode |
 | **Codecs** | PEM/PFX parsing, ZIP compression |
-| **Converters** | Timestamp ↔ date, units, JSON ↔ YAML, color formats |
+| **Converters** | Units, JSON ↔ YAML, color formats |
 | **Data Generator** | Fake personas, names, emails, phones, addresses, companies; sample CSV/JSON data |
 | **File Generator** | Boilerplate scaffolding (gitignore, license, Dockerfile, CI configs) |
 | **Structural Analyzers** | Analyze JSON/YAML/XML structure, file tree, dependency graph |
@@ -183,6 +184,40 @@ oxide codec url encode "hello world" --form
 oxide codec url decode "hello%20world"
 oxide codec url decode "hello+world" --form
 
+# Convert a Unix timestamp to ISO 8601 (format auto-detected)
+oxide convert timestamp 1750000000
+
+# Milliseconds, microseconds, and nanoseconds are auto-detected by digit count
+oxide convert timestamp 1750000000000
+oxide convert timestamp 1750000000000000
+oxide convert timestamp 1750000000000000000
+
+# Convert an ISO 8601 date to Unix seconds (offsets are honored)
+oxide convert timestamp 2026-06-07T12:34:56Z
+oxide convert timestamp 2026-06-07T12:34:56+02:00
+
+# Date-only and space-separated inputs are accepted
+oxide convert timestamp 2026-06-07
+oxide convert timestamp "2026-06-07 12:34:56"
+
+# Pick the output format: unix, iso, rfc2822, or human
+oxide convert timestamp 2026-06-07T12:34:56Z --to rfc2822
+oxide convert timestamp 2026-06-07T12:34:56Z --to human
+
+# Unix output in milliseconds with a fixed fractional precision
+oxide convert timestamp 2026-06-07T12:34:56.123456789Z --to unix --unit ms --precision 3
+
+# Render dates in another timezone (IANA names, ±HH:MM, or local)
+oxide convert timestamp 1750000000 --zone Europe/Berlin
+oxide convert timestamp 1750000000 --zone +05:30
+oxide convert timestamp 1750000000 --zone local
+
+# Force the input format when auto-detection is ambiguous
+oxide convert timestamp 1750000000 --from unix --to iso
+
+# Invalid dates are rejected with a specific reason
+oxide convert timestamp 2026-02-30
+
 # Show help
 oxide --help
 oxide gen --help
@@ -194,6 +229,8 @@ oxide codec --help
 oxide codec base64 --help
 oxide codec hex --help
 oxide codec url --help
+oxide convert --help
+oxide convert timestamp --help
 ```
 
 ---
@@ -210,6 +247,9 @@ oxide-dev-tools/
 │       │       │   ├── hex_codec.rs
 │       │       │   ├── url_codec.rs
 │       │       │   └── mod.rs
+│       │       ├── converters/      # Converter implementations (timestamp, ...)
+│       │       │   ├── timestamp_converter.rs # Unix ↔ ISO 8601 ↔ RFC 2822 ↔ human-readable
+│       │       │   └── mod.rs
 │       │       ├── generators/
 │       │       │   ├── fake_generator.rs  # Fake personas, names, emails, phones, addresses
 │       │       │   ├── id_generator.rs   # UUID v1–v8, ULID, NanoID + planned IDs
@@ -225,6 +265,9 @@ oxide-dev-tools/
 │   │           │   ├── base64_codec.rs
 │   │           │   ├── hex_codec.rs
 │   │           │   ├── url_codec.rs
+│   │           │   └── mod.rs
+│   │           ├── converters/      # CLI wrappers for converters
+│   │           │   ├── timestamp_converter.rs
 │   │           │   └── mod.rs
 │   │           ├── generators/     # CLI subcommand wrappers for generators
 │   │           │   ├── fake_generator.rs
@@ -265,9 +308,9 @@ The project follows a two-crate architecture:
 - [x] Base64 encode/decode
 - [x] Hex encode/decode
 - [x] URL encode/decode
-- [ ] Timestamp converter (Unix ↔ ISO 8601 ↔ human-readable)
+- [x] Timestamp converter (Unix ↔ ISO 8601 ↔ human-readable)
 - [ ] Units converter (bytes, time, etc.)
-- [ ] JSON ↔ YAML conversion
+- [ ] JSON ↔ YAML ↔ XML conversion
 
 ### Phase 4 — Validators
 - [ ] Email validator
