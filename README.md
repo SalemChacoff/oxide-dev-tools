@@ -17,7 +17,7 @@ A fast, unified CLI toolkit for developers — generators, validators, comparato
 | **Data Generator** (`oxide gen lorem`) | Lorem ipsum words, sentences, paragraphs |
 | **Data Generator** (`oxide gen fake`) | Fake personas, names, emails, phones, addresses, companies |
 | **Sample File Generator** (`oxide gen sample`) | PDF, PNG, JPG files with exact sizes, dimensions, colors, tamper variants |
-| **Codecs** (`oxide codec`) | Base64 encode/decode (standard and URL-safe), Hex encode/decode |
+| **Codecs** (`oxide codec`) | Base64 encode/decode (standard and URL-safe), Hex encode/decode, URL encode/decode |
 
 ### 🚧 Planned / In progress
 
@@ -26,7 +26,7 @@ A fast, unified CLI toolkit for developers — generators, validators, comparato
 | **Validators** | Validate emails, URLs, IPs, UUIDs, JSON, YAML, credit cards, and more |
 | **Comparators** | Diff text, JSON, directories; semantic version compare |
 | **Text Utilities** | Case conversion, slugify, count (words/lines/chars), truncate, encode/decode |
-| **Codecs** | Base64, URL encode, PEM/PFX parsing, ZIP compression |
+| **Codecs** | PEM/PFX parsing, ZIP compression |
 | **Converters** | Timestamp ↔ date, units, JSON ↔ YAML, color formats |
 | **Data Generator** | Fake personas, names, emails, phones, addresses, companies; sample CSV/JSON data |
 | **File Generator** | Boilerplate scaffolding (gitignore, license, Dockerfile, CI configs) |
@@ -173,6 +173,16 @@ oxide codec hex encode "hello" --upper
 oxide codec hex decode "68656c6c6f"
 oxide codec hex decode "68 65 6c 6c 6f"
 
+# Encode text as a URL component (RFC 3986 percent-encoding)
+oxide codec url encode "hello world"
+
+# Form encoding: space becomes `+`
+oxide codec url encode "hello world" --form
+
+# Decode a percent-encoded URL component back into text
+oxide codec url decode "hello%20world"
+oxide codec url decode "hello+world" --form
+
 # Show help
 oxide --help
 oxide gen --help
@@ -183,6 +193,7 @@ oxide gen sample --help
 oxide codec --help
 oxide codec base64 --help
 oxide codec hex --help
+oxide codec url --help
 ```
 
 ---
@@ -197,6 +208,7 @@ oxide-dev-tools/
 │       │       ├── codecs/          # Codec implementations (base64, hex, URL, ...)
 │       │       │   ├── base64_codec.rs
 │       │       │   ├── hex_codec.rs
+│       │       │   ├── url_codec.rs
 │       │       │   └── mod.rs
 │       │       ├── generators/
 │       │       │   ├── fake_generator.rs  # Fake personas, names, emails, phones, addresses
@@ -212,6 +224,7 @@ oxide-dev-tools/
 │   │           ├── codecs/          # CLI wrappers for codecs
 │   │           │   ├── base64_codec.rs
 │   │           │   ├── hex_codec.rs
+│   │           │   ├── url_codec.rs
 │   │           │   └── mod.rs
 │   │           ├── generators/     # CLI subcommand wrappers for generators
 │   │           │   ├── fake_generator.rs
@@ -251,7 +264,7 @@ The project follows a two-crate architecture:
 ### Phase 3 — Codecs & Converters
 - [x] Base64 encode/decode
 - [x] Hex encode/decode
-- [ ] URL encode/decode
+- [x] URL encode/decode
 - [ ] Timestamp converter (Unix ↔ ISO 8601 ↔ human-readable)
 - [ ] Units converter (bytes, time, etc.)
 - [ ] JSON ↔ YAML conversion
