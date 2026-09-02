@@ -9,6 +9,7 @@ pub use converters::timestamp_converter::{
     TimestampError, TimestampInputFormat, TimestampKind, TimestampOptions, TimestampOutputFormat, TimestampUnit,
     TimestampZone, convert_timestamp, parse_timestamp_zone,
 };
+pub use converters::unit_converter::{UnitCategory, UnitError, UnitKind, UnitOptions, convert_unit, unit_catalog};
 pub use generators::fake_generator::{FakeError, FakeKind, FakeOptions, generate_fake};
 pub use generators::id_generator::{IdError, IdKind, generate_id};
 pub use generators::jwt_generator::{JwtError, JwtOptions, generate_jwt};

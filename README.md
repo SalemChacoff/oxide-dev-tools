@@ -18,7 +18,7 @@ A fast, unified CLI toolkit for developers — generators, validators, comparato
 | **Data Generator** (`oxide gen fake`) | Fake personas, names, emails, phones, addresses, companies |
 | **Sample File Generator** (`oxide gen sample`) | PDF, PNG, JPG files with exact sizes, dimensions, colors, tamper variants |
 | **Codecs** (`oxide codec`) | Base64 encode/decode (standard and URL-safe), Hex encode/decode, URL encode/decode |
-| **Converters** (`oxide convert`) | Timestamp ↔ Unix/ISO 8601/RFC 2822/human-readable, with units, precision, and timezones |
+| **Converters** (`oxide convert`) | Timestamp ↔ Unix/ISO 8601/RFC 2822/human-readable, with units, precision, and timezones; unit conversion (data storage, data rate, length, time, mass)
 
 ### 🚧 Planned / In progress
 
@@ -218,6 +218,31 @@ oxide convert timestamp 1750000000 --from unix --to iso
 # Invalid dates are rejected with a specific reason
 oxide convert timestamp 2026-02-30
 
+# Convert data storage sizes (SI and IEC prefixes; lowercase b = bit, uppercase B = byte)
+oxide convert storage 1.5 gB --to mib
+oxide convert storage 1.5gB --to mib          # unit glued to the value
+oxide convert storage 1 kb --to KiB
+
+# Convert data rates (per second)
+oxide convert rate 100 mbit/s --to mb/s
+oxide convert rate 8 mbps --to mB/s
+
+# Convert lengths (metric and imperial)
+oxide convert length 5 km --to mi
+oxide convert length 12 in --to cm
+
+# Convert time durations (months/years are calendar-aware via --anchor)
+oxide convert time 90 min --to h
+oxide convert time 1 y --to d --anchor 2020-01-01
+
+# Convert masses (metric and imperial)
+oxide convert mass 200 lb --to kg
+oxide convert mass 1 oz --to g
+
+# List every unit in a category
+oxide convert storage --list
+oxide convert length --list
+
 # Show help
 oxide --help
 oxide gen --help
@@ -231,6 +256,11 @@ oxide codec hex --help
 oxide codec url --help
 oxide convert --help
 oxide convert timestamp --help
+oxide convert storage --help
+oxide convert rate --help
+oxide convert length --help
+oxide convert time --help
+oxide convert mass --help
 ```
 
 ---
@@ -247,8 +277,9 @@ oxide-dev-tools/
 │       │       │   ├── hex_codec.rs
 │       │       │   ├── url_codec.rs
 │       │       │   └── mod.rs
-│       │       ├── converters/      # Converter implementations (timestamp, ...)
+│       │       ├── converters/      # Converter implementations (timestamp, units, ...)
 │       │       │   ├── timestamp_converter.rs # Unix ↔ ISO 8601 ↔ RFC 2822 ↔ human-readable
+│       │       │   ├── unit_converter.rs      # Data storage/rate, length, time, mass conversions
 │       │       │   └── mod.rs
 │       │       ├── generators/
 │       │       │   ├── fake_generator.rs  # Fake personas, names, emails, phones, addresses
@@ -268,6 +299,7 @@ oxide-dev-tools/
 │   │           │   └── mod.rs
 │   │           ├── converters/      # CLI wrappers for converters
 │   │           │   ├── timestamp_converter.rs
+│   │           │   ├── unit_converter.rs
 │   │           │   └── mod.rs
 │   │           ├── generators/     # CLI subcommand wrappers for generators
 │   │           │   ├── fake_generator.rs
@@ -309,7 +341,7 @@ The project follows a two-crate architecture:
 - [x] Hex encode/decode
 - [x] URL encode/decode
 - [x] Timestamp converter (Unix ↔ ISO 8601 ↔ human-readable)
-- [ ] Units converter (bytes, time, etc.)
+- [x] Units converter (data storage, data rate, length, time, mass)
 - [ ] JSON ↔ YAML ↔ XML conversion
 
 ### Phase 4 — Validators

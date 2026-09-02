@@ -12,6 +12,7 @@ pub enum CliError {
     Lorem(oxide_dev_tools_core::LoremError),
     Sample(oxide_dev_tools_core::SampleError),
     Timestamp(oxide_dev_tools_core::TimestampError),
+    Unit(oxide_dev_tools_core::UnitError),
     Url(oxide_dev_tools_core::UrlError),
     Io(String),
     Argument(String),
@@ -29,6 +30,7 @@ impl fmt::Display for CliError {
             CliError::Lorem(e) => write!(f, "{e}"),
             CliError::Sample(e) => write!(f, "{e}"),
             CliError::Timestamp(e) => write!(f, "{e}"),
+            CliError::Unit(e) => write!(f, "{e}"),
             CliError::Url(e) => write!(f, "{e}"),
             CliError::Io(msg) => write!(f, "{msg}"),
             CliError::Argument(msg) => write!(f, "{msg}"),
@@ -48,6 +50,7 @@ impl std::error::Error for CliError {
             CliError::Lorem(e) => Some(e),
             CliError::Sample(e) => Some(e),
             CliError::Timestamp(e) => Some(e),
+            CliError::Unit(e) => Some(e),
             CliError::Url(e) => Some(e),
             CliError::Io(_) => None,
             CliError::Argument(_) => None,
@@ -106,6 +109,12 @@ impl From<oxide_dev_tools_core::SampleError> for CliError {
 impl From<oxide_dev_tools_core::TimestampError> for CliError {
     fn from(e: oxide_dev_tools_core::TimestampError) -> Self {
         CliError::Timestamp(e)
+    }
+}
+
+impl From<oxide_dev_tools_core::UnitError> for CliError {
+    fn from(e: oxide_dev_tools_core::UnitError) -> Self {
+        CliError::Unit(e)
     }
 }
 
