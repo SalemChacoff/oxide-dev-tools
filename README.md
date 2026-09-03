@@ -17,6 +17,8 @@ A fast, unified CLI toolkit for developers — generators, validators, comparato
 | **Data Generator** (`oxide gen lorem`) | Lorem ipsum words, sentences, paragraphs |
 | **Data Generator** (`oxide gen fake`) | Fake personas, names, emails, phones, addresses, companies |
 | **Sample File Generator** (`oxide gen sample`) | PDF, PNG, JPG files with exact sizes, dimensions, colors, tamper variants |
+| **Codecs** (`oxide codec`) | Base64 encode/decode (standard and URL-safe), Hex encode/decode, URL encode/decode |
+| **Converters** (`oxide convert`) | Timestamp ↔ Unix/ISO 8601/RFC 2822/human-readable, with units, precision, and timezones; unit conversion (data storage, data rate, length, time, mass); JSON ↔ YAML ↔ XML document conversion (inline text or file input, stdout or file output)
 
 ### 🚧 Planned / In progress
 
@@ -25,8 +27,8 @@ A fast, unified CLI toolkit for developers — generators, validators, comparato
 | **Validators** | Validate emails, URLs, IPs, UUIDs, JSON, YAML, credit cards, and more |
 | **Comparators** | Diff text, JSON, directories; semantic version compare |
 | **Text Utilities** | Case conversion, slugify, count (words/lines/chars), truncate, encode/decode |
-| **Codecs** | Base64, hex, URL encode, PEM/PFX parsing, ZIP compression |
-| **Converters** | Timestamp ↔ date, units, JSON ↔ YAML, color formats |
+| **Codecs** | PEM/PFX parsing, ZIP compression |
+| **Converters** | Units, JSON ↔ YAML, color formats |
 | **Data Generator** | Fake personas, names, emails, phones, addresses, companies; sample CSV/JSON data |
 | **File Generator** | Boilerplate scaffolding (gitignore, license, Dockerfile, CI configs) |
 | **Structural Analyzers** | Analyze JSON/YAML/XML structure, file tree, dependency graph |
@@ -152,6 +154,111 @@ oxide gen sample pdf --size 5kb --tamper magic
 # Stream a sample file straight into a multipart upload
 oxide gen sample pdf --size 5kb --output - | curl -F "file=@-;filename=sample.pdf" http://localhost:8080/upload
 
+# Encode text as base64
+oxide codec base64 encode "hello world"
+
+# Decode base64 back into text
+oxide codec base64 decode "aGVsbG8gd29ybGQ="
+
+# URL-safe, unpadded base64 (JWT style)
+oxide codec base64 encode "hello" --url
+oxide codec base64 decode "aGVsbG8" --url
+
+# Encode text as hex
+oxide codec hex encode "hello"
+
+# Uppercase hex output
+oxide codec hex encode "hello" --upper
+
+# Decode hex back into text (case-insensitive, whitespace tolerated)
+oxide codec hex decode "68656c6c6f"
+oxide codec hex decode "68 65 6c 6c 6f"
+
+# Encode text as a URL component (RFC 3986 percent-encoding)
+oxide codec url encode "hello world"
+
+# Form encoding: space becomes `+`
+oxide codec url encode "hello world" --form
+
+# Decode a percent-encoded URL component back into text
+oxide codec url decode "hello%20world"
+oxide codec url decode "hello+world" --form
+
+# Convert a Unix timestamp to ISO 8601 (format auto-detected)
+oxide convert timestamp 1750000000
+
+# Milliseconds, microseconds, and nanoseconds are auto-detected by digit count
+oxide convert timestamp 1750000000000
+oxide convert timestamp 1750000000000000
+oxide convert timestamp 1750000000000000000
+
+# Convert an ISO 8601 date to Unix seconds (offsets are honored)
+oxide convert timestamp 2026-06-07T12:34:56Z
+oxide convert timestamp 2026-06-07T12:34:56+02:00
+
+# Date-only and space-separated inputs are accepted
+oxide convert timestamp 2026-06-07
+oxide convert timestamp "2026-06-07 12:34:56"
+
+# Pick the output format: unix, iso, rfc2822, or human
+oxide convert timestamp 2026-06-07T12:34:56Z --to rfc2822
+oxide convert timestamp 2026-06-07T12:34:56Z --to human
+
+# Unix output in milliseconds with a fixed fractional precision
+oxide convert timestamp 2026-06-07T12:34:56.123456789Z --to unix --unit ms --precision 3
+
+# Render dates in another timezone (IANA names, ±HH:MM, or local)
+oxide convert timestamp 1750000000 --zone Europe/Berlin
+oxide convert timestamp 1750000000 --zone +05:30
+oxide convert timestamp 1750000000 --zone local
+
+# Force the input format when auto-detection is ambiguous
+oxide convert timestamp 1750000000 --from unix --to iso
+
+# Invalid dates are rejected with a specific reason
+oxide convert timestamp 2026-02-30
+
+# Convert data storage sizes (SI and IEC prefixes; lowercase b = bit, uppercase B = byte)
+oxide convert storage 1.5 gB --to mib
+oxide convert storage 1.5gB --to mib          # unit glued to the value
+oxide convert storage 1 kb --to KiB
+
+# Convert data rates (per second)
+oxide convert rate 100 mbit/s --to mb/s
+oxide convert rate 8 mbps --to mB/s
+
+# Convert lengths (metric and imperial)
+oxide convert length 5 km --to mi
+oxide convert length 12 in --to cm
+
+# Convert time durations (months/years are calendar-aware via --anchor)
+oxide convert time 90 min --to h
+oxide convert time 1 y --to d --anchor 2020-01-01
+
+# Convert masses (metric and imperial)
+oxide convert mass 200 lb --to kg
+oxide convert mass 1 oz --to g
+
+# Convert JSON to YAML (text in, text out)
+oxide convert json2yaml '{"name":"oxide","versions":[1,2]}'
+
+# Convert YAML from a file to JSON, written to a file
+oxide convert yaml2json ./config.yaml --output ./config.json
+
+# Convert JSON to XML with a custom root element and pretty output
+oxide convert json2xml '{"a":1,"b":[true,null]}' --root-name data --pretty
+
+# Convert XML to JSON from a file (--input-file errors on missing files)
+oxide convert xml2json ./report.xml --input-file --pretty
+
+# Convert between YAML and XML in both directions
+oxide convert yaml2xml 'items: [one, two]'
+oxide convert xml2yaml '<root><items>one</items><items>two</items></root>'
+
+# List every unit in a category
+oxide convert storage --list
+oxide convert length --list
+
 # Show help
 oxide --help
 oxide gen --help
@@ -159,6 +266,23 @@ oxide gen id --help
 oxide gen lorem --help
 oxide gen fake --help
 oxide gen sample --help
+oxide codec --help
+oxide codec base64 --help
+oxide codec hex --help
+oxide codec url --help
+oxide convert --help
+oxide convert timestamp --help
+oxide convert storage --help
+oxide convert rate --help
+oxide convert length --help
+oxide convert time --help
+oxide convert mass --help
+oxide convert json2yaml --help
+oxide convert yaml2json --help
+oxide convert json2xml --help
+oxide convert xml2json --help
+oxide convert yaml2xml --help
+oxide convert xml2yaml --help
 ```
 
 ---
@@ -170,6 +294,16 @@ oxide-dev-tools/
 ├── crates/
 │   ├── oxide-dev-tools-core/   # Core library — all logic lives here
 │   │   └── src/
+│       │       ├── codecs/          # Codec implementations (base64, hex, URL, ...)
+│       │       │   ├── base64_codec.rs
+│       │       │   ├── hex_codec.rs
+│       │       │   ├── url_codec.rs
+│       │       │   └── mod.rs
+│       │       ├── converters/      # Converter implementations (timestamp, units, ...)
+│       │       │   ├── timestamp_converter.rs # Unix ↔ ISO 8601 ↔ RFC 2822 ↔ human-readable
+│       │       │   ├── unit_converter.rs      # Data storage/rate, length, time, mass conversions
+│       │       │   ├── doc_converter.rs       # JSON ↔ YAML ↔ XML document conversion
+│       │       │   └── mod.rs
 │       │       ├── generators/
 │       │       │   ├── fake_generator.rs  # Fake personas, names, emails, phones, addresses
 │       │       │   ├── id_generator.rs   # UUID v1–v8, ULID, NanoID + planned IDs
@@ -181,6 +315,16 @@ oxide-dev-tools/
 │   │       └── lib.rs
 │   └── oxide-dev-tools-cli/    # CLI binary — clap-based argument parsing
 │       └── src/
+│   │           ├── codecs/          # CLI wrappers for codecs
+│   │           │   ├── base64_codec.rs
+│   │           │   ├── hex_codec.rs
+│   │           │   ├── url_codec.rs
+│   │           │   └── mod.rs
+│   │           ├── converters/      # CLI wrappers for converters
+│   │           │   ├── timestamp_converter.rs
+│   │           │   ├── unit_converter.rs
+│   │           │   ├── doc_converter.rs
+│   │           │   └── mod.rs
 │   │           ├── generators/     # CLI subcommand wrappers for generators
 │   │           │   ├── fake_generator.rs
 │               │   ├── id_generator.rs
@@ -217,12 +361,12 @@ The project follows a two-crate architecture:
 - [x] Sample file generator (PDF, PNG, JPG)
 
 ### Phase 3 — Codecs & Converters
-- [ ] Base64 encode/decode
-- [ ] Hex encode/decode
-- [ ] URL encode/decode
-- [ ] Timestamp converter (Unix ↔ ISO 8601 ↔ human-readable)
-- [ ] Units converter (bytes, time, etc.)
-- [ ] JSON ↔ YAML conversion
+- [x] Base64 encode/decode
+- [x] Hex encode/decode
+- [x] URL encode/decode
+- [x] Timestamp converter (Unix ↔ ISO 8601 ↔ human-readable)
+- [x] Units converter (data storage, data rate, length, time, mass)
+- [x] JSON ↔ YAML ↔ XML conversion
 
 ### Phase 4 — Validators
 - [ ] Email validator

@@ -7,11 +7,16 @@ license.workspace = true
 description = "Core library for oxide-dev-tools"
 
 [dependencies]
+chrono = { workspace = true }
+chrono-tz = { workspace = true }
 uuid = { workspace = true }
 ulid = { workspace = true }
 nanoid = { workspace = true }
 rand = { workspace = true }
 base64 = { workspace = true }
+hex = { workspace = true }
 hmac = { workspace = true }
+quick-xml = { workspace = true }
 serde_json = { workspace = true }
+serde_yaml_ng = { workspace = true }
 sha2 = { workspace = true }
