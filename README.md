@@ -18,7 +18,7 @@ A fast, unified CLI toolkit for developers — generators, validators, comparato
 | **Data Generator** (`oxide gen fake`) | Fake personas, names, emails, phones, addresses, companies |
 | **Sample File Generator** (`oxide gen sample`) | PDF, PNG, JPG files with exact sizes, dimensions, colors, tamper variants |
 | **Codecs** (`oxide codec`) | Base64 encode/decode (standard and URL-safe), Hex encode/decode, URL encode/decode |
-| **Converters** (`oxide convert`) | Timestamp ↔ Unix/ISO 8601/RFC 2822/human-readable, with units, precision, and timezones; unit conversion (data storage, data rate, length, time, mass)
+| **Converters** (`oxide convert`) | Timestamp ↔ Unix/ISO 8601/RFC 2822/human-readable, with units, precision, and timezones; unit conversion (data storage, data rate, length, time, mass); JSON ↔ YAML ↔ XML document conversion (inline text or file input, stdout or file output)
 
 ### 🚧 Planned / In progress
 
@@ -239,6 +239,22 @@ oxide convert time 1 y --to d --anchor 2020-01-01
 oxide convert mass 200 lb --to kg
 oxide convert mass 1 oz --to g
 
+# Convert JSON to YAML (text in, text out)
+oxide convert json2yaml '{"name":"oxide","versions":[1,2]}'
+
+# Convert YAML from a file to JSON, written to a file
+oxide convert yaml2json ./config.yaml --output ./config.json
+
+# Convert JSON to XML with a custom root element and pretty output
+oxide convert json2xml '{"a":1,"b":[true,null]}' --root-name data --pretty
+
+# Convert XML to JSON from a file (--input-file errors on missing files)
+oxide convert xml2json ./report.xml --input-file --pretty
+
+# Convert between YAML and XML in both directions
+oxide convert yaml2xml 'items: [one, two]'
+oxide convert xml2yaml '<root><items>one</items><items>two</items></root>'
+
 # List every unit in a category
 oxide convert storage --list
 oxide convert length --list
@@ -261,6 +277,12 @@ oxide convert rate --help
 oxide convert length --help
 oxide convert time --help
 oxide convert mass --help
+oxide convert json2yaml --help
+oxide convert yaml2json --help
+oxide convert json2xml --help
+oxide convert xml2json --help
+oxide convert yaml2xml --help
+oxide convert xml2yaml --help
 ```
 
 ---
@@ -280,6 +302,7 @@ oxide-dev-tools/
 │       │       ├── converters/      # Converter implementations (timestamp, units, ...)
 │       │       │   ├── timestamp_converter.rs # Unix ↔ ISO 8601 ↔ RFC 2822 ↔ human-readable
 │       │       │   ├── unit_converter.rs      # Data storage/rate, length, time, mass conversions
+│       │       │   ├── doc_converter.rs       # JSON ↔ YAML ↔ XML document conversion
 │       │       │   └── mod.rs
 │       │       ├── generators/
 │       │       │   ├── fake_generator.rs  # Fake personas, names, emails, phones, addresses
@@ -300,6 +323,7 @@ oxide-dev-tools/
 │   │           ├── converters/      # CLI wrappers for converters
 │   │           │   ├── timestamp_converter.rs
 │   │           │   ├── unit_converter.rs
+│   │           │   ├── doc_converter.rs
 │   │           │   └── mod.rs
 │   │           ├── generators/     # CLI subcommand wrappers for generators
 │   │           │   ├── fake_generator.rs
@@ -342,7 +366,7 @@ The project follows a two-crate architecture:
 - [x] URL encode/decode
 - [x] Timestamp converter (Unix ↔ ISO 8601 ↔ human-readable)
 - [x] Units converter (data storage, data rate, length, time, mass)
-- [ ] JSON ↔ YAML ↔ XML conversion
+- [x] JSON ↔ YAML ↔ XML conversion
 
 ### Phase 4 — Validators
 - [ ] Email validator

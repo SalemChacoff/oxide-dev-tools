@@ -5,6 +5,7 @@ mod generators;
 pub use codecs::base64_codec::{Base64Alphabet, Base64Error, Base64Kind, Base64Options, convert_base64};
 pub use codecs::hex_codec::{HexCase, HexError, HexKind, HexOptions, convert_hex};
 pub use codecs::url_codec::{UrlError, UrlKind, UrlMode, UrlOptions, convert_url};
+pub use converters::doc_converter::{DocError, DocKind, DocOptions, convert_doc};
 pub use converters::timestamp_converter::{
     TimestampError, TimestampInputFormat, TimestampKind, TimestampOptions, TimestampOutputFormat, TimestampUnit,
     TimestampZone, convert_timestamp, parse_timestamp_zone,

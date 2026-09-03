@@ -1,8 +1,9 @@
+pub mod doc_converter;
 pub mod timestamp_converter;
 pub mod unit_converter;
 
 use clap::{Args, Subcommand};
-use oxide_dev_tools_core::UnitCategory;
+use oxide_dev_tools_core::{DocKind, UnitCategory};
 
 use crate::error::CliError;
 
@@ -27,6 +28,24 @@ pub enum ConvertKind {
     Time(unit_converter::UnitConvertArgs),
     /// Convert masses between metric and imperial units.
     Mass(unit_converter::UnitConvertArgs),
+    /// Convert JSON to YAML.
+    #[command(name = "json2yaml")]
+    Json2Yaml(doc_converter::DocConvertArgs),
+    /// Convert YAML to JSON.
+    #[command(name = "yaml2json")]
+    Yaml2Json(doc_converter::DocConvertArgs),
+    /// Convert JSON to XML.
+    #[command(name = "json2xml")]
+    Json2Xml(doc_converter::DocConvertArgs),
+    /// Convert XML to JSON.
+    #[command(name = "xml2json")]
+    Xml2Json(doc_converter::DocConvertArgs),
+    /// Convert YAML to XML.
+    #[command(name = "yaml2xml")]
+    Yaml2Xml(doc_converter::DocConvertArgs),
+    /// Convert XML to YAML.
+    #[command(name = "xml2yaml")]
+    Xml2Yaml(doc_converter::DocConvertArgs),
 }
 
 pub fn exec(args: ConvertArgs) -> Result<(), CliError> {
@@ -37,5 +56,11 @@ pub fn exec(args: ConvertArgs) -> Result<(), CliError> {
         ConvertKind::Length(args) => unit_converter::exec(args, UnitCategory::Length),
         ConvertKind::Time(args) => unit_converter::exec(args, UnitCategory::Time),
         ConvertKind::Mass(args) => unit_converter::exec(args, UnitCategory::Mass),
+        ConvertKind::Json2Yaml(args) => doc_converter::exec(args, DocKind::Json2Yaml),
+        ConvertKind::Yaml2Json(args) => doc_converter::exec(args, DocKind::Yaml2Json),
+        ConvertKind::Json2Xml(args) => doc_converter::exec(args, DocKind::Json2Xml),
+        ConvertKind::Xml2Json(args) => doc_converter::exec(args, DocKind::Xml2Json),
+        ConvertKind::Yaml2Xml(args) => doc_converter::exec(args, DocKind::Yaml2Xml),
+        ConvertKind::Xml2Yaml(args) => doc_converter::exec(args, DocKind::Xml2Yaml),
     }
 }

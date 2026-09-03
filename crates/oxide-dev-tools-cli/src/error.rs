@@ -4,6 +4,7 @@ use std::fmt;
 #[derive(Debug)]
 pub enum CliError {
     Base64(oxide_dev_tools_core::Base64Error),
+    Doc(oxide_dev_tools_core::DocError),
     Fake(oxide_dev_tools_core::FakeError),
     Hex(oxide_dev_tools_core::HexError),
     Id(oxide_dev_tools_core::IdError),
@@ -22,6 +23,7 @@ impl fmt::Display for CliError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             CliError::Base64(e) => write!(f, "{e}"),
+            CliError::Doc(e) => write!(f, "{e}"),
             CliError::Fake(e) => write!(f, "{e}"),
             CliError::Hex(e) => write!(f, "{e}"),
             CliError::Id(e) => write!(f, "{e}"),
@@ -42,6 +44,7 @@ impl std::error::Error for CliError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
             CliError::Base64(e) => Some(e),
+            CliError::Doc(e) => Some(e),
             CliError::Fake(e) => Some(e),
             CliError::Hex(e) => Some(e),
             CliError::Id(e) => Some(e),
@@ -61,6 +64,12 @@ impl std::error::Error for CliError {
 impl From<oxide_dev_tools_core::Base64Error> for CliError {
     fn from(e: oxide_dev_tools_core::Base64Error) -> Self {
         CliError::Base64(e)
+    }
+}
+
+impl From<oxide_dev_tools_core::DocError> for CliError {
+    fn from(e: oxide_dev_tools_core::DocError) -> Self {
+        CliError::Doc(e)
     }
 }
 
