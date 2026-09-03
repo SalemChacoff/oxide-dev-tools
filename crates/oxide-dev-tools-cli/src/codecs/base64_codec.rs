@@ -1,7 +1,7 @@
 use clap::{Args, Subcommand};
 use oxide_dev_tools_core::*;
 
-use crate::error::CliError;
+use crate::error::CodecError;
 
 /// `oxide codec base64 [subcommand]` — base64 encode/decode dispatch
 #[derive(Args)]
@@ -35,7 +35,7 @@ pub enum Base64Cmd {
     },
 }
 
-pub fn exec(args: Base64Args) -> Result<(), CliError> {
+pub fn exec(args: Base64Args) -> Result<(), CodecError> {
     match args.kind {
         Base64Cmd::Encode { input, url } => {
             let opts = Base64Options {

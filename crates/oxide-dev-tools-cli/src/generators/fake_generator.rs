@@ -1,7 +1,7 @@
 use clap::{Args, Subcommand};
 use oxide_dev_tools_core::*;
 
-use crate::error::CliError;
+use crate::error::GenError;
 
 /// `oxide gen fake [subcommand]` — fake data generator dispatch
 #[derive(Args)]
@@ -109,7 +109,7 @@ pub enum FakeCmd {
     },
 }
 
-pub fn exec(args: FakeArgs) -> Result<(), CliError> {
+pub fn exec(args: FakeArgs) -> Result<(), GenError> {
     match args.kind {
         FakeCmd::Person { count } => println!("{}", generate_fake(FakeKind::Person(FakeOptions { count }))?),
         FakeCmd::Name { count } => println!("{}", generate_fake(FakeKind::Name(FakeOptions { count }))?),

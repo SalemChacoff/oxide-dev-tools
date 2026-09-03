@@ -376,6 +376,7 @@ The project follows a two-crate architecture:
 - [ ] JSON/YAML syntax validator
 - [ ] Credit card number validator (Luhn)
 - [ ] Password strength analyzer
+- [ ] File type validator
 
 ### Phase 5 — Text Utilities
 - [ ] Case conversion (camelCase, snake_case, kebab-case, etc.)

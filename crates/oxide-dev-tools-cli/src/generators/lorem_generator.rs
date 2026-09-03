@@ -1,7 +1,7 @@
 use clap::{Args, Subcommand};
 use oxide_dev_tools_core::*;
 
-use crate::error::CliError;
+use crate::error::GenError;
 
 /// `oxide gen lorem [subcommand]` — lorem ipsum text generator
 #[derive(Args)]
@@ -61,7 +61,7 @@ pub enum LoremCmd {
     },
 }
 
-pub fn exec(args: LoremArgs) -> Result<(), CliError> {
+pub fn exec(args: LoremArgs) -> Result<(), GenError> {
     match args.kind {
         LoremCmd::Words { length, start } => {
             let opts = WordOptions {

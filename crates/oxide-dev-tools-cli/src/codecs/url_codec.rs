@@ -1,7 +1,7 @@
 use clap::{Args, Subcommand};
 use oxide_dev_tools_core::*;
 
-use crate::error::CliError;
+use crate::error::CodecError;
 
 /// `oxide codec url [subcommand]` — URL encode/decode dispatch
 #[derive(Args)]
@@ -35,7 +35,7 @@ pub enum UrlCmd {
     },
 }
 
-pub fn exec(args: UrlArgs) -> Result<(), CliError> {
+pub fn exec(args: UrlArgs) -> Result<(), CodecError> {
     match args.kind {
         UrlCmd::Encode { input, form } => {
             let opts = UrlOptions {

@@ -3,7 +3,7 @@ use std::io::Write;
 use clap::{Args, Subcommand};
 use oxide_dev_tools_core::*;
 
-use crate::error::CliError;
+use crate::error::{GenError, GenericError};
 
 /// `oxide gen sample [subcommand]` — sample file generator dispatch
 #[derive(Args)]
@@ -103,7 +103,7 @@ impl From<TamperCli> for TamperKind {
     }
 }
 
-pub fn exec(args: SampleArgs) -> Result<(), CliError> {
+pub fn exec(args: SampleArgs) -> Result<(), GenError> {
     match args.kind {
         SampleCmd::Pdf {
             size,
@@ -154,7 +154,7 @@ pub fn exec(args: SampleArgs) -> Result<(), CliError> {
 
 /// Parse a human size string (`5120`, `5kb`, `5MB`, `1gb`, SI base 1000)
 /// into an exact byte count.
-fn parse_size(size: Option<String>) -> Result<Option<u64>, CliError> {
+fn parse_size(size: Option<String>) -> Result<Option<u64>, GenericError> {
     let Some(raw) = size else {
         return Ok(None);
     };
@@ -169,11 +169,11 @@ fn parse_size(size: Option<String>) -> Result<Option<u64>, CliError> {
     let number: u64 = digits
         .trim()
         .parse()
-        .map_err(|_| CliError::from(format!("invalid size \"{raw}\", expected e.g. 5120, 5kb, 5MB")))?;
+        .map_err(|_| GenericError::from(format!("invalid size \"{raw}\", expected e.g. 5120, 5kb, 5MB")))?;
     Ok(Some(
         number
             .checked_mul(multiplier)
-            .ok_or_else(|| CliError::from(format!("size \"{raw}\" is too large")))?,
+            .ok_or_else(|| GenericError::from(format!("size \"{raw}\" is too large")))?,
     ))
 }
 
@@ -201,15 +201,15 @@ fn write_output(
     output: Option<String>,
     wrong_ext: Option<&str>,
     extension: &str,
-) -> Result<(), CliError> {
+) -> Result<(), GenericError> {
     let path = resolve_output(output, wrong_ext, extension);
     if path == "-" {
         std::io::stdout()
             .write_all(bytes)
-            .map_err(|err| CliError::Io(format!("failed to write to stdout: {err}")))?;
+            .map_err(|err| GenericError::Io(format!("failed to write to stdout: {err}")))?;
         return Ok(());
     }
-    std::fs::write(&path, bytes).map_err(|err| CliError::Io(format!("failed to write \"{path}\": {err}")))?;
+    std::fs::write(&path, bytes).map_err(|err| GenericError::Io(format!("failed to write \"{path}\": {err}")))?;
     println!("{path}");
     Ok(())
 }

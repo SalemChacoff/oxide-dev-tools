@@ -1,7 +1,7 @@
 use clap::{Args, Subcommand};
 use oxide_dev_tools_core::*;
 
-use crate::error::CliError;
+use crate::error::CodecError;
 
 /// `oxide codec hex [subcommand]` — hex encode/decode dispatch
 #[derive(Args)]
@@ -31,7 +31,7 @@ pub enum HexCmd {
     },
 }
 
-pub fn exec(args: HexArgs) -> Result<(), CliError> {
+pub fn exec(args: HexArgs) -> Result<(), CodecError> {
     match args.kind {
         HexCmd::Encode { input, upper } => {
             let opts = HexOptions {

@@ -2,7 +2,7 @@ use clap::{Args, Subcommand};
 use oxide_dev_tools_core::*;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-use crate::error::CliError;
+use crate::error::{GenError, GenericError};
 
 /// `oxide gen id [subcommand]` — ID generator dispatch
 #[derive(Args)]
@@ -64,7 +64,7 @@ pub enum IdCmd {
     NanoId,
 }
 
-pub fn exec(args: IdArgs) -> Result<(), CliError> {
+pub fn exec(args: IdArgs) -> Result<(), GenError> {
     match args.kind {
         IdCmd::V1 { date } => {
             let time = parse_date(date)?;
@@ -98,12 +98,12 @@ pub fn exec(args: IdArgs) -> Result<(), CliError> {
 ///
 /// Returns `None` when no date is given — the caller (core generator)
 /// will then use the current time as its default.
-fn parse_date(date: Option<String>) -> Result<Option<SystemTime>, CliError> {
+fn parse_date(date: Option<String>) -> Result<Option<SystemTime>, GenericError> {
     match date {
         Some(s) => {
             let naive = s
                 .parse::<chrono::NaiveDate>()
-                .map_err(|_| CliError::from(format!("invalid date \"{s}\", expected YYYY-MM-DD")))?;
+                .map_err(|_| GenericError::from(format!("invalid date \"{s}\", expected YYYY-MM-DD")))?;
             let epoch = chrono::NaiveDate::from_ymd_opt(1970, 1, 1).unwrap();
             let secs = naive.signed_duration_since(epoch).num_seconds();
             Ok(Some(UNIX_EPOCH + Duration::from_secs(secs.max(0) as u64)))
@@ -119,15 +119,15 @@ fn parse_date(date: Option<String>) -> Result<Option<SystemTime>, CliError> {
 fn parse_uuid_params(
     namespace: Option<String>,
     name: Option<String>,
-) -> Result<Option<(uuid::Uuid, Vec<u8>)>, CliError> {
+) -> Result<Option<(uuid::Uuid, Vec<u8>)>, GenericError> {
     match (namespace, name) {
         (Some(ns), Some(n)) => {
-            let uuid =
-                uuid::Uuid::parse_str(&ns).map_err(|_| CliError::from(format!("invalid namespace UUID \"{ns}\"")))?;
+            let uuid = uuid::Uuid::parse_str(&ns)
+                .map_err(|_| GenericError::from(format!("invalid namespace UUID \"{ns}\"")))?;
             Ok(Some((uuid, n.into_bytes())))
         }
         (None, None) => Ok(None),
-        _ => Err(CliError::from("--namespace and --name must be provided together")),
+        _ => Err(GenericError::from("--namespace and --name must be provided together")),
     }
 }
 

@@ -1,7 +1,7 @@
 use clap::Args;
 use oxide_dev_tools_core::*;
 
-use crate::error::CliError;
+use crate::error::{ConvertError, GenericError};
 
 /// Shared arguments for `oxide convert storage|rate|length|time|mass`
 #[derive(Args)]
@@ -29,18 +29,22 @@ pub struct UnitConvertArgs {
     pub list: bool,
 }
 
-pub fn exec(args: UnitConvertArgs, category: UnitCategory) -> Result<(), CliError> {
+pub fn exec(args: UnitConvertArgs, category: UnitCategory) -> Result<(), ConvertError> {
     if args.list {
         println!("{}", unit_catalog(category));
         return Ok(());
     }
     let value = match args.value {
         Some(value) => value,
-        None => return Err("missing <VALUE> (the number to convert, e.g. 1.5, 1.5gB, or 5km)".into()),
+        None => {
+            return Err(GenericError::from("missing <VALUE> (the number to convert, e.g. 1.5, 1.5gB, or 5km)").into());
+        }
     };
     let to = match args.to {
         Some(to) => to,
-        None => return Err("missing --to <UNIT> (the target unit, e.g. --to mib)".into()),
+        None => {
+            return Err(GenericError::from("missing --to <UNIT> (the target unit, e.g. --to mib)").into());
+        }
     };
     let options = UnitOptions {
         value,

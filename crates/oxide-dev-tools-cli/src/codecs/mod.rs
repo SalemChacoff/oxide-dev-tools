@@ -25,8 +25,8 @@ pub enum CodecKind {
 
 pub fn exec(args: CodecArgs) -> Result<(), CliError> {
     match args.kind {
-        CodecKind::Base64(args) => base64_codec::exec(args),
-        CodecKind::Hex(args) => hex_codec::exec(args),
-        CodecKind::Url(args) => url_codec::exec(args),
+        CodecKind::Base64(args) => base64_codec::exec(args).map_err(Into::into),
+        CodecKind::Hex(args) => hex_codec::exec(args).map_err(Into::into),
+        CodecKind::Url(args) => url_codec::exec(args).map_err(Into::into),
     }
 }

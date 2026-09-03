@@ -1,7 +1,7 @@
 use clap::{Args, ValueEnum};
 use oxide_dev_tools_core::*;
 
-use crate::error::CliError;
+use crate::error::ConvertError;
 
 /// `oxide convert timestamp <INPUT> [options]` — timestamp conversion
 #[derive(Args)]
@@ -105,7 +105,7 @@ impl From<UnitArg> for TimestampUnit {
     }
 }
 
-pub fn exec(args: TimestampArgs) -> Result<(), CliError> {
+pub fn exec(args: TimestampArgs) -> Result<(), ConvertError> {
     let options = TimestampOptions {
         input: args.input,
         input_format: args.from.into(),

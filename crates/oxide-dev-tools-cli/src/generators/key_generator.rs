@@ -2,7 +2,7 @@ use clap::{Args, Subcommand, ValueEnum};
 use oxide_dev_tools_core::*;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use crate::error::CliError;
+use crate::error::{GenError, GenericError};
 
 /// `oxide gen key [subcommand]` — key/token generator dispatch
 #[derive(Args)]
@@ -82,7 +82,7 @@ impl From<TokenCmdEncoding> for TokenEncoding {
     }
 }
 
-pub fn exec(args: KeyArgs) -> Result<(), CliError> {
+pub fn exec(args: KeyArgs) -> Result<(), GenError> {
     match args.kind {
         KeyCmd::Pass {
             length,
@@ -125,7 +125,7 @@ pub fn exec(args: KeyArgs) -> Result<(), CliError> {
 /// number of seconds from now (`3600`), or an absolute Unix timestamp
 /// (`1750000000`, values >= 1_000_000_000). Returns `None` when no argument
 /// is given.
-fn parse_exp(exp: Option<String>) -> Result<Option<u64>, CliError> {
+fn parse_exp(exp: Option<String>) -> Result<Option<u64>, GenericError> {
     let Some(value) = exp else {
         return Ok(None);
     };
@@ -148,7 +148,7 @@ fn parse_exp(exp: Option<String>) -> Result<Option<u64>, CliError> {
             "invalid expiry \"{value}\": expected a duration (1h, 30m, 90s, 1d), \
              seconds from now (3600), or an absolute Unix timestamp (1750000000)"
         );
-        return Err(CliError::from(message));
+        return Err(GenericError::from(message));
     };
     Ok(Some(seconds))
 }

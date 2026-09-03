@@ -31,10 +31,10 @@ pub enum GenKind {
 
 pub fn exec(args: GenArgs) -> Result<(), CliError> {
     match args.kind {
-        GenKind::Fake(args) => fake_generator::exec(args),
-        GenKind::Id(args) => id_generator::exec(args),
-        GenKind::Key(args) => key_generator::exec(args),
-        GenKind::Lorem(args) => lorem_generator::exec(args),
-        GenKind::Sample(args) => sample_file_generator::exec(args),
+        GenKind::Fake(args) => fake_generator::exec(args).map_err(Into::into),
+        GenKind::Id(args) => id_generator::exec(args).map_err(Into::into),
+        GenKind::Key(args) => key_generator::exec(args).map_err(Into::into),
+        GenKind::Lorem(args) => lorem_generator::exec(args).map_err(Into::into),
+        GenKind::Sample(args) => sample_file_generator::exec(args).map_err(Into::into),
     }
 }

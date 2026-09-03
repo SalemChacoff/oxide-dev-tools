@@ -50,17 +50,17 @@ pub enum ConvertKind {
 
 pub fn exec(args: ConvertArgs) -> Result<(), CliError> {
     match args.kind {
-        ConvertKind::Timestamp(args) => timestamp_converter::exec(args),
-        ConvertKind::Storage(args) => unit_converter::exec(args, UnitCategory::Storage),
-        ConvertKind::Rate(args) => unit_converter::exec(args, UnitCategory::DataRate),
-        ConvertKind::Length(args) => unit_converter::exec(args, UnitCategory::Length),
-        ConvertKind::Time(args) => unit_converter::exec(args, UnitCategory::Time),
-        ConvertKind::Mass(args) => unit_converter::exec(args, UnitCategory::Mass),
-        ConvertKind::Json2Yaml(args) => doc_converter::exec(args, DocKind::Json2Yaml),
-        ConvertKind::Yaml2Json(args) => doc_converter::exec(args, DocKind::Yaml2Json),
-        ConvertKind::Json2Xml(args) => doc_converter::exec(args, DocKind::Json2Xml),
-        ConvertKind::Xml2Json(args) => doc_converter::exec(args, DocKind::Xml2Json),
-        ConvertKind::Yaml2Xml(args) => doc_converter::exec(args, DocKind::Yaml2Xml),
-        ConvertKind::Xml2Yaml(args) => doc_converter::exec(args, DocKind::Xml2Yaml),
+        ConvertKind::Timestamp(args) => timestamp_converter::exec(args).map_err(Into::into),
+        ConvertKind::Storage(args) => unit_converter::exec(args, UnitCategory::Storage).map_err(Into::into),
+        ConvertKind::Rate(args) => unit_converter::exec(args, UnitCategory::DataRate).map_err(Into::into),
+        ConvertKind::Length(args) => unit_converter::exec(args, UnitCategory::Length).map_err(Into::into),
+        ConvertKind::Time(args) => unit_converter::exec(args, UnitCategory::Time).map_err(Into::into),
+        ConvertKind::Mass(args) => unit_converter::exec(args, UnitCategory::Mass).map_err(Into::into),
+        ConvertKind::Json2Yaml(args) => doc_converter::exec(args, DocKind::Json2Yaml).map_err(Into::into),
+        ConvertKind::Yaml2Json(args) => doc_converter::exec(args, DocKind::Yaml2Json).map_err(Into::into),
+        ConvertKind::Json2Xml(args) => doc_converter::exec(args, DocKind::Json2Xml).map_err(Into::into),
+        ConvertKind::Xml2Json(args) => doc_converter::exec(args, DocKind::Xml2Json).map_err(Into::into),
+        ConvertKind::Yaml2Xml(args) => doc_converter::exec(args, DocKind::Yaml2Xml).map_err(Into::into),
+        ConvertKind::Xml2Yaml(args) => doc_converter::exec(args, DocKind::Xml2Yaml).map_err(Into::into),
     }
 }
