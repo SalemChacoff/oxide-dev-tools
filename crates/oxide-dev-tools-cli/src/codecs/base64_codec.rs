@@ -13,7 +13,10 @@ pub struct Base64Args {
 #[derive(Subcommand)]
 pub enum Base64Cmd {
     /// Encode text as base64
-    #[command(name = "encode")]
+    #[command(
+        name = "encode",
+        after_help = "Examples:\n  oxide codec base64 encode \"hello world\"\n  oxide codec base64 encode \"hello\" --url"
+    )]
     Encode {
         /// Text to encode
         input: String,
@@ -24,7 +27,10 @@ pub enum Base64Cmd {
     },
 
     /// Decode base64 into text
-    #[command(name = "decode")]
+    #[command(
+        name = "decode",
+        after_help = "Examples:\n  oxide codec base64 decode \"aGVsbG8gd29ybGQ=\"\n  oxide codec base64 decode \"aGVsbG8\" --url"
+    )]
     Decode {
         /// Base64 text to decode
         input: String,

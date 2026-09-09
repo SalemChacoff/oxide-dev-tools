@@ -13,7 +13,10 @@ pub struct UrlArgs {
 #[derive(Subcommand)]
 pub enum UrlCmd {
     /// Encode text as a URL component (RFC 3986 percent-encoding)
-    #[command(name = "encode")]
+    #[command(
+        name = "encode",
+        after_help = "Examples:\n  oxide codec url encode \"hello world\"\n  oxide codec url encode \"hello world\" --form"
+    )]
     Encode {
         /// Text to encode
         input: String,
@@ -24,7 +27,10 @@ pub enum UrlCmd {
     },
 
     /// Decode a percent-encoded URL component into text
-    #[command(name = "decode")]
+    #[command(
+        name = "decode",
+        after_help = "Examples:\n  oxide codec url decode \"hello%20world\"\n  oxide codec url decode \"hello+world\" --form"
+    )]
     Decode {
         /// URL-encoded text to decode
         input: String,

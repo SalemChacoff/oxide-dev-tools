@@ -13,7 +13,10 @@ pub struct HexArgs {
 #[derive(Subcommand)]
 pub enum HexCmd {
     /// Encode text as hex
-    #[command(name = "encode")]
+    #[command(
+        name = "encode",
+        after_help = "Examples:\n  oxide codec hex encode \"hello\"\n  oxide codec hex encode \"hello\" --upper"
+    )]
     Encode {
         /// Text to encode
         input: String,
@@ -24,7 +27,10 @@ pub enum HexCmd {
     },
 
     /// Decode hex into text
-    #[command(name = "decode")]
+    #[command(
+        name = "decode",
+        after_help = "Examples:\n  oxide codec hex decode \"68656c6c6f\"\n  oxide codec hex decode \"68 65 6c 6c 6f\""
+    )]
     Decode {
         /// Hex text to decode (case-insensitive)
         input: String,
