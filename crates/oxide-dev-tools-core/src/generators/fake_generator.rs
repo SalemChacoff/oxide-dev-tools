@@ -69,42 +69,80 @@ impl Default for FakeOptions {
 /// produce different data while every value stays on-vocabulary.
 pub fn generate_fake(kind: FakeKind) -> Result<String, FakeError> {
     match kind {
-        FakeKind::Person(opts) => join_counted(opts.count, "\n\n", gen_person),
-        FakeKind::Name(opts) => join_counted(opts.count, "\n", |rng| pick(FIRST_NAMES, rng).to_string()),
-        FakeKind::Surname(opts) => join_counted(opts.count, "\n", |rng| pick(SURNAMES, rng).to_string()),
-        FakeKind::FullName(opts) => {
-            join_counted(opts.count, "\n", |rng| format!("{} {}", pick(FIRST_NAMES, rng), pick(SURNAMES, rng)))
-        }
-        FakeKind::Email(opts) => join_counted(opts.count, "\n", gen_email),
-        FakeKind::Phone(opts) => join_counted(opts.count, "\n", gen_phone),
-        FakeKind::Address(opts) => join_counted(opts.count, "\n", gen_address),
-        FakeKind::City(opts) => join_counted(opts.count, "\n", |rng| pick(CITIES, rng).to_string()),
-        FakeKind::Country(opts) => join_counted(opts.count, "\n", |rng| pick(COUNTRIES, rng).to_string()),
-        FakeKind::Company(opts) => join_counted(opts.count, "\n", gen_company),
-        FakeKind::JobTitle(opts) => join_counted(opts.count, "\n", |rng| pick(JOB_TITLES, rng).to_string()),
-        FakeKind::Username(opts) => join_counted(opts.count, "\n", gen_username),
+        FakeKind::Person(opts) => join_counted(opts.count, "\n\n", 170, gen_person),
+        FakeKind::Name(opts) => join_counted(opts.count, "\n", 8, |out, rng| out.push_str(pick(FIRST_NAMES, rng))),
+        FakeKind::Surname(opts) => join_counted(opts.count, "\n", 8, |out, rng| out.push_str(pick(SURNAMES, rng))),
+        FakeKind::FullName(opts) => join_counted(opts.count, "\n", 14, |out, rng| {
+            out.push_str(pick(FIRST_NAMES, rng));
+            out.push(' ');
+            out.push_str(pick(SURNAMES, rng));
+        }),
+        FakeKind::Email(opts) => join_counted(opts.count, "\n", 27, gen_email),
+        FakeKind::Phone(opts) => join_counted(opts.count, "\n", 17, gen_phone),
+        FakeKind::Address(opts) => join_counted(opts.count, "\n", 40, gen_address),
+        FakeKind::City(opts) => join_counted(opts.count, "\n", 12, |out, rng| out.push_str(pick(CITIES, rng))),
+        FakeKind::Country(opts) => join_counted(opts.count, "\n", 14, |out, rng| out.push_str(pick(COUNTRIES, rng))),
+        FakeKind::Company(opts) => join_counted(opts.count, "\n", 16, gen_company),
+        FakeKind::JobTitle(opts) => join_counted(opts.count, "\n", 20, |out, rng| out.push_str(pick(JOB_TITLES, rng))),
+        FakeKind::Username(opts) => join_counted(opts.count, "\n", 16, gen_username),
     }
 }
 
 // -------- Shared plumbing --------
 
-/// Reject zero counts and join `count` generated values with `sep`.
+/// Reject zero counts and append `count` generated values to one buffer.
+///
+/// `item_bytes` is an estimated average value size used to pre-size the
+/// buffer; a rough estimate only affects memory, never correctness.
 fn join_counted(
     count: usize,
     sep: &str,
-    mut sample: impl FnMut(&mut ThreadRng) -> String,
+    item_bytes: usize,
+    mut sample: impl FnMut(&mut String, &mut ThreadRng),
 ) -> Result<String, FakeError> {
     if count == 0 {
         return Err(FakeError::ZeroCount);
     }
     let mut rng = rand::rng();
-    let values: Vec<String> = (0..count).map(|_| sample(&mut rng)).collect();
-    Ok(values.join(sep))
+    let mut out = String::with_capacity(count.saturating_mul(sep.len() + item_bytes));
+    for index in 0..count {
+        if index > 0 {
+            out.push_str(sep);
+        }
+        sample(&mut out, &mut rng);
+    }
+    Ok(out)
 }
 
 /// Sample one entry from a non-empty string list.
 fn pick<'a>(items: &'a [&'a str], rng: &mut ThreadRng) -> &'a str {
     items.choose(rng).expect("fake data list must not be empty")
+}
+
+/// Append `text` lowercased without allocating an intermediate string.
+fn push_lower(out: &mut String, text: &str) {
+    out.extend(text.chars().flat_map(char::to_lowercase));
+}
+
+/// Append `value` as decimal digits, zero-padded to `width` digits
+/// (`width` of 0 means no padding).
+fn push_u32_padded(out: &mut String, value: u32, width: usize) {
+    let mut buffer = [0u8; 10];
+    let mut remaining = value;
+    let mut index = buffer.len();
+    loop {
+        index -= 1;
+        buffer[index] = b'0' + (remaining % 10) as u8;
+        remaining /= 10;
+        if remaining == 0 {
+            break;
+        }
+    }
+    let digits = &buffer[index..];
+    for _ in 0..width.saturating_sub(digits.len()) {
+        out.push('0');
+    }
+    out.push_str(std::str::from_utf8(digits).expect("decimal digits are valid UTF-8"));
 }
 
 // -------- Names --------
@@ -337,13 +375,16 @@ const COUNTRIES: &[&str] = &[
     "United Arab Emirates",
 ];
 
-fn gen_address(rng: &mut ThreadRng) -> String {
-    let number: u32 = rng.random_range(1..=MAX_HOUSE_NUMBER);
-    let street = pick(STREET_NAMES, rng);
-    let suffix = pick(STREET_SUFFIXES, rng);
-    let city = pick(CITIES, rng);
-    let country = pick(COUNTRIES, rng);
-    format!("{number} {street} {suffix}, {city}, {country}")
+fn gen_address(out: &mut String, rng: &mut ThreadRng) {
+    push_u32_padded(out, rng.random_range(1..=MAX_HOUSE_NUMBER), 0);
+    out.push(' ');
+    out.push_str(pick(STREET_NAMES, rng));
+    out.push(' ');
+    out.push_str(pick(STREET_SUFFIXES, rng));
+    out.push_str(", ");
+    out.push_str(pick(CITIES, rng));
+    out.push_str(", ");
+    out.push_str(pick(COUNTRIES, rng));
 }
 
 // -------- Emails --------
@@ -365,18 +406,20 @@ const EMAIL_DOMAINS: &[&str] = &[
     "zoho.com",
 ];
 
-fn gen_email(rng: &mut ThreadRng) -> String {
+fn gen_email(out: &mut String, rng: &mut ThreadRng) {
     let first = pick(FIRST_NAMES, rng);
     let last = pick(SURNAMES, rng);
-    gen_email_from(first, last, rng)
+    gen_email_from(out, first, last, rng);
 }
 
-/// Build `first<sep>lastNN@domain` (always lowercased, 2-digit suffix).
-fn gen_email_from(first: &str, last: &str, rng: &mut ThreadRng) -> String {
-    let separator = pick(EMAIL_SEPARATORS, rng);
-    let number: u32 = rng.random_range(0..100);
-    let domain = pick(EMAIL_DOMAINS, rng);
-    format!("{}{separator}{}{number:02}@{domain}", first.to_lowercase(), last.to_lowercase())
+/// Append `first<sep>lastNN@domain` (always lowercased, 2-digit suffix).
+fn gen_email_from(out: &mut String, first: &str, last: &str, rng: &mut ThreadRng) {
+    push_lower(out, first);
+    out.push_str(pick(EMAIL_SEPARATORS, rng));
+    push_lower(out, last);
+    push_u32_padded(out, rng.random_range(0..100), 2);
+    out.push('@');
+    out.push_str(pick(EMAIL_DOMAINS, rng));
 }
 
 // -------- Phones --------
@@ -387,11 +430,13 @@ const AREA_CODES: &[&str] = &[
     "503", "504", "505", "512", "601", "602", "603", "606", "607", "609", "612", "614", "615", "617",
 ];
 
-fn gen_phone(rng: &mut ThreadRng) -> String {
-    let area = pick(AREA_CODES, rng);
-    let exchange: u32 = rng.random_range(200..1000);
-    let subscriber: u32 = rng.random_range(0..10_000);
-    format!("+1 ({area}) {exchange:03}-{subscriber:04}")
+fn gen_phone(out: &mut String, rng: &mut ThreadRng) {
+    out.push_str("+1 (");
+    out.push_str(pick(AREA_CODES, rng));
+    out.push_str(") ");
+    push_u32_padded(out, rng.random_range(200..1000), 3);
+    out.push('-');
+    push_u32_padded(out, rng.random_range(0..10_000), 4);
 }
 
 // -------- Companies --------
@@ -418,10 +463,10 @@ const COMPANY_SUFFIXES: &[&str] = &[
     "Works",
 ];
 
-fn gen_company(rng: &mut ThreadRng) -> String {
-    let prefix = pick(COMPANY_PREFIXES, rng);
-    let suffix = pick(COMPANY_SUFFIXES, rng);
-    format!("{prefix} {suffix}")
+fn gen_company(out: &mut String, rng: &mut ThreadRng) {
+    out.push_str(pick(COMPANY_PREFIXES, rng));
+    out.push(' ');
+    out.push_str(pick(COMPANY_SUFFIXES, rng));
 }
 
 // -------- Jobs --------
@@ -459,26 +504,33 @@ const JOB_TITLES: &[&str] = &[
 /// Separators joined between the given and family name parts.
 const USERNAME_SEPARATORS: &[&str] = &[".", "_", ""];
 
-fn gen_username(rng: &mut ThreadRng) -> String {
-    let first = pick(FIRST_NAMES, rng).to_lowercase();
-    let last = pick(SURNAMES, rng).to_lowercase();
-    let separator = pick(USERNAME_SEPARATORS, rng);
-    let number: u32 = rng.random_range(0..100);
-    format!("{first}{separator}{last}{number:02}")
+fn gen_username(out: &mut String, rng: &mut ThreadRng) {
+    push_lower(out, pick(FIRST_NAMES, rng));
+    out.push_str(pick(USERNAME_SEPARATORS, rng));
+    push_lower(out, pick(SURNAMES, rng));
+    push_u32_padded(out, rng.random_range(0..100), 2);
 }
 
 // -------- Person --------
 
 /// A full persona card combining every other fake field.
-fn gen_person(rng: &mut ThreadRng) -> String {
+fn gen_person(out: &mut String, rng: &mut ThreadRng) {
     let first = pick(FIRST_NAMES, rng);
     let last = pick(SURNAMES, rng);
-    let email = gen_email_from(first, last, rng);
-    let phone = gen_phone(rng);
-    let address = gen_address(rng);
-    let company = gen_company(rng);
-    let job = pick(JOB_TITLES, rng);
-    format!("Name: {first} {last}\nEmail: {email}\nPhone: {phone}\nAddress: {address}\nCompany: {company}\nJob: {job}")
+    out.push_str("Name: ");
+    out.push_str(first);
+    out.push(' ');
+    out.push_str(last);
+    out.push_str("\nEmail: ");
+    gen_email_from(out, first, last, rng);
+    out.push_str("\nPhone: ");
+    gen_phone(out, rng);
+    out.push_str("\nAddress: ");
+    gen_address(out, rng);
+    out.push_str("\nCompany: ");
+    gen_company(out, rng);
+    out.push_str("\nJob: ");
+    out.push_str(pick(JOB_TITLES, rng));
 }
 
 #[cfg(test)]

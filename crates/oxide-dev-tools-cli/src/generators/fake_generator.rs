@@ -110,20 +110,21 @@ pub enum FakeCmd {
 }
 
 pub fn exec(args: FakeArgs) -> Result<(), GenError> {
-    match args.kind {
-        FakeCmd::Person { count } => println!("{}", generate_fake(FakeKind::Person(FakeOptions { count }))?),
-        FakeCmd::Name { count } => println!("{}", generate_fake(FakeKind::Name(FakeOptions { count }))?),
-        FakeCmd::Surname { count } => println!("{}", generate_fake(FakeKind::Surname(FakeOptions { count }))?),
-        FakeCmd::FullName { count } => println!("{}", generate_fake(FakeKind::FullName(FakeOptions { count }))?),
-        FakeCmd::Email { count } => println!("{}", generate_fake(FakeKind::Email(FakeOptions { count }))?),
-        FakeCmd::Phone { count } => println!("{}", generate_fake(FakeKind::Phone(FakeOptions { count }))?),
-        FakeCmd::Address { count } => println!("{}", generate_fake(FakeKind::Address(FakeOptions { count }))?),
-        FakeCmd::City { count } => println!("{}", generate_fake(FakeKind::City(FakeOptions { count }))?),
-        FakeCmd::Country { count } => println!("{}", generate_fake(FakeKind::Country(FakeOptions { count }))?),
-        FakeCmd::Company { count } => println!("{}", generate_fake(FakeKind::Company(FakeOptions { count }))?),
-        FakeCmd::Job { count } => println!("{}", generate_fake(FakeKind::JobTitle(FakeOptions { count }))?),
-        FakeCmd::Username { count } => println!("{}", generate_fake(FakeKind::Username(FakeOptions { count }))?),
-    }
+    let kind = match args.kind {
+        FakeCmd::Person { count } => FakeKind::Person(FakeOptions { count }),
+        FakeCmd::Name { count } => FakeKind::Name(FakeOptions { count }),
+        FakeCmd::Surname { count } => FakeKind::Surname(FakeOptions { count }),
+        FakeCmd::FullName { count } => FakeKind::FullName(FakeOptions { count }),
+        FakeCmd::Email { count } => FakeKind::Email(FakeOptions { count }),
+        FakeCmd::Phone { count } => FakeKind::Phone(FakeOptions { count }),
+        FakeCmd::Address { count } => FakeKind::Address(FakeOptions { count }),
+        FakeCmd::City { count } => FakeKind::City(FakeOptions { count }),
+        FakeCmd::Country { count } => FakeKind::Country(FakeOptions { count }),
+        FakeCmd::Company { count } => FakeKind::Company(FakeOptions { count }),
+        FakeCmd::Job { count } => FakeKind::JobTitle(FakeOptions { count }),
+        FakeCmd::Username { count } => FakeKind::Username(FakeOptions { count }),
+    };
+    println!("{}", generate_fake(kind)?);
     Ok(())
 }
 
