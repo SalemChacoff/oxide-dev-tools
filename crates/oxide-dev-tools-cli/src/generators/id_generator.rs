@@ -14,13 +14,19 @@ pub struct IdArgs {
 #[derive(Subcommand)]
 pub enum IdCmd {
     /// UUID v1 (timestamp + MAC)
-    #[command(name = "uuidv1")]
+    #[command(
+        name = "uuidv1",
+        after_help = "Examples:\n  oxide gen id uuidv1\n  oxide gen id uuidv1 2026-06-07"
+    )]
     V1 {
         /// Date in ISO 8601 format (e.g., 2026-05-12). Defaults to now.
         date: Option<String>,
     },
     /// UUID v3 (MD5 namespace, deterministic)
-    #[command(name = "uuidv3")]
+    #[command(
+        name = "uuidv3",
+        after_help = "Examples:\n  oxide gen id uuidv3\n  oxide gen id uuidv3 --namespace 6ba7b810-9dad-11d1-80b4-00c04fd430c8 --name hello"
+    )]
     V3 {
         /// Namespace UUID (e.g., 6ba7b810-9dad-11d1-80b4-00c04fd430c8)
         #[arg(long)]
@@ -30,10 +36,13 @@ pub enum IdCmd {
         name: Option<String>,
     },
     /// UUID v4 (random)
-    #[command(name = "uuidv4")]
+    #[command(name = "uuidv4", after_help = "Examples:\n  oxide gen id uuidv4")]
     V4,
     /// UUID v5 (SHA-1 namespace, deterministic)
-    #[command(name = "uuidv5")]
+    #[command(
+        name = "uuidv5",
+        after_help = "Examples:\n  oxide gen id uuidv5\n  oxide gen id uuidv5 --namespace 6ba7b810-9dad-11d1-80b4-00c04fd430c8 --name hello"
+    )]
     V5 {
         /// Namespace UUID (e.g., 6ba7b810-9dad-11d1-80b4-00c04fd430c8)
         #[arg(long)]
@@ -43,24 +52,31 @@ pub enum IdCmd {
         name: Option<String>,
     },
     /// UUID v6 (reordered timestamp + MAC)
-    #[command(name = "uuidv6")]
+    #[command(
+        name = "uuidv6",
+        after_help = "Examples:\n  oxide gen id uuidv6\n  oxide gen id uuidv6 2026-06-07"
+    )]
     V6 {
         /// Date in ISO 8601 format (e.g., 2026-05-12). Defaults to now.
         date: Option<String>,
     },
     /// UUID v7 (Unix timestamp + random)
-    #[command(name = "uuidv7")]
+    #[command(
+        name = "uuidv7",
+        after_help = "Examples:\n  oxide gen id uuidv7\n  oxide gen id uuidv7 2026-06-07"
+    )]
     V7 {
         /// Date in ISO 8601 format (e.g., 2026-05-12). Defaults to now.
         date: Option<String>,
     },
     /// UUID v8 (custom / experimental)
-    #[command(name = "uuidv8")]
+    #[command(name = "uuidv8", after_help = "Examples:\n  oxide gen id uuidv8")]
     V8,
     /// ULID (26-char Crockford base32)
+    #[command(after_help = "Examples:\n  oxide gen id ulid")]
     Ulid,
     /// NanoID (21-char URL-safe)
-    #[command(name = "nanoid")]
+    #[command(name = "nanoid", after_help = "Examples:\n  oxide gen id nanoid")]
     NanoId,
 }
 

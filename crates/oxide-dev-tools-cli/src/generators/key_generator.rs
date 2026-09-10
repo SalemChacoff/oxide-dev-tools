@@ -14,7 +14,10 @@ pub struct KeyArgs {
 #[derive(Subcommand)]
 pub enum KeyCmd {
     /// Generate a password
-    #[command(name = "pass")]
+    #[command(
+        name = "pass",
+        after_help = "Examples:\n  oxide gen key pass\n  oxide gen key pass --length 32 --special\n  oxide gen key pass --no-digits --special"
+    )]
     Pass {
         /// Length of the password
         #[arg(short = 'l', long = "length", default_value_t = 16)]
@@ -38,7 +41,10 @@ pub enum KeyCmd {
     },
 
     /// Generate a random token
-    #[command(name = "token")]
+    #[command(
+        name = "token",
+        after_help = "Examples:\n  oxide gen key token\n  oxide gen key token --length 16 --encoding base64"
+    )]
     Token {
         /// Number of random bytes to generate (hex output is 2× this length)
         #[arg(short = 'l', long = "length", default_value_t = 32)]
@@ -50,7 +56,13 @@ pub enum KeyCmd {
     },
 
     /// Generate an HS256 JWT signed from a JSON payload
-    #[command(name = "jwt")]
+    #[command(
+        name = "jwt",
+        after_help = r#"Examples:
+  oxide gen key jwt '{"sub":"user-1"}' --secret my-secret --exp 1h
+  oxide gen key jwt '{"sub":"user-1","exp":1750000000}' --secret my-secret
+> Note: on Windows shells, JSON quoting differs — e.g. oxide gen key jwt "{\"sub\":\"user-1\"}" --secret my-secret"#
+    )]
     Jwt {
         /// JSON object with the token claims. Must contain a non-empty "sub" claim.
         payload: String,

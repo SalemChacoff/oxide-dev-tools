@@ -15,7 +15,10 @@ pub struct SampleArgs {
 #[derive(Subcommand)]
 pub enum SampleCmd {
     /// Generate a PDF document
-    #[command(name = "pdf")]
+    #[command(
+        name = "pdf",
+        after_help = "Examples:\n  oxide gen sample pdf\n  oxide gen sample pdf --size 5kb --pages 2 --text \"invoice #1\"\n  oxide gen sample pdf --tamper magic --wrong-ext txt"
+    )]
     Pdf {
         /// Exact byte size, e.g. 5120, 5kb, 5MB
         #[arg(long)]
@@ -37,7 +40,10 @@ pub enum SampleCmd {
         wrong_ext: Option<String>,
     },
     /// Generate a PNG image
-    #[command(name = "png")]
+    #[command(
+        name = "png",
+        after_help = "Examples:\n  oxide gen sample png\n  oxide gen sample png --size 5mb --color red --output ./upload.png\n  oxide gen sample png --width 64 --height 64"
+    )]
     Png {
         /// Exact byte size, e.g. 5120, 5kb, 5MB
         #[arg(long)]
@@ -62,7 +68,10 @@ pub enum SampleCmd {
         wrong_ext: Option<String>,
     },
     /// Generate a JPEG image (1x1 baseline, padded with comments)
-    #[command(name = "jpg")]
+    #[command(
+        name = "jpg",
+        after_help = "Examples:\n  oxide gen sample jpg\n  oxide gen sample jpg --size 2mb --output ./photo.jpg\n  oxide gen sample jpg --tamper truncate --wrong-ext txt"
+    )]
     Jpg {
         /// Exact byte size, e.g. 5120, 5kb, 5MB
         #[arg(long)]

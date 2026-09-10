@@ -13,7 +13,10 @@ pub struct LoremArgs {
 #[derive(Subcommand)]
 pub enum LoremCmd {
     /// Generate a run of random lorem ipsum words
-    #[command(name = "words")]
+    #[command(
+        name = "words",
+        after_help = "Examples:\n  oxide gen lorem words\n  oxide gen lorem words --length 20 --start"
+    )]
     Words {
         /// Number of words to generate
         #[arg(short = 'l', long = "length", default_value_t = 10)]
@@ -25,7 +28,10 @@ pub enum LoremCmd {
     },
 
     /// Generate lorem ipsum sentences
-    #[command(name = "sentences")]
+    #[command(
+        name = "sentences",
+        after_help = "Examples:\n  oxide gen lorem sentences\n  oxide gen lorem sentences --length 2 --min-words 6 --max-words 10 --start"
+    )]
     Sentences {
         /// Number of sentences to generate
         #[arg(short = 'l', long = "length", default_value_t = 3)]
@@ -45,7 +51,10 @@ pub enum LoremCmd {
     },
 
     /// Generate lorem ipsum paragraphs separated by blank lines
-    #[command(name = "paragraphs")]
+    #[command(
+        name = "paragraphs",
+        after_help = "Examples:\n  oxide gen lorem paragraphs\n  oxide gen lorem paragraphs --length 2 --sentences-per-paragraph 5 --start"
+    )]
     Paragraphs {
         /// Number of paragraphs to generate
         #[arg(short = 'l', long = "length", default_value_t = 3)]
