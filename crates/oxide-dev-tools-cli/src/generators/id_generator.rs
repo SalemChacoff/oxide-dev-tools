@@ -2,7 +2,7 @@ use clap::{Args, Subcommand};
 use oxide_dev_tools_core::*;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-use crate::error::CliError;
+use crate::error::{GenError, GenericError};
 
 /// `oxide gen id [subcommand]` — ID generator dispatch
 #[derive(Args)]
@@ -14,13 +14,19 @@ pub struct IdArgs {
 #[derive(Subcommand)]
 pub enum IdCmd {
     /// UUID v1 (timestamp + MAC)
-    #[command(name = "uuidv1")]
+    #[command(
+        name = "uuidv1",
+        after_help = "Examples:\n  oxide gen id uuidv1\n  oxide gen id uuidv1 2026-06-07"
+    )]
     V1 {
         /// Date in ISO 8601 format (e.g., 2026-05-12). Defaults to now.
         date: Option<String>,
     },
     /// UUID v3 (MD5 namespace, deterministic)
-    #[command(name = "uuidv3")]
+    #[command(
+        name = "uuidv3",
+        after_help = "Examples:\n  oxide gen id uuidv3\n  oxide gen id uuidv3 --namespace 6ba7b810-9dad-11d1-80b4-00c04fd430c8 --name hello"
+    )]
     V3 {
         /// Namespace UUID (e.g., 6ba7b810-9dad-11d1-80b4-00c04fd430c8)
         #[arg(long)]
@@ -30,10 +36,13 @@ pub enum IdCmd {
         name: Option<String>,
     },
     /// UUID v4 (random)
-    #[command(name = "uuidv4")]
+    #[command(name = "uuidv4", after_help = "Examples:\n  oxide gen id uuidv4")]
     V4,
     /// UUID v5 (SHA-1 namespace, deterministic)
-    #[command(name = "uuidv5")]
+    #[command(
+        name = "uuidv5",
+        after_help = "Examples:\n  oxide gen id uuidv5\n  oxide gen id uuidv5 --namespace 6ba7b810-9dad-11d1-80b4-00c04fd430c8 --name hello"
+    )]
     V5 {
         /// Namespace UUID (e.g., 6ba7b810-9dad-11d1-80b4-00c04fd430c8)
         #[arg(long)]
@@ -43,28 +52,35 @@ pub enum IdCmd {
         name: Option<String>,
     },
     /// UUID v6 (reordered timestamp + MAC)
-    #[command(name = "uuidv6")]
+    #[command(
+        name = "uuidv6",
+        after_help = "Examples:\n  oxide gen id uuidv6\n  oxide gen id uuidv6 2026-06-07"
+    )]
     V6 {
         /// Date in ISO 8601 format (e.g., 2026-05-12). Defaults to now.
         date: Option<String>,
     },
     /// UUID v7 (Unix timestamp + random)
-    #[command(name = "uuidv7")]
+    #[command(
+        name = "uuidv7",
+        after_help = "Examples:\n  oxide gen id uuidv7\n  oxide gen id uuidv7 2026-06-07"
+    )]
     V7 {
         /// Date in ISO 8601 format (e.g., 2026-05-12). Defaults to now.
         date: Option<String>,
     },
     /// UUID v8 (custom / experimental)
-    #[command(name = "uuidv8")]
+    #[command(name = "uuidv8", after_help = "Examples:\n  oxide gen id uuidv8")]
     V8,
     /// ULID (26-char Crockford base32)
+    #[command(after_help = "Examples:\n  oxide gen id ulid")]
     Ulid,
     /// NanoID (21-char URL-safe)
-    #[command(name = "nanoid")]
+    #[command(name = "nanoid", after_help = "Examples:\n  oxide gen id nanoid")]
     NanoId,
 }
 
-pub fn exec(args: IdArgs) -> Result<(), CliError> {
+pub fn exec(args: IdArgs) -> Result<(), GenError> {
     match args.kind {
         IdCmd::V1 { date } => {
             let time = parse_date(date)?;
@@ -98,12 +114,12 @@ pub fn exec(args: IdArgs) -> Result<(), CliError> {
 ///
 /// Returns `None` when no date is given — the caller (core generator)
 /// will then use the current time as its default.
-fn parse_date(date: Option<String>) -> Result<Option<SystemTime>, CliError> {
+fn parse_date(date: Option<String>) -> Result<Option<SystemTime>, GenericError> {
     match date {
         Some(s) => {
             let naive = s
                 .parse::<chrono::NaiveDate>()
-                .map_err(|_| CliError::from(format!("invalid date \"{s}\", expected YYYY-MM-DD")))?;
+                .map_err(|_| GenericError::from(format!("invalid date \"{s}\", expected YYYY-MM-DD")))?;
             let epoch = chrono::NaiveDate::from_ymd_opt(1970, 1, 1).unwrap();
             let secs = naive.signed_duration_since(epoch).num_seconds();
             Ok(Some(UNIX_EPOCH + Duration::from_secs(secs.max(0) as u64)))
@@ -119,15 +135,15 @@ fn parse_date(date: Option<String>) -> Result<Option<SystemTime>, CliError> {
 fn parse_uuid_params(
     namespace: Option<String>,
     name: Option<String>,
-) -> Result<Option<(uuid::Uuid, Vec<u8>)>, CliError> {
+) -> Result<Option<(uuid::Uuid, Vec<u8>)>, GenericError> {
     match (namespace, name) {
         (Some(ns), Some(n)) => {
-            let uuid =
-                uuid::Uuid::parse_str(&ns).map_err(|_| CliError::from(format!("invalid namespace UUID \"{ns}\"")))?;
+            let uuid = uuid::Uuid::parse_str(&ns)
+                .map_err(|_| GenericError::from(format!("invalid namespace UUID \"{ns}\"")))?;
             Ok(Some((uuid, n.into_bytes())))
         }
         (None, None) => Ok(None),
-        _ => Err(CliError::from("--namespace and --name must be provided together")),
+        _ => Err(GenericError::from("--namespace and --name must be provided together")),
     }
 }
 

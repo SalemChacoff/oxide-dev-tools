@@ -82,14 +82,28 @@ oxide gen id nanoid
 # Generate a ULID
 oxide gen id ulid
 
+# Generate UUID v1/v6 with a specific date
+oxide gen id uuidv1 2026-06-07
+oxide gen id uuidv6 2026-06-07
+
+# Generate deterministic UUID v3/v5 from a namespace and name
+oxide gen id uuidv3 --namespace 6ba7b810-9dad-11d1-80b4-00c04fd430c8 --name hello
+oxide gen id uuidv5 --namespace 6ba7b810-9dad-11d1-80b4-00c04fd430c8 --name hello
+
 # Generate a password
 oxide gen key pass
+
+# Generate a 32-char password with special characters
+oxide gen key pass --length 32 --special
 
 # Generate a random token (hex, 32 bytes)
 oxide gen key token
 
 # Generate a base64 token
 oxide gen key token --encoding base64
+
+# Generate a shorter base64 token
+oxide gen key token --length 16 --encoding base64
 
 # Generate an HS256 JWT from a JSON payload (expires in 1 hour)
 oxide gen key jwt '{"sub":"user-1"}' --secret my-secret --exp 1h
@@ -376,6 +390,7 @@ The project follows a two-crate architecture:
 - [ ] JSON/YAML syntax validator
 - [ ] Credit card number validator (Luhn)
 - [ ] Password strength analyzer
+- [ ] File type validator
 
 ### Phase 5 — Text Utilities
 - [ ] Case conversion (camelCase, snake_case, kebab-case, etc.)

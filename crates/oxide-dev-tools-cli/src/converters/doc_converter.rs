@@ -3,7 +3,7 @@ use std::path::Path;
 use clap::Args;
 use oxide_dev_tools_core::*;
 
-use crate::error::CliError;
+use crate::error::{ConvertError, GenericError};
 
 /// Shared arguments for `oxide convert json2yaml|yaml2json|json2xml|xml2json|yaml2xml|xml2yaml`
 #[derive(Args)]
@@ -28,7 +28,7 @@ pub struct DocConvertArgs {
     pub root_name: Option<String>,
 }
 
-pub fn exec(args: DocConvertArgs, kind: fn(DocOptions) -> DocKind) -> Result<(), CliError> {
+pub fn exec(args: DocConvertArgs, kind: fn(DocOptions) -> DocKind) -> Result<(), ConvertError> {
     let input = resolve_input(&args)?;
     let options = DocOptions {
         input,
@@ -36,28 +36,29 @@ pub fn exec(args: DocConvertArgs, kind: fn(DocOptions) -> DocKind) -> Result<(),
         pretty: args.pretty,
     };
     let result = convert_doc(kind(options))?;
-    write_output(&result, args.output.as_deref())
+    write_output(&result, args.output.as_deref())?;
+    Ok(())
 }
 
-fn resolve_input(args: &DocConvertArgs) -> Result<String, CliError> {
+fn resolve_input(args: &DocConvertArgs) -> Result<String, GenericError> {
     let Some(input) = &args.input else {
         return Err("missing <INPUT> (document text or a path to a file)".into());
     };
     if args.input_file || Path::new(input).is_file() {
         return std::fs::read_to_string(input)
-            .map_err(|error| CliError::Io(format!("cannot read input file \"{input}\": {error}")));
+            .map_err(|error| GenericError::Io(format!("cannot read input file \"{input}\": {error}")));
     }
     Ok(input.clone())
 }
 
-fn write_output(result: &str, output: Option<&str>) -> Result<(), CliError> {
+fn write_output(result: &str, output: Option<&str>) -> Result<(), GenericError> {
     match output {
         None | Some("-") => {
             println!("{result}");
             Ok(())
         }
         Some(path) => std::fs::write(path, result)
-            .map_err(|error| CliError::Io(format!("cannot write output file \"{path}\": {error}"))),
+            .map_err(|error| GenericError::Io(format!("cannot write output file \"{path}\": {error}"))),
     }
 }
 
