@@ -1,6 +1,7 @@
 mod codecs;
 mod converters;
 mod generators;
+mod validators;
 
 pub use codecs::base64_codec::{Base64Alphabet, Base64Error, Base64Kind, Base64Options, convert_base64};
 pub use codecs::hex_codec::{HexCase, HexError, HexKind, HexOptions, convert_hex};
@@ -21,3 +22,4 @@ pub use generators::lorem_generator::{
 pub use generators::sample_file_generator::{
     JpgOptions, PdfOptions, PngOptions, SampleError, SampleKind, TamperKind, generate_sample_file,
 };
+pub use validators::email_validator::{EmailDomainKind, EmailMode, EmailOptions, EmailReport, validate_email};

@@ -18,13 +18,14 @@ A fast, unified CLI toolkit for developers — generators, validators, comparato
 | **Data Generator** (`oxide gen fake`) | Fake personas, names, emails, phones, addresses, companies |
 | **Sample File Generator** (`oxide gen sample`) | PDF, PNG, JPG files with exact sizes, dimensions, colors, tamper variants |
 | **Codecs** (`oxide codec`) | Base64 encode/decode (standard and URL-safe), Hex encode/decode, URL encode/decode |
-| **Converters** (`oxide convert`) | Timestamp ↔ Unix/ISO 8601/RFC 2822/human-readable, with units, precision, and timezones; unit conversion (data storage, data rate, length, time, mass); JSON ↔ YAML ↔ XML document conversion (inline text or file input, stdout or file output)
+| **Converters** (`oxide convert`) | Timestamp ↔ Unix/ISO 8601/RFC 2822/human-readable, with units, precision, and timezones; unit conversion (data storage, data rate, length, time, mass); JSON ↔ YAML ↔ XML document conversion (inline text or file input, stdout or file output) |
+| **Validators** (`oxide validate`) | Email validation (RFC 5321/5322, IDN, SMTPUTF8, address literals, quoted strings) |
 
 ### 🚧 Planned / In progress
 
 | Category | Description |
 |---|---|
-| **Validators** | Validate emails, URLs, IPs, UUIDs, JSON, YAML, credit cards, and more |
+| **Validators** | Validate URLs, IPs, UUIDs, JSON, YAML, credit cards, and more |
 | **Comparators** | Diff text, JSON, directories; semantic version compare |
 | **Text Utilities** | Case conversion, slugify, count (words/lines/chars), truncate, encode/decode |
 | **Codecs** | PEM/PFX parsing, ZIP compression |
@@ -273,6 +274,30 @@ oxide convert xml2yaml '<root><items>one</items><items>two</items></root>'
 oxide convert storage --list
 oxide convert length --list
 
+# Validate an email address against RFC 5321 (SMTP mailbox)
+oxide validate email user@example.com
+
+# Valid addresses print their normalized form; invalid ones exit non-zero
+oxide validate email '"john doe"@example.com'
+
+# Internationalized domains (IDN) and UTF-8 local parts (SMTPUTF8)
+oxide validate email '用户@例子.广告'
+oxide validate email 'δοκιμή@example.com'
+
+# Address literals (IPv4 and IPv6)
+oxide validate email 'user@[192.0.2.1]'
+oxide validate email 'user@[IPv6:2001:db8::1]'
+
+# Full validation report (parts, issues, warnings)
+oxide validate email user@example.com --verbose
+
+# Message-header grammar (RFC 5322: comments and folding whitespace)
+oxide validate email 'user (comment) @example.com' --mode header
+
+# Tighten the rules: ASCII-only, no quoted local parts, require a TLD
+oxide validate email user@example.com --ascii
+oxide validate email user@localhost --require-tld
+
 # Show help
 oxide --help
 oxide gen --help
@@ -297,6 +322,8 @@ oxide convert json2xml --help
 oxide convert xml2json --help
 oxide convert yaml2xml --help
 oxide convert xml2yaml --help
+oxide validate --help
+oxide validate email --help
 ```
 
 ---
@@ -326,6 +353,9 @@ oxide-dev-tools/
 │       │       │   ├── lorem_generator.rs # Lorem ipsum words, sentences, paragraphs
 │       │       │   ├── sample_file_generator.rs # Sample PDF/PNG/JPG files with exact sizes
 │       │       │   └── mod.rs
+│       │       ├── validators/       # Validator implementations (email, ...)
+│       │       │   ├── email_validator.rs # RFC 5321/5322 email validation (IDN, SMTPUTF8)
+│       │       │   └── mod.rs
 │   │       └── lib.rs
 │   └── oxide-dev-tools-cli/    # CLI binary — clap-based argument parsing
 │       └── src/
@@ -346,6 +376,9 @@ oxide-dev-tools/
 │               │   ├── lorem_generator.rs
 │               │   ├── sample_file_generator.rs
 │               │   └── mod.rs
+│   │           ├── validators/     # CLI wrappers for validators
+│   │           │   ├── email_validator.rs
+│   │           │   └── mod.rs
 │           └── main.rs
 ├── Cargo.toml                  # Workspace manifest
 └── README.md
@@ -383,7 +416,7 @@ The project follows a two-crate architecture:
 - [x] JSON ↔ YAML ↔ XML conversion
 
 ### Phase 4 — Validators
-- [ ] Email validator
+- [x] Email validator
 - [ ] URL/URI validator
 - [ ] IP address validator (IPv4, IPv6)
 - [ ] UUID validator

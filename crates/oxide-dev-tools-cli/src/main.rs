@@ -4,6 +4,7 @@ mod codecs;
 mod converters;
 mod error;
 mod generators;
+mod validators;
 
 #[derive(Parser)]
 #[command(name = "oxide", version)]
@@ -20,6 +21,8 @@ enum Tool {
     Convert(converters::ConvertArgs),
     /// Generate IDs, ULIDs, NanoIDs, passwords, tokens, etc.
     Gen(generators::GenArgs),
+    /// Validate values against standards (emails, URLs, IPs, etc.).
+    Validate(validators::ValidateArgs),
 }
 
 fn main() {
@@ -29,6 +32,7 @@ fn main() {
         Tool::Codec(args) => codecs::exec(args),
         Tool::Convert(args) => converters::exec(args),
         Tool::Gen(args) => generators::exec(args),
+        Tool::Validate(args) => validators::exec(args),
     };
 
     if let Err(e) = result {
