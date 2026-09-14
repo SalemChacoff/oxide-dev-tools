@@ -7,6 +7,8 @@ pub enum ValidError {
     Email(String),
     /// The validated IP address is invalid; carries the joined issue list.
     Ip(String),
+    /// The validated UUID is invalid; carries the joined issue list.
+    Uuid(String),
     /// The validated URL is invalid; carries the joined issue list.
     Url(String),
 }
@@ -16,6 +18,7 @@ impl fmt::Display for ValidError {
         match self {
             ValidError::Email(msg) => write!(f, "invalid email: {msg}"),
             ValidError::Ip(msg) => write!(f, "invalid ip: {msg}"),
+            ValidError::Uuid(msg) => write!(f, "invalid uuid: {msg}"),
             ValidError::Url(msg) => write!(f, "invalid url: {msg}"),
         }
     }
@@ -46,6 +49,13 @@ mod tests {
     fn invalid_ip_displays_issues() {
         let err = ValidError::Ip("invalid IPv4 address syntax".to_string());
         assert_eq!(err.to_string(), "invalid ip: invalid IPv4 address syntax");
+        assert!(err.source().is_none());
+    }
+
+    #[test]
+    fn invalid_uuid_displays_issues() {
+        let err = ValidError::Uuid("invalid UUID syntax".to_string());
+        assert_eq!(err.to_string(), "invalid uuid: invalid UUID syntax");
         assert!(err.source().is_none());
     }
 }

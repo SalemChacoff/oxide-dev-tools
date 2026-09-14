@@ -19,13 +19,13 @@ A fast, unified CLI toolkit for developers — generators, validators, comparato
 | **Sample File Generator** (`oxide gen sample`) | PDF, PNG, JPG files with exact sizes, dimensions, colors, tamper variants |
 | **Codecs** (`oxide codec`) | Base64 encode/decode (standard and URL-safe), Hex encode/decode, URL encode/decode |
 | **Converters** (`oxide convert`) | Timestamp ↔ Unix/ISO 8601/RFC 2822/human-readable, with units, precision, and timezones; unit conversion (data storage, data rate, length, time, mass); JSON ↔ YAML ↔ XML document conversion (inline text or file input, stdout or file output) |
-| **Validators** (`oxide validate`) | Email validation (RFC 5321/5322, IDN, SMTPUTF8, address literals, quoted strings); URL/URI validation (WHATWG URL Standard, IDN, IPv4/IPv6 literals, scheme allowlist); IP validation (IPv4/IPv6, RFC 6890 classification, canonical form, zone IDs) |
+| **Validators** (`oxide validate`) | Email validation (RFC 5321/5322, IDN, SMTPUTF8, address literals, quoted strings); URL/URI validation (WHATWG URL Standard, IDN, IPv4/IPv6 literals, scheme allowlist); IP validation (IPv4/IPv6, RFC 6890 classification, canonical form, zone IDs); UUID validation (v1–v8, nil/max, hyphenated/simple/braced/URN forms, version and variant checks) |
 
 ### 🚧 Planned / In progress
 
 | Category | Description |
 |---|---|
-| **Validators** | Validate UUIDs, JSON, YAML, credit cards, and more |
+| **Validators** | Validate JSON, YAML, credit cards, and more |
 | **Comparators** | Diff text, JSON, directories; semantic version compare |
 | **Text Utilities** | Case conversion, slugify, count (words/lines/chars), truncate, encode/decode |
 | **Codecs** | PEM/PFX parsing, ZIP compression |
@@ -342,6 +342,25 @@ oxide validate ip 'fe80::1%eth0'
 oxide validate ip 1.2.3.4 --mode ipv4
 oxide validate ip '2001:db8::1' --mode ipv6
 
+# Validate a UUID in any of the standard serialization forms
+oxide validate uuid 550e8400-e29b-41d4-a716-446655440000
+
+# Valid UUIDs print the canonical hyphenated form; invalid ones exit non-zero
+oxide validate uuid '550E8400E29B41D4A716446655440000'
+oxide validate uuid '{550e8400-e29b-41d4-a716-446655440000}'
+oxide validate uuid urn:uuid:550e8400-e29b-41d4-a716-446655440000
+
+# Full validation report (form, version, variant, warnings)
+oxide validate uuid 550e8400-e29b-41d4-a716-446655440000 --verbose
+
+# Tighten the rules: exact version, form, or variant
+oxide validate uuid 550e8400-e29b-41d4-a716-446655440000 --version v4
+oxide validate uuid 550e8400-e29b-41d4-a716-446655440000 --kind simple
+oxide validate uuid 550e8400-e29b-41d4-a716-446655440000 --variant rfc4122
+
+# Nil and max UUIDs validate with a warning
+oxide validate uuid 00000000-0000-0000-0000-000000000000
+
 # Show help
 oxide --help
 oxide gen --help
@@ -370,6 +389,7 @@ oxide validate --help
 oxide validate email --help
 oxide validate url --help
 oxide validate ip --help
+oxide validate uuid --help
 ```
 
 ---
@@ -465,7 +485,7 @@ The project follows a two-crate architecture:
 - [x] Email validator
 - [x] URL/URI validator
 - [x] IP address validator (IPv4, IPv6)
-- [ ] UUID validator
+- [x] UUID validator
 - [ ] JSON/YAML syntax validator
 - [ ] Credit card number validator (Luhn)
 - [ ] Password strength analyzer
