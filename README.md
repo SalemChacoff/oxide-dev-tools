@@ -19,13 +19,13 @@ A fast, unified CLI toolkit for developers — generators, validators, comparato
 | **Sample File Generator** (`oxide gen sample`) | PDF, PNG, JPG files with exact sizes, dimensions, colors, tamper variants |
 | **Codecs** (`oxide codec`) | Base64 encode/decode (standard and URL-safe), Hex encode/decode, URL encode/decode |
 | **Converters** (`oxide convert`) | Timestamp ↔ Unix/ISO 8601/RFC 2822/human-readable, with units, precision, and timezones; unit conversion (data storage, data rate, length, time, mass); JSON ↔ YAML ↔ XML document conversion (inline text or file input, stdout or file output) |
-| **Validators** (`oxide validate`) | Email validation (RFC 5321/5322, IDN, SMTPUTF8, address literals, quoted strings) |
+| **Validators** (`oxide validate`) | Email validation (RFC 5321/5322, IDN, SMTPUTF8, address literals, quoted strings); URL/URI validation (WHATWG URL Standard, IDN, IPv4/IPv6 literals, scheme allowlist) |
 
 ### 🚧 Planned / In progress
 
 | Category | Description |
 |---|---|
-| **Validators** | Validate URLs, IPs, UUIDs, JSON, YAML, credit cards, and more |
+| **Validators** | Validate IPs, UUIDs, JSON, YAML, credit cards, and more |
 | **Comparators** | Diff text, JSON, directories; semantic version compare |
 | **Text Utilities** | Case conversion, slugify, count (words/lines/chars), truncate, encode/decode |
 | **Codecs** | PEM/PFX parsing, ZIP compression |
@@ -298,6 +298,27 @@ oxide validate email 'user (comment) @example.com' --mode header
 oxide validate email user@example.com --ascii
 oxide validate email user@localhost --require-tld
 
+# Validate URLs and URIs (any absolute scheme: http, https, ftp, mailto, urn, ...)
+oxide validate url https://example.com/path?q=1
+
+# Valid URLs print their normalized form; invalid ones exit non-zero
+oxide validate url 'HTTPS://EXAMPLE.com/Path'
+oxide validate url 'http://[2001:db8::1]:8080/'
+
+# Internationalized domain names are validated and normalized to punycode
+oxide validate url 'https://例子.测试/路径'
+
+# URIs with non-hierarchical schemes
+oxide validate url urn:isbn:0451450523
+oxide validate url mailto:user@example.com
+
+# Full validation report (scheme, host, port, path, query, fragment)
+oxide validate url 'https://user:pw@example.com:8443/path?q=1' --verbose
+
+# Tighten the rules: scheme allowlist, require a host
+oxide validate url ftp://example.com --scheme https --scheme http
+oxide validate url mailto:user@example.com --require-host
+
 # Show help
 oxide --help
 oxide gen --help
@@ -324,6 +345,7 @@ oxide convert yaml2xml --help
 oxide convert xml2yaml --help
 oxide validate --help
 oxide validate email --help
+oxide validate url --help
 ```
 
 ---
@@ -417,7 +439,7 @@ The project follows a two-crate architecture:
 
 ### Phase 4 — Validators
 - [x] Email validator
-- [ ] URL/URI validator
+- [x] URL/URI validator
 - [ ] IP address validator (IPv4, IPv6)
 - [ ] UUID validator
 - [ ] JSON/YAML syntax validator
