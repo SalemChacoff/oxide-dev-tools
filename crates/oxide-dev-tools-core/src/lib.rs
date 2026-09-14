@@ -23,4 +23,5 @@ pub use generators::sample_file_generator::{
     JpgOptions, PdfOptions, PngOptions, SampleError, SampleKind, TamperKind, generate_sample_file,
 };
 pub use validators::email_validator::{EmailDomainKind, EmailMode, EmailOptions, EmailReport, validate_email};
+pub use validators::ip_validator::{IpClass, IpMode, IpOptions, IpReport, IpVersion, validate_ip};
 pub use validators::url_validator::{UrlHostKind, UrlReport, UrlValidationOptions, validate_url};

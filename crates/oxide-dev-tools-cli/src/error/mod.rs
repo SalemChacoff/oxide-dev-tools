@@ -97,7 +97,7 @@ mod tests {
 
     #[test]
     fn root_displays_valid_error() {
-        let err = CliError::from(ValidError::InvalidEmail("local part is empty".into()));
+        let err = CliError::from(ValidError::Email("local part is empty".into()));
         assert_eq!(err.to_string(), "invalid email: local part is empty");
         assert!(err.source().is_some_and(|source| source.source().is_none()));
     }

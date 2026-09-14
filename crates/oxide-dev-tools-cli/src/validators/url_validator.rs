@@ -45,7 +45,7 @@ pub fn exec(args: UrlArgs) -> Result<(), ValidError> {
         }
         Ok(())
     } else {
-        Err(ValidError::InvalidUrl(report.issues.join("; ")))
+        Err(ValidError::Url(report.issues.join("; ")))
     }
 }
 

@@ -74,7 +74,7 @@ pub fn exec(args: EmailArgs) -> Result<(), ValidError> {
         }
         Ok(())
     } else {
-        Err(ValidError::InvalidEmail(report.issues.join("; ")))
+        Err(ValidError::Email(report.issues.join("; ")))
     }
 }
 

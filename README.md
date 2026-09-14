@@ -19,13 +19,13 @@ A fast, unified CLI toolkit for developers — generators, validators, comparato
 | **Sample File Generator** (`oxide gen sample`) | PDF, PNG, JPG files with exact sizes, dimensions, colors, tamper variants |
 | **Codecs** (`oxide codec`) | Base64 encode/decode (standard and URL-safe), Hex encode/decode, URL encode/decode |
 | **Converters** (`oxide convert`) | Timestamp ↔ Unix/ISO 8601/RFC 2822/human-readable, with units, precision, and timezones; unit conversion (data storage, data rate, length, time, mass); JSON ↔ YAML ↔ XML document conversion (inline text or file input, stdout or file output) |
-| **Validators** (`oxide validate`) | Email validation (RFC 5321/5322, IDN, SMTPUTF8, address literals, quoted strings); URL/URI validation (WHATWG URL Standard, IDN, IPv4/IPv6 literals, scheme allowlist) |
+| **Validators** (`oxide validate`) | Email validation (RFC 5321/5322, IDN, SMTPUTF8, address literals, quoted strings); URL/URI validation (WHATWG URL Standard, IDN, IPv4/IPv6 literals, scheme allowlist); IP validation (IPv4/IPv6, RFC 6890 classification, canonical form, zone IDs) |
 
 ### 🚧 Planned / In progress
 
 | Category | Description |
 |---|---|
-| **Validators** | Validate IPs, UUIDs, JSON, YAML, credit cards, and more |
+| **Validators** | Validate UUIDs, JSON, YAML, credit cards, and more |
 | **Comparators** | Diff text, JSON, directories; semantic version compare |
 | **Text Utilities** | Case conversion, slugify, count (words/lines/chars), truncate, encode/decode |
 | **Codecs** | PEM/PFX parsing, ZIP compression |
@@ -319,6 +319,29 @@ oxide validate url 'https://user:pw@example.com:8443/path?q=1' --verbose
 oxide validate url ftp://example.com --scheme https --scheme http
 oxide validate url mailto:user@example.com --require-host
 
+# Validate an IPv4 or IPv6 address (family auto-detected)
+oxide validate ip 192.168.1.1
+oxide validate ip '2001:db8::1'
+
+# Valid addresses print the canonical form; invalid ones exit non-zero
+oxide validate ip '2001:0DB8:0:0::1'
+oxide validate ip '::ffff:192.0.2.1'
+
+# Full validation report (family, classification, canonical form)
+oxide validate ip 8.8.8.8 --verbose
+
+# Tighten the rules: global only, no leading zeros, no zone IDs
+oxide validate ip 127.0.0.1 --require-global
+oxide validate ip '192.168.001.1' --no-leading-zeros
+oxide validate ip 'fe80::1%eth0' --no-zone-id
+
+# IPv6 zone identifiers (link-local)
+oxide validate ip 'fe80::1%eth0'
+
+# Force a specific address family
+oxide validate ip 1.2.3.4 --mode ipv4
+oxide validate ip '2001:db8::1' --mode ipv6
+
 # Show help
 oxide --help
 oxide gen --help
@@ -346,6 +369,7 @@ oxide convert xml2yaml --help
 oxide validate --help
 oxide validate email --help
 oxide validate url --help
+oxide validate ip --help
 ```
 
 ---
@@ -440,7 +464,7 @@ The project follows a two-crate architecture:
 ### Phase 4 — Validators
 - [x] Email validator
 - [x] URL/URI validator
-- [ ] IP address validator (IPv4, IPv6)
+- [x] IP address validator (IPv4, IPv6)
 - [ ] UUID validator
 - [ ] JSON/YAML syntax validator
 - [ ] Credit card number validator (Luhn)
