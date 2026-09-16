@@ -1,3 +1,4 @@
+pub mod card_validator;
 pub mod email_validator;
 pub mod ip_validator;
 pub mod syntax_validator;
@@ -12,7 +13,7 @@ use crate::error::CliError;
 /// `oxide validate ...` — entry point for all validators
 #[derive(Args)]
 #[command(
-    after_help = "Examples:\n  oxide validate email user@example.com\n  oxide validate email user@example.com --verbose\n  oxide validate email '用户@例子.广告'\n  oxide validate url https://example.com\n  oxide validate ip 192.168.1.1\n  oxide validate uuid 550e8400-e29b-41d4-a716-446655440000\n  oxide validate json '{\"a\": 1}'\n  oxide validate yaml 'a: 1'\n  oxide validate xml '<root/>'"
+    after_help = "Examples:\n  oxide validate email user@example.com\n  oxide validate email user@example.com --verbose\n  oxide validate email '用户@例子.广告'\n  oxide validate url https://example.com\n  oxide validate ip 192.168.1.1\n  oxide validate uuid 550e8400-e29b-41d4-a716-446655440000\n  oxide validate card 4111111111111111\n  oxide validate json '{\"a\": 1}'\n  oxide validate yaml 'a: 1'\n  oxide validate xml '<root/>'"
 )]
 pub struct ValidateArgs {
     #[command(subcommand)]
@@ -41,6 +42,11 @@ pub enum ValidateKind {
         after_help = "Examples:\n  oxide validate uuid 550e8400-e29b-41d4-a716-446655440000\n  oxide validate uuid '550E8400E29B41D4A716446655440000'\n  oxide validate uuid '{550e8400-e29b-41d4-a716-446655440000}'\n  oxide validate uuid urn:uuid:550e8400-e29b-41d4-a716-446655440000\n  oxide validate uuid 550e8400-e29b-41d4-a716-446655440000 --version v4\n  oxide validate uuid 550e8400-e29b-41d4-a716-446655440000 --kind simple\n  oxide validate uuid 550e8400-e29b-41d4-a716-446655440000 --variant rfc4122\n  oxide validate uuid 550e8400-e29b-41d4-a716-446655440000 --verbose"
     )]
     Uuid(uuid_validator::UuidArgs),
+    /// Validate a credit card number (Luhn checksum and issuer network detection).
+    #[command(
+        after_help = "Examples:\n  oxide validate card 4111111111111111\n  oxide validate card '5555 5555 5555 4444'\n  oxide validate card '3782-822463-10005' --verbose\n  oxide validate card 6011111111111117 --network discover\n  oxide validate card 6200000000000005 --network mastercard\n  oxide validate card 79927398713 --require-network\n  oxide validate card '4111 1111 1111 1111' --no-separators"
+    )]
+    Card(card_validator::CardArgs),
     /// Validate JSON document syntax (well-formedness with line/column errors).
     #[command(
         after_help = "Examples:\n  oxide validate json '{\"a\": 1}'\n  oxide validate json '{\"a\": 1}' --verbose\n  oxide validate json data.json --input-file\n  oxide validate json '{broken'"
@@ -64,6 +70,7 @@ pub fn exec(args: ValidateArgs) -> Result<(), CliError> {
         ValidateKind::Url(args) => url_validator::exec(args).map_err(Into::into),
         ValidateKind::Ip(args) => ip_validator::exec(args).map_err(Into::into),
         ValidateKind::Uuid(args) => uuid_validator::exec(args).map_err(Into::into),
+        ValidateKind::Card(args) => card_validator::exec(args).map_err(Into::into),
         ValidateKind::Json(args) => syntax_validator::exec(args, SyntaxKind::Json).map_err(Into::into),
         ValidateKind::Yaml(args) => syntax_validator::exec(args, SyntaxKind::Yaml).map_err(Into::into),
         ValidateKind::Xml(args) => syntax_validator::exec(args, SyntaxKind::Xml).map_err(Into::into),

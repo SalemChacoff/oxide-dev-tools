@@ -5,6 +5,8 @@ use super::GenericError;
 /// Errors from `oxide validate` tools.
 #[derive(Debug)]
 pub enum ValidError {
+    /// The validated card number is invalid; carries the joined issue list.
+    Card(String),
     /// The validated document (JSON/YAML/XML) is invalid; carries the joined
     /// issue list.
     Doc(String),
@@ -23,6 +25,7 @@ pub enum ValidError {
 impl fmt::Display for ValidError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            ValidError::Card(msg) => write!(f, "invalid card: {msg}"),
             ValidError::Doc(msg) => write!(f, "invalid document: {msg}"),
             ValidError::Email(msg) => write!(f, "invalid email: {msg}"),
             ValidError::Generic(e) => write!(f, "{e}"),
@@ -37,7 +40,8 @@ impl std::error::Error for ValidError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
             ValidError::Generic(e) => Some(e),
-            ValidError::Doc(_)
+            ValidError::Card(_)
+            | ValidError::Doc(_)
             | ValidError::Email(_)
             | ValidError::Ip(_)
             | ValidError::Uuid(_)
@@ -61,6 +65,13 @@ mod tests {
     fn invalid_document_displays_issues() {
         let err = ValidError::Doc("expected value at line 1 column 2".to_string());
         assert_eq!(err.to_string(), "invalid document: expected value at line 1 column 2");
+        assert!(err.source().is_none());
+    }
+
+    #[test]
+    fn invalid_card_displays_issues() {
+        let err = ValidError::Card("fails the Luhn checksum".to_string());
+        assert_eq!(err.to_string(), "invalid card: fails the Luhn checksum");
         assert!(err.source().is_none());
     }
 
