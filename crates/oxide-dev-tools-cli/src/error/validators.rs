@@ -12,6 +12,9 @@ pub enum ValidError {
     Doc(String),
     /// The validated email address is invalid; carries the joined issue list.
     Email(String),
+    /// The detected file type is unknown or violates the configured
+    /// expectation; carries the reason.
+    File(String),
     /// An argument or I/O failure shared with the other categories.
     Generic(GenericError),
     /// The validated IP address is invalid; carries the joined issue list.
@@ -31,6 +34,7 @@ impl fmt::Display for ValidError {
             ValidError::Card(msg) => write!(f, "invalid card: {msg}"),
             ValidError::Doc(msg) => write!(f, "invalid document: {msg}"),
             ValidError::Email(msg) => write!(f, "invalid email: {msg}"),
+            ValidError::File(msg) => write!(f, "invalid file: {msg}"),
             ValidError::Generic(e) => write!(f, "{e}"),
             ValidError::Ip(msg) => write!(f, "invalid ip: {msg}"),
             ValidError::Password(msg) => write!(f, "invalid password: {msg}"),
@@ -47,6 +51,7 @@ impl std::error::Error for ValidError {
             ValidError::Card(_)
             | ValidError::Doc(_)
             | ValidError::Email(_)
+            | ValidError::File(_)
             | ValidError::Ip(_)
             | ValidError::Password(_)
             | ValidError::Uuid(_)
@@ -84,6 +89,13 @@ mod tests {
     fn invalid_email_displays_issues() {
         let err = ValidError::Email("missing '@' separator".to_string());
         assert_eq!(err.to_string(), "invalid email: missing '@' separator");
+        assert!(err.source().is_none());
+    }
+
+    #[test]
+    fn invalid_file_displays_issues() {
+        let err = ValidError::File("unknown file type".to_string());
+        assert_eq!(err.to_string(), "invalid file: unknown file type");
         assert!(err.source().is_none());
     }
 

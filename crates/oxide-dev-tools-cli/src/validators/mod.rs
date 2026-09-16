@@ -1,5 +1,6 @@
 pub mod card_validator;
 pub mod email_validator;
+pub mod file_type_validator;
 pub mod ip_validator;
 pub mod password_validator;
 pub mod syntax_validator;
@@ -14,7 +15,7 @@ use crate::error::CliError;
 /// `oxide validate ...` — entry point for all validators
 #[derive(Args)]
 #[command(
-    after_help = "Examples:\n  oxide validate email user@example.com\n  oxide validate email user@example.com --verbose\n  oxide validate email '用户@例子.广告'\n  oxide validate url https://example.com\n  oxide validate ip 192.168.1.1\n  oxide validate uuid 550e8400-e29b-41d4-a716-446655440000\n  oxide validate card 4111111111111111\n  oxide validate password 'correct horse battery staple'\n  oxide validate json '{\"a\": 1}'\n  oxide validate yaml 'a: 1'\n  oxide validate xml '<root/>'"
+    after_help = "Examples:\n  oxide validate email user@example.com\n  oxide validate email user@example.com --verbose\n  oxide validate email '用户@例子.广告'\n  oxide validate url https://example.com\n  oxide validate ip 192.168.1.1\n  oxide validate uuid 550e8400-e29b-41d4-a716-446655440000\n  oxide validate card 4111111111111111\n  oxide validate password 'correct horse battery staple'\n  oxide validate file photo.png\n  oxide validate json '{\"a\": 1}'\n  oxide validate yaml 'a: 1'\n  oxide validate xml '<root/>'"
 )]
 pub struct ValidateArgs {
     #[command(subcommand)]
@@ -68,6 +69,11 @@ pub enum ValidateKind {
         after_help = "Examples:\n  oxide validate xml '<root/>'\n  oxide validate xml '<r><a>1</a></r>' --verbose\n  oxide validate xml '<?xml version=\"1.0\"?><r/>'\n  oxide validate xml '<!DOCTYPE r><r/>' --allow-dtd\n  oxide validate xml doc.xml --input-file\n  oxide validate xml '<r>'"
     )]
     Xml(syntax_validator::SyntaxArgs),
+    /// Detect a file's type from its content (magic bytes, containers, text heuristics).
+    #[command(
+        after_help = "Examples:\n  oxide validate file photo.png\n  oxide validate file archive.zip --verbose\n  oxide validate file upload.bin --expected png\n  oxide validate file image.jpg --strict\n  cat data.bin | oxide validate file -"
+    )]
+    File(file_type_validator::FileArgs),
 }
 
 pub fn exec(args: ValidateArgs) -> Result<(), CliError> {
@@ -81,5 +87,6 @@ pub fn exec(args: ValidateArgs) -> Result<(), CliError> {
         ValidateKind::Json(args) => syntax_validator::exec(args, SyntaxKind::Json).map_err(Into::into),
         ValidateKind::Yaml(args) => syntax_validator::exec(args, SyntaxKind::Yaml).map_err(Into::into),
         ValidateKind::Xml(args) => syntax_validator::exec(args, SyntaxKind::Xml).map_err(Into::into),
+        ValidateKind::File(args) => file_type_validator::exec(args).map_err(Into::into),
     }
 }
