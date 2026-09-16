@@ -16,6 +16,9 @@ pub enum ValidError {
     Generic(GenericError),
     /// The validated IP address is invalid; carries the joined issue list.
     Ip(String),
+    /// The analyzed password fails the configured requirements; carries the
+    /// joined issue list.
+    Password(String),
     /// The validated UUID is invalid; carries the joined issue list.
     Uuid(String),
     /// The validated URL is invalid; carries the joined issue list.
@@ -30,6 +33,7 @@ impl fmt::Display for ValidError {
             ValidError::Email(msg) => write!(f, "invalid email: {msg}"),
             ValidError::Generic(e) => write!(f, "{e}"),
             ValidError::Ip(msg) => write!(f, "invalid ip: {msg}"),
+            ValidError::Password(msg) => write!(f, "invalid password: {msg}"),
             ValidError::Uuid(msg) => write!(f, "invalid uuid: {msg}"),
             ValidError::Url(msg) => write!(f, "invalid url: {msg}"),
         }
@@ -44,6 +48,7 @@ impl std::error::Error for ValidError {
             | ValidError::Doc(_)
             | ValidError::Email(_)
             | ValidError::Ip(_)
+            | ValidError::Password(_)
             | ValidError::Uuid(_)
             | ValidError::Url(_) => None,
         }
@@ -93,6 +98,13 @@ mod tests {
     fn invalid_ip_displays_issues() {
         let err = ValidError::Ip("invalid IPv4 address syntax".to_string());
         assert_eq!(err.to_string(), "invalid ip: invalid IPv4 address syntax");
+        assert!(err.source().is_none());
+    }
+
+    #[test]
+    fn invalid_password_displays_issues() {
+        let err = ValidError::Password("score 1 is below the required minimum of 3".to_string());
+        assert_eq!(err.to_string(), "invalid password: score 1 is below the required minimum of 3");
         assert!(err.source().is_none());
     }
 

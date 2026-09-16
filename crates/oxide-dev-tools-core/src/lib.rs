@@ -25,6 +25,9 @@ pub use generators::sample_file_generator::{
 pub use validators::card_validator::{CardNetwork, CardOptions, CardReport, validate_card};
 pub use validators::email_validator::{EmailDomainKind, EmailMode, EmailOptions, EmailReport, validate_email};
 pub use validators::ip_validator::{IpClass, IpMode, IpOptions, IpReport, IpVersion, validate_ip};
+pub use validators::password_validator::{
+    CrackTimeReport, PasswordReport, PasswordStrength, PasswordStrengthOptions, validate_password,
+};
 pub use validators::syntax_validator::{SyntaxFormat, SyntaxKind, SyntaxOptions, SyntaxReport, validate_syntax};
 pub use validators::url_validator::{UrlHostKind, UrlReport, UrlValidationOptions, validate_url};
 pub use validators::uuid_validator::{UuidKind, UuidOptions, UuidReport, UuidVariant, UuidVersion, validate_uuid};

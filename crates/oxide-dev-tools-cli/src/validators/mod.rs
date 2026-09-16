@@ -1,6 +1,7 @@
 pub mod card_validator;
 pub mod email_validator;
 pub mod ip_validator;
+pub mod password_validator;
 pub mod syntax_validator;
 pub mod url_validator;
 pub mod uuid_validator;
@@ -13,7 +14,7 @@ use crate::error::CliError;
 /// `oxide validate ...` — entry point for all validators
 #[derive(Args)]
 #[command(
-    after_help = "Examples:\n  oxide validate email user@example.com\n  oxide validate email user@example.com --verbose\n  oxide validate email '用户@例子.广告'\n  oxide validate url https://example.com\n  oxide validate ip 192.168.1.1\n  oxide validate uuid 550e8400-e29b-41d4-a716-446655440000\n  oxide validate card 4111111111111111\n  oxide validate json '{\"a\": 1}'\n  oxide validate yaml 'a: 1'\n  oxide validate xml '<root/>'"
+    after_help = "Examples:\n  oxide validate email user@example.com\n  oxide validate email user@example.com --verbose\n  oxide validate email '用户@例子.广告'\n  oxide validate url https://example.com\n  oxide validate ip 192.168.1.1\n  oxide validate uuid 550e8400-e29b-41d4-a716-446655440000\n  oxide validate card 4111111111111111\n  oxide validate password 'correct horse battery staple'\n  oxide validate json '{\"a\": 1}'\n  oxide validate yaml 'a: 1'\n  oxide validate xml '<root/>'"
 )]
 pub struct ValidateArgs {
     #[command(subcommand)]
@@ -47,6 +48,11 @@ pub enum ValidateKind {
         after_help = "Examples:\n  oxide validate card 4111111111111111\n  oxide validate card '5555 5555 5555 4444'\n  oxide validate card '3782-822463-10005' --verbose\n  oxide validate card 6011111111111117 --network discover\n  oxide validate card 6200000000000005 --network mastercard\n  oxide validate card 79927398713 --require-network\n  oxide validate card '4111 1111 1111 1111' --no-separators"
     )]
     Card(card_validator::CardArgs),
+    /// Analyze a password's strength (zxcvbn score, patterns, crack-time estimates).
+    #[command(
+        after_help = "Examples:\n  oxide validate password 'correct horse battery staple'\n  oxide validate password 'Tr0ub4dor&3' --verbose\n  oxide validate password 'P@ssw0rd!' --min-score 3\n  oxide validate password 'summer2021' --user-input summer\n  oxide validate password secrets.txt --input-file\n  echo 'my secret' | oxide validate password -\n> Note: passwords typed inline stay in your shell history; prefer --input-file or stdin for real secrets."
+    )]
+    Password(password_validator::PasswordArgs),
     /// Validate JSON document syntax (well-formedness with line/column errors).
     #[command(
         after_help = "Examples:\n  oxide validate json '{\"a\": 1}'\n  oxide validate json '{\"a\": 1}' --verbose\n  oxide validate json data.json --input-file\n  oxide validate json '{broken'"
@@ -71,6 +77,7 @@ pub fn exec(args: ValidateArgs) -> Result<(), CliError> {
         ValidateKind::Ip(args) => ip_validator::exec(args).map_err(Into::into),
         ValidateKind::Uuid(args) => uuid_validator::exec(args).map_err(Into::into),
         ValidateKind::Card(args) => card_validator::exec(args).map_err(Into::into),
+        ValidateKind::Password(args) => password_validator::exec(args).map_err(Into::into),
         ValidateKind::Json(args) => syntax_validator::exec(args, SyntaxKind::Json).map_err(Into::into),
         ValidateKind::Yaml(args) => syntax_validator::exec(args, SyntaxKind::Yaml).map_err(Into::into),
         ValidateKind::Xml(args) => syntax_validator::exec(args, SyntaxKind::Xml).map_err(Into::into),

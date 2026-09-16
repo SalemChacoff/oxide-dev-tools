@@ -19,13 +19,13 @@ A fast, unified CLI toolkit for developers — generators, validators, comparato
 | **Sample File Generator** (`oxide gen sample`) | PDF, PNG, JPG files with exact sizes, dimensions, colors, tamper variants |
 | **Codecs** (`oxide codec`) | Base64 encode/decode (standard and URL-safe), Hex encode/decode, URL encode/decode |
 | **Converters** (`oxide convert`) | Timestamp ↔ Unix/ISO 8601/RFC 2822/human-readable, with units, precision, and timezones; unit conversion (data storage, data rate, length, time, mass); JSON ↔ YAML ↔ XML document conversion (inline text or file input, stdout or file output) |
-| **Validators** (`oxide validate`) | Email validation (RFC 5321/5322, IDN, SMTPUTF8, address literals, quoted strings); URL/URI validation (WHATWG URL Standard, IDN, IPv4/IPv6 literals, scheme allowlist); IP validation (IPv4/IPv6, RFC 6890 classification, canonical form, zone IDs); UUID validation (v1–v8, nil/max, hyphenated/simple/braced/URN forms, version and variant checks); credit card validation (Luhn checksum, issuer network detection for Visa, Mastercard, American Express, Discover, Diners Club, JCB, UnionPay, Maestro, Mir, RuPay, Elo, Hipercard, Verve, UATP); JSON/YAML/XML syntax validation (well-formedness, root/depth reporting, inline text or file input, DTD policy) |
+| **Validators** (`oxide validate`) | Email validation (RFC 5321/5322, IDN, SMTPUTF8, address literals, quoted strings); URL/URI validation (WHATWG URL Standard, IDN, IPv4/IPv6 literals, scheme allowlist); IP validation (IPv4/IPv6, RFC 6890 classification, canonical form, zone IDs); UUID validation (v1–v8, nil/max, hyphenated/simple/braced/URN forms, version and variant checks); credit card validation (Luhn checksum, issuer network detection for Visa, Mastercard, American Express, Discover, Diners Club, JCB, UnionPay, Maestro, Mir, RuPay, Elo, Hipercard, Verve, UATP); password strength analysis (zxcvbn-based score 0–4, dictionary/keyboard/sequence/repeat/date/l33t pattern detection, crack-time estimates, personalized word lists); JSON/YAML/XML syntax validation (well-formedness, root/depth reporting, inline text or file input, DTD policy) |
 
 ### 🚧 Planned / In progress
 
 | Category | Description |
 |---|---|
-| **Validators** | Password strength analysis, file type detection |
+| **Validators** | File type detection |
 | **Comparators** | Diff text, JSON, directories; semantic version compare |
 | **Text Utilities** | Case conversion, slugify, count (words/lines/chars), truncate, encode/decode |
 | **Codecs** | PEM/PFX parsing, ZIP compression |
@@ -380,6 +380,22 @@ oxide validate card 6200000000000005 --network mastercard
 oxide validate card 79927398713 --require-network
 oxide validate card '4111 1111 1111 1111' --no-separators
 
+# Analyze a password's strength (zxcvbn score, patterns, crack times)
+oxide validate password 'correct horse battery staple'
+
+# Valid passwords print their strength label; weak ones exit non-zero with --min-score
+oxide validate password 'P@ssw0rd!' --min-score 3
+
+# Full analysis report (score, entropy, classes, patterns, crack times)
+oxide validate password 'Tr0ub4dor&3' --verbose
+
+# Feed personalized words so names and usernames count as easy to guess
+oxide validate password 'summer2021' --user-input summer
+
+# Read the password from a file, or pipe it through stdin
+oxide validate password secrets.txt --input-file
+echo 'my secret' | oxide validate password -
+
 # Validate JSON, YAML, or XML document syntax
 oxide validate json '{"a": 1}'
 oxide validate yaml 'items:\n  - one\n  - two'
@@ -430,6 +446,7 @@ oxide validate url --help
 oxide validate ip --help
 oxide validate uuid --help
 oxide validate card --help
+oxide validate password --help
 oxide validate json --help
 oxide validate yaml --help
 oxide validate xml --help
@@ -531,7 +548,7 @@ The project follows a two-crate architecture:
 - [x] UUID validator
 - [x] JSON/YAML/XML syntax validator
 - [x] Credit card number validator (Luhn)
-- [ ] Password strength analyzer
+- [x] Password strength analyzer
 - [ ] File type validator
 
 ### Phase 5 — Text Utilities
