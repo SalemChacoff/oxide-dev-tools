@@ -1,16 +1,18 @@
 pub mod email_validator;
 pub mod ip_validator;
+pub mod syntax_validator;
 pub mod url_validator;
 pub mod uuid_validator;
 
 use clap::{Args, Subcommand};
+use oxide_dev_tools_core::SyntaxKind;
 
 use crate::error::CliError;
 
 /// `oxide validate ...` — entry point for all validators
 #[derive(Args)]
 #[command(
-    after_help = "Examples:\n  oxide validate email user@example.com\n  oxide validate email user@example.com --verbose\n  oxide validate email '用户@例子.广告'\n  oxide validate url https://example.com\n  oxide validate ip 192.168.1.1\n  oxide validate uuid 550e8400-e29b-41d4-a716-446655440000"
+    after_help = "Examples:\n  oxide validate email user@example.com\n  oxide validate email user@example.com --verbose\n  oxide validate email '用户@例子.广告'\n  oxide validate url https://example.com\n  oxide validate ip 192.168.1.1\n  oxide validate uuid 550e8400-e29b-41d4-a716-446655440000\n  oxide validate json '{\"a\": 1}'\n  oxide validate yaml 'a: 1'\n  oxide validate xml '<root/>'"
 )]
 pub struct ValidateArgs {
     #[command(subcommand)]
@@ -39,6 +41,21 @@ pub enum ValidateKind {
         after_help = "Examples:\n  oxide validate uuid 550e8400-e29b-41d4-a716-446655440000\n  oxide validate uuid '550E8400E29B41D4A716446655440000'\n  oxide validate uuid '{550e8400-e29b-41d4-a716-446655440000}'\n  oxide validate uuid urn:uuid:550e8400-e29b-41d4-a716-446655440000\n  oxide validate uuid 550e8400-e29b-41d4-a716-446655440000 --version v4\n  oxide validate uuid 550e8400-e29b-41d4-a716-446655440000 --kind simple\n  oxide validate uuid 550e8400-e29b-41d4-a716-446655440000 --variant rfc4122\n  oxide validate uuid 550e8400-e29b-41d4-a716-446655440000 --verbose"
     )]
     Uuid(uuid_validator::UuidArgs),
+    /// Validate JSON document syntax (well-formedness with line/column errors).
+    #[command(
+        after_help = "Examples:\n  oxide validate json '{\"a\": 1}'\n  oxide validate json '{\"a\": 1}' --verbose\n  oxide validate json data.json --input-file\n  oxide validate json '{broken'"
+    )]
+    Json(syntax_validator::SyntaxArgs),
+    /// Validate YAML document syntax (single-document streams).
+    #[command(
+        after_help = "Examples:\n  oxide validate yaml 'a: 1'\n  oxide validate yaml 'items:\n  - one\n  - two'\n  oxide validate yaml doc.yaml --input-file\n  oxide validate yaml 'a: [1'"
+    )]
+    Yaml(syntax_validator::SyntaxArgs),
+    /// Validate XML document syntax (well-formedness, root/depth, DTD policy).
+    #[command(
+        after_help = "Examples:\n  oxide validate xml '<root/>'\n  oxide validate xml '<r><a>1</a></r>' --verbose\n  oxide validate xml '<?xml version=\"1.0\"?><r/>'\n  oxide validate xml '<!DOCTYPE r><r/>' --allow-dtd\n  oxide validate xml doc.xml --input-file\n  oxide validate xml '<r>'"
+    )]
+    Xml(syntax_validator::SyntaxArgs),
 }
 
 pub fn exec(args: ValidateArgs) -> Result<(), CliError> {
@@ -47,5 +64,8 @@ pub fn exec(args: ValidateArgs) -> Result<(), CliError> {
         ValidateKind::Url(args) => url_validator::exec(args).map_err(Into::into),
         ValidateKind::Ip(args) => ip_validator::exec(args).map_err(Into::into),
         ValidateKind::Uuid(args) => uuid_validator::exec(args).map_err(Into::into),
+        ValidateKind::Json(args) => syntax_validator::exec(args, SyntaxKind::Json).map_err(Into::into),
+        ValidateKind::Yaml(args) => syntax_validator::exec(args, SyntaxKind::Yaml).map_err(Into::into),
+        ValidateKind::Xml(args) => syntax_validator::exec(args, SyntaxKind::Xml).map_err(Into::into),
     }
 }
