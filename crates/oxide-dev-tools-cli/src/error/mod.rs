@@ -2,11 +2,13 @@ mod codecs;
 mod converters;
 mod generators;
 mod generic;
+mod validators;
 
 pub use codecs::CodecError;
 pub use converters::ConvertError;
 pub use generators::GenError;
 pub use generic::GenericError;
+pub use validators::ValidError;
 
 use std::fmt;
 
@@ -20,6 +22,7 @@ pub enum CliError {
     Codec(CodecError),
     Convert(ConvertError),
     Gen(GenError),
+    Valid(ValidError),
 }
 
 impl fmt::Display for CliError {
@@ -28,6 +31,7 @@ impl fmt::Display for CliError {
             CliError::Codec(e) => write!(f, "{e}"),
             CliError::Convert(e) => write!(f, "{e}"),
             CliError::Gen(e) => write!(f, "{e}"),
+            CliError::Valid(e) => write!(f, "{e}"),
         }
     }
 }
@@ -38,6 +42,7 @@ impl std::error::Error for CliError {
             CliError::Codec(e) => Some(e),
             CliError::Convert(e) => Some(e),
             CliError::Gen(e) => Some(e),
+            CliError::Valid(e) => Some(e),
         }
     }
 }
@@ -57,6 +62,12 @@ impl From<ConvertError> for CliError {
 impl From<GenError> for CliError {
     fn from(e: GenError) -> Self {
         CliError::Gen(e)
+    }
+}
+
+impl From<ValidError> for CliError {
+    fn from(e: ValidError) -> Self {
+        CliError::Valid(e)
     }
 }
 
@@ -82,5 +93,12 @@ mod tests {
     fn root_displays_convert_error() {
         let err = CliError::from(ConvertError::from(oxide_dev_tools_core::DocError::MissingRoot));
         assert_eq!(err.to_string(), "XML document has no root element");
+    }
+
+    #[test]
+    fn root_displays_valid_error() {
+        let err = CliError::from(ValidError::Email("local part is empty".into()));
+        assert_eq!(err.to_string(), "invalid email: local part is empty");
+        assert!(err.source().is_some_and(|source| source.source().is_none()));
     }
 }

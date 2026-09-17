@@ -18,13 +18,13 @@ A fast, unified CLI toolkit for developers — generators, validators, comparato
 | **Data Generator** (`oxide gen fake`) | Fake personas, names, emails, phones, addresses, companies |
 | **Sample File Generator** (`oxide gen sample`) | PDF, PNG, JPG files with exact sizes, dimensions, colors, tamper variants |
 | **Codecs** (`oxide codec`) | Base64 encode/decode (standard and URL-safe), Hex encode/decode, URL encode/decode |
-| **Converters** (`oxide convert`) | Timestamp ↔ Unix/ISO 8601/RFC 2822/human-readable, with units, precision, and timezones; unit conversion (data storage, data rate, length, time, mass); JSON ↔ YAML ↔ XML document conversion (inline text or file input, stdout or file output)
+| **Converters** (`oxide convert`) | Timestamp ↔ Unix/ISO 8601/RFC 2822/human-readable, with units, precision, and timezones; unit conversion (data storage, data rate, length, time, mass); JSON ↔ YAML ↔ XML document conversion (inline text or file input, stdout or file output) |
+| **Validators** (`oxide validate`) | Email validation (RFC 5321/5322, IDN, SMTPUTF8, address literals, quoted strings); URL/URI validation (WHATWG URL Standard, IDN, IPv4/IPv6 literals, scheme allowlist); IP validation (IPv4/IPv6, RFC 6890 classification, canonical form, zone IDs); UUID validation (v1–v8, nil/max, hyphenated/simple/braced/URN forms, version and variant checks); credit card validation (Luhn checksum, issuer network detection for Visa, Mastercard, American Express, Discover, Diners Club, JCB, UnionPay, Maestro, Mir, RuPay, Elo, Hipercard, Verve, UATP); password strength analysis (zxcvbn-based score 0–4, dictionary/keyboard/sequence/repeat/date/l33t pattern detection, crack-time estimates, personalized word lists); JSON/YAML/XML syntax validation (well-formedness, root/depth reporting, inline text or file input, DTD policy); file type detection (magic bytes, ZIP/OOXML/ODF/EPUB/JAR containers, RIFF/EBML/BMFF probes, text heuristics, extension fallback and cross-check, `--expected` assertions)
 
 ### 🚧 Planned / In progress
 
 | Category | Description |
 |---|---|
-| **Validators** | Validate emails, URLs, IPs, UUIDs, JSON, YAML, credit cards, and more |
 | **Comparators** | Diff text, JSON, directories; semantic version compare |
 | **Text Utilities** | Case conversion, slugify, count (words/lines/chars), truncate, encode/decode |
 | **Codecs** | PEM/PFX parsing, ZIP compression |
@@ -273,6 +273,159 @@ oxide convert xml2yaml '<root><items>one</items><items>two</items></root>'
 oxide convert storage --list
 oxide convert length --list
 
+# Validate an email address against RFC 5321 (SMTP mailbox)
+oxide validate email user@example.com
+
+# Valid addresses print their normalized form; invalid ones exit non-zero
+oxide validate email '"john doe"@example.com'
+
+# Internationalized domains (IDN) and UTF-8 local parts (SMTPUTF8)
+oxide validate email '用户@例子.广告'
+oxide validate email 'δοκιμή@example.com'
+
+# Address literals (IPv4 and IPv6)
+oxide validate email 'user@[192.0.2.1]'
+oxide validate email 'user@[IPv6:2001:db8::1]'
+
+# Full validation report (parts, issues, warnings)
+oxide validate email user@example.com --verbose
+
+# Message-header grammar (RFC 5322: comments and folding whitespace)
+oxide validate email 'user (comment) @example.com' --mode header
+
+# Tighten the rules: ASCII-only, no quoted local parts, require a TLD
+oxide validate email user@example.com --ascii
+oxide validate email user@localhost --require-tld
+
+# Validate URLs and URIs (any absolute scheme: http, https, ftp, mailto, urn, ...)
+oxide validate url https://example.com/path?q=1
+
+# Valid URLs print their normalized form; invalid ones exit non-zero
+oxide validate url 'HTTPS://EXAMPLE.com/Path'
+oxide validate url 'http://[2001:db8::1]:8080/'
+
+# Internationalized domain names are validated and normalized to punycode
+oxide validate url 'https://例子.测试/路径'
+
+# URIs with non-hierarchical schemes
+oxide validate url urn:isbn:0451450523
+oxide validate url mailto:user@example.com
+
+# Full validation report (scheme, host, port, path, query, fragment)
+oxide validate url 'https://user:pw@example.com:8443/path?q=1' --verbose
+
+# Tighten the rules: scheme allowlist, require a host
+oxide validate url ftp://example.com --scheme https --scheme http
+oxide validate url mailto:user@example.com --require-host
+
+# Validate an IPv4 or IPv6 address (family auto-detected)
+oxide validate ip 192.168.1.1
+oxide validate ip '2001:db8::1'
+
+# Valid addresses print the canonical form; invalid ones exit non-zero
+oxide validate ip '2001:0DB8:0:0::1'
+oxide validate ip '::ffff:192.0.2.1'
+
+# Full validation report (family, classification, canonical form)
+oxide validate ip 8.8.8.8 --verbose
+
+# Tighten the rules: global only, no leading zeros, no zone IDs
+oxide validate ip 127.0.0.1 --require-global
+oxide validate ip '192.168.001.1' --no-leading-zeros
+oxide validate ip 'fe80::1%eth0' --no-zone-id
+
+# IPv6 zone identifiers (link-local)
+oxide validate ip 'fe80::1%eth0'
+
+# Force a specific address family
+oxide validate ip 1.2.3.4 --mode ipv4
+oxide validate ip '2001:db8::1' --mode ipv6
+
+# Validate a UUID in any of the standard serialization forms
+oxide validate uuid 550e8400-e29b-41d4-a716-446655440000
+
+# Valid UUIDs print the canonical hyphenated form; invalid ones exit non-zero
+oxide validate uuid '550E8400E29B41D4A716446655440000'
+oxide validate uuid '{550e8400-e29b-41d4-a716-446655440000}'
+oxide validate uuid urn:uuid:550e8400-e29b-41d4-a716-446655440000
+
+# Full validation report (form, version, variant, warnings)
+oxide validate uuid 550e8400-e29b-41d4-a716-446655440000 --verbose
+
+# Tighten the rules: exact version, form, or variant
+oxide validate uuid 550e8400-e29b-41d4-a716-446655440000 --version v4
+oxide validate uuid 550e8400-e29b-41d4-a716-446655440000 --kind simple
+oxide validate uuid 550e8400-e29b-41d4-a716-446655440000 --variant rfc4122
+
+# Nil and max UUIDs validate with a warning
+oxide validate uuid 00000000-0000-0000-0000-000000000000
+
+# Validate a credit card number (Luhn checksum + issuer network detection)
+oxide validate card 4111111111111111
+
+# Spaces and hyphens are tolerated and removed
+oxide validate card '5555 5555 5555 4444'
+oxide validate card '3782-822463-10005'
+
+# Valid numbers print the digits; invalid ones exit non-zero
+oxide validate card 6011111111111117
+
+# Full validation report (network, checksum, length, issues)
+oxide validate card 6011111111111117 --verbose
+
+# Tighten the rules: require a network, reject unknown issuers, no separators
+oxide validate card 4111111111111111 --network visa
+oxide validate card 6200000000000005 --network mastercard
+oxide validate card 79927398713 --require-network
+oxide validate card '4111 1111 1111 1111' --no-separators
+
+# Analyze a password's strength (zxcvbn score, patterns, crack times)
+oxide validate password 'correct horse battery staple'
+
+# Valid passwords print their strength label; weak ones exit non-zero with --min-score
+oxide validate password 'P@ssw0rd!' --min-score 3
+
+# Full analysis report (score, entropy, classes, patterns, crack times)
+oxide validate password 'Tr0ub4dor&3' --verbose
+
+# Feed personalized words so names and usernames count as easy to guess
+oxide validate password 'summer2021' --user-input summer
+
+# Read the password from a file, or pipe it through stdin
+oxide validate password secrets.txt --input-file
+echo 'my secret' | oxide validate password -
+
+# Validate JSON, YAML, or XML document syntax
+oxide validate json '{"a": 1}'
+oxide validate yaml 'items:\n  - one\n  - two'
+oxide validate xml '<root><a>1</a></root>'
+
+# Valid documents print their format; invalid ones exit non-zero
+oxide validate json '{"nested": {"deep": [1, 2, 3]}}'
+oxide validate json '{broken'
+
+# Full validation report (root construct, nesting depth, issues)
+oxide validate json '{"a": 1}' --verbose
+
+# Validate a file, or pipe a document through stdin
+oxide validate json data.json --input-file
+echo '{"a": 1}' | oxide validate json -
+
+# XML-specific rules: DTD policy and nesting depth limit
+oxide validate xml '<!DOCTYPE r><r/>' --allow-dtd
+oxide validate xml '<r><a><b/></a></r>' --max-depth 2
+
+# Detect a file's type from its content, not its name
+oxide validate file photo.png
+oxide validate file archive.zip --verbose
+
+# Fail when the content disagrees with the requested type
+oxide validate file upload.bin --expected png
+
+# Treat a content/extension mismatch as an error, or pipe bytes via stdin
+oxide validate file image.jpg --strict
+cat data.bin | oxide validate file -
+
 # Show help
 oxide --help
 oxide gen --help
@@ -297,6 +450,17 @@ oxide convert json2xml --help
 oxide convert xml2json --help
 oxide convert yaml2xml --help
 oxide convert xml2yaml --help
+oxide validate --help
+oxide validate email --help
+oxide validate url --help
+oxide validate ip --help
+oxide validate uuid --help
+oxide validate card --help
+oxide validate password --help
+oxide validate json --help
+oxide validate yaml --help
+oxide validate xml --help
+oxide validate file --help
 ```
 
 ---
@@ -326,6 +490,10 @@ oxide-dev-tools/
 │       │       │   ├── lorem_generator.rs # Lorem ipsum words, sentences, paragraphs
 │       │       │   ├── sample_file_generator.rs # Sample PDF/PNG/JPG files with exact sizes
 │       │       │   └── mod.rs
+│       │       ├── validators/       # Validator implementations (email, ...)
+│       │       │   ├── email_validator.rs # RFC 5321/5322 email validation (IDN, SMTPUTF8)
+│       │       │   ├── file_type_validator.rs # File type detection (magic bytes, containers, text)
+│       │       │   └── mod.rs
 │   │       └── lib.rs
 │   └── oxide-dev-tools-cli/    # CLI binary — clap-based argument parsing
 │       └── src/
@@ -346,6 +514,10 @@ oxide-dev-tools/
 │               │   ├── lorem_generator.rs
 │               │   ├── sample_file_generator.rs
 │               │   └── mod.rs
+│   │           ├── validators/     # CLI wrappers for validators
+│   │           │   ├── email_validator.rs
+│   │           │   ├── file_type_validator.rs
+│   │           │   └── mod.rs
 │           └── main.rs
 ├── Cargo.toml                  # Workspace manifest
 └── README.md
@@ -383,14 +555,14 @@ The project follows a two-crate architecture:
 - [x] JSON ↔ YAML ↔ XML conversion
 
 ### Phase 4 — Validators
-- [ ] Email validator
-- [ ] URL/URI validator
-- [ ] IP address validator (IPv4, IPv6)
-- [ ] UUID validator
-- [ ] JSON/YAML syntax validator
-- [ ] Credit card number validator (Luhn)
-- [ ] Password strength analyzer
-- [ ] File type validator
+- [x] Email validator
+- [x] URL/URI validator
+- [x] IP address validator (IPv4, IPv6)
+- [x] UUID validator
+- [x] JSON/YAML/XML syntax validator
+- [x] Credit card number validator (Luhn)
+- [x] Password strength analyzer
+- [x] File type validator (magic bytes, containers, text heuristics, extension fallback)
 
 ### Phase 5 — Text Utilities
 - [ ] Case conversion (camelCase, snake_case, kebab-case, etc.)
