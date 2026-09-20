@@ -18,6 +18,7 @@ A fast, unified CLI toolkit for developers — generators, validators, comparato
 | **Data Generator** (`oxide gen fake`) | Fake personas, names, emails, phones, addresses, companies |
 | **Sample File Generator** (`oxide gen sample`) | PDF, PNG, JPG files with exact sizes, dimensions, colors, tamper variants |
 | **Codecs** (`oxide codec`) | Base64 encode/decode (standard and URL-safe), Hex encode/decode, URL encode/decode |
+| **Text Utilities** (`oxide text`) | Case conversion (camelCase, PascalCase, snake_case, SCREAMING_SNAKE_CASE, kebab-case, SCREAMING-KEBAB-CASE, dot.case, Title Case, lower case, upper case) |
 | **Converters** (`oxide convert`) | Timestamp ↔ Unix/ISO 8601/RFC 2822/human-readable, with units, precision, and timezones; unit conversion (data storage, data rate, length, time, mass); JSON ↔ YAML ↔ XML document conversion (inline text or file input, stdout or file output) |
 | **Validators** (`oxide validate`) | Email validation (RFC 5321/5322, IDN, SMTPUTF8, address literals, quoted strings); URL/URI validation (WHATWG URL Standard, IDN, IPv4/IPv6 literals, scheme allowlist); IP validation (IPv4/IPv6, RFC 6890 classification, canonical form, zone IDs); UUID validation (v1–v8, nil/max, hyphenated/simple/braced/URN forms, version and variant checks); credit card validation (Luhn checksum, issuer network detection for Visa, Mastercard, American Express, Discover, Diners Club, JCB, UnionPay, Maestro, Mir, RuPay, Elo, Hipercard, Verve, UATP); password strength analysis (zxcvbn-based score 0–4, dictionary/keyboard/sequence/repeat/date/l33t pattern detection, crack-time estimates, personalized word lists); JSON/YAML/XML syntax validation (well-formedness, root/depth reporting, inline text or file input, DTD policy); file type detection (magic bytes, ZIP/OOXML/ODF/EPUB/JAR containers, RIFF/EBML/BMFF probes, text heuristics, extension fallback and cross-check, `--expected` assertions)
 
@@ -26,7 +27,7 @@ A fast, unified CLI toolkit for developers — generators, validators, comparato
 | Category | Description |
 |---|---|
 | **Comparators** | Diff text, JSON, directories; semantic version compare |
-| **Text Utilities** | Case conversion, slugify, count (words/lines/chars), truncate, encode/decode |
+| **Text Utilities** | Slugify, count (words/lines/chars), truncate, encode/decode |
 | **Codecs** | PEM/PFX parsing, ZIP compression |
 | **Converters** | Units, JSON ↔ YAML, color formats |
 | **Data Generator** | Fake personas, names, emails, phones, addresses, companies; sample CSV/JSON data |
@@ -426,6 +427,18 @@ oxide validate file upload.bin --expected png
 oxide validate file image.jpg --strict
 cat data.bin | oxide validate file -
 
+# Convert text between letter cases
+oxide text case camel "hello world"
+oxide text case pascal "hello world"
+oxide text case snake "helloWorld"
+oxide text case screaming-snake "helloWorld"
+oxide text case kebab "helloWorld"
+oxide text case screaming-kebab "helloWorld"
+oxide text case dot "hello world"
+oxide text case title "helloWorld"
+oxide text case lower "HelloWorld"
+oxide text case upper "hello world"
+
 # Show help
 oxide --help
 oxide gen --help
@@ -461,6 +474,8 @@ oxide validate json --help
 oxide validate yaml --help
 oxide validate xml --help
 oxide validate file --help
+oxide text --help
+oxide text case --help
 ```
 
 ---
@@ -565,7 +580,7 @@ The project follows a two-crate architecture:
 - [x] File type validator (magic bytes, containers, text heuristics, extension fallback)
 
 ### Phase 5 — Text Utilities
-- [ ] Case conversion (camelCase, snake_case, kebab-case, etc.)
+- [x] Case conversion (camelCase, snake_case, kebab-case, etc.)
 - [ ] Slugify
 - [ ] Word/line/character count
 - [ ] Text truncate / ellipsis

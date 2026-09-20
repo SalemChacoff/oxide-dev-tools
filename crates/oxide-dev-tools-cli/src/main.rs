@@ -4,6 +4,7 @@ mod codecs;
 mod converters;
 mod error;
 mod generators;
+mod text;
 mod validators;
 
 #[derive(Parser)]
@@ -21,6 +22,8 @@ enum Tool {
     Convert(converters::ConvertArgs),
     /// Generate IDs, ULIDs, NanoIDs, passwords, tokens, etc.
     Gen(generators::GenArgs),
+    /// Transform text (case conversion, etc.).
+    Text(text::TextArgs),
     /// Validate values against standards (emails, URLs, IPs, etc.).
     Validate(validators::ValidateArgs),
 }
@@ -32,6 +35,7 @@ fn main() {
         Tool::Codec(args) => codecs::exec(args),
         Tool::Convert(args) => converters::exec(args),
         Tool::Gen(args) => generators::exec(args),
+        Tool::Text(args) => text::exec(args),
         Tool::Validate(args) => validators::exec(args),
     };
 
