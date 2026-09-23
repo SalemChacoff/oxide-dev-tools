@@ -1,6 +1,7 @@
 mod codecs;
 mod converters;
 mod generators;
+mod text;
 mod validators;
 
 pub use codecs::base64_codec::{Base64Alphabet, Base64Error, Base64Kind, Base64Options, convert_base64};
@@ -22,6 +23,14 @@ pub use generators::lorem_generator::{
 pub use generators::sample_file_generator::{
     JpgOptions, PdfOptions, PngOptions, SampleError, SampleKind, TamperKind, generate_sample_file,
 };
+pub use text::case_converter::{CaseError, CaseKind, CaseOptions, CaseTarget, convert_case};
+pub use text::char_scanner::{
+    CharClass, CharacterFinding, TextScanOptions, TextScanReport, character_label, scan_characters,
+};
+pub use text::html_codec::{HtmlError, HtmlKind, HtmlMode, HtmlOptions, convert_html};
+pub use text::text_stats::{TextStatsOptions, TextStatsReport, count_text_stats};
+pub use text::truncate::{TruncateError, TruncateOptions, TruncatePosition, truncate_text};
+pub use text::unicode_codec::{UnicodeError, UnicodeKind, UnicodeOptions, UnicodeStyle, convert_unicode};
 pub use validators::card_validator::{CardNetwork, CardOptions, CardReport, validate_card};
 pub use validators::email_validator::{EmailDomainKind, EmailMode, EmailOptions, EmailReport, validate_email};
 pub use validators::file_type_validator::{
