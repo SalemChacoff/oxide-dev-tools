@@ -1,4 +1,5 @@
 pub mod case_converter;
+pub mod char_scanner;
 pub mod codec;
 pub mod html_codec;
 pub mod text_stats;
@@ -15,7 +16,7 @@ use crate::error::{CliError, GenericError};
 /// `oxide text ...` — entry point for all text utilities
 #[derive(Args)]
 #[command(
-    after_help = "Examples:\n  oxide text case camel \"hello world\"\n  oxide text case snake \"helloWorld\"\n  oxide text case kebab \"helloWorld\"\n  oxide text count \"hello world\"\n  oxide text count draft.md --input-file\n  oxide text truncate \"hello world\" --max-length 8\n  oxide text codec html encode \"<b>hi</b>\""
+    after_help = "Examples:\n  oxide text case camel \"hello world\"\n  oxide text case snake \"helloWorld\"\n  oxide text case kebab \"helloWorld\"\n  oxide text count \"hello world\"\n  oxide text count draft.md --input-file\n  oxide text truncate \"hello world\" --max-length 8\n  oxide text scan \"hello world\"\n  oxide text codec html encode \"<b>hi</b>\""
 )]
 pub struct TextArgs {
     #[command(subcommand)]
@@ -32,6 +33,8 @@ pub enum TextKind {
     Count(text_stats::CountArgs),
     /// Truncate text to a maximum length with an optional ellipsis.
     Truncate(truncate::TruncateArgs),
+    /// Detect whitespace and hidden characters in any plain text.
+    Scan(char_scanner::ScanArgs),
 }
 
 pub fn exec(args: TextArgs) -> Result<(), CliError> {
@@ -40,6 +43,7 @@ pub fn exec(args: TextArgs) -> Result<(), CliError> {
         TextKind::Codec(args) => codec::exec(args).map_err(Into::into),
         TextKind::Count(args) => text_stats::exec(args).map_err(Into::into),
         TextKind::Truncate(args) => truncate::exec(args).map_err(Into::into),
+        TextKind::Scan(args) => char_scanner::exec(args).map_err(Into::into),
     }
 }
 
