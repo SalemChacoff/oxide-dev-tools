@@ -1,10 +1,7 @@
-use std::io::Read;
-use std::path::Path;
-
 use clap::Args;
 use oxide_dev_tools_core::*;
 
-use crate::error::{GenericError, TextError};
+use crate::error::TextError;
 
 /// `oxide text count <INPUT> [flags]` — count characters, words, lines, and paragraphs
 ///
@@ -44,30 +41,10 @@ pub struct CountArgs {
 }
 
 pub fn exec(args: CountArgs) -> Result<(), TextError> {
-    let input = resolve_input(&args)?;
+    let input = super::resolve_text_input(&args.input, args.input_file)?;
     let options = TextStatsOptions { input };
     print_report(&count_text_stats(options), &args);
     Ok(())
-}
-
-// -------- Input resolution --------
-
-fn resolve_input(args: &CountArgs) -> Result<String, GenericError> {
-    let Some(input) = &args.input else {
-        return Err("missing <INPUT> (text to count or a path to a file)".into());
-    };
-    if input == "-" {
-        let mut content = String::new();
-        std::io::stdin()
-            .read_to_string(&mut content)
-            .map_err(|error| GenericError::Io(format!("cannot read text from stdin: {error}")))?;
-        return Ok(content);
-    }
-    if args.input_file || Path::new(input).is_file() {
-        return std::fs::read_to_string(input)
-            .map_err(|error| GenericError::Io(format!("cannot read input file \"{input}\": {error}")));
-    }
-    Ok(input.clone())
 }
 
 // -------- Report output --------

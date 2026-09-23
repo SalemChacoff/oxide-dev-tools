@@ -25,6 +25,7 @@ pub use generators::sample_file_generator::{
 };
 pub use text::case_converter::{CaseError, CaseKind, CaseOptions, CaseTarget, convert_case};
 pub use text::text_stats::{TextStatsOptions, TextStatsReport, count_text_stats};
+pub use text::truncate::{TruncateError, TruncateOptions, TruncatePosition, truncate_text};
 pub use validators::card_validator::{CardNetwork, CardOptions, CardReport, validate_card};
 pub use validators::email_validator::{EmailDomainKind, EmailMode, EmailOptions, EmailReport, validate_email};
 pub use validators::file_type_validator::{
