@@ -18,7 +18,7 @@ A fast, unified CLI toolkit for developers — generators, validators, comparato
 | **Data Generator** (`oxide gen fake`) | Fake personas, names, emails, phones, addresses, companies |
 | **Sample File Generator** (`oxide gen sample`) | PDF, PNG, JPG files with exact sizes, dimensions, colors, tamper variants |
 | **Codecs** (`oxide codec`) | Base64 encode/decode (standard and URL-safe), Hex encode/decode, URL encode/decode |
-| **Text Utilities** (`oxide text`) | Case conversion (camelCase, PascalCase, snake_case, SCREAMING_SNAKE_CASE, kebab-case, SCREAMING-KEBAB-CASE, dot.case, Title Case, lower case, upper case); text statistics (character, byte, word, line, and paragraph counts — inline text, file, or stdin input); text truncation (character-counted max length with configurable ellipsis and end/start/middle position — inline text, file, or stdin input) |
+| **Text Utilities** (`oxide text`) | Case conversion (camelCase, PascalCase, snake_case, SCREAMING_SNAKE_CASE, kebab-case, SCREAMING-KEBAB-CASE, dot.case, Title Case, lower case, upper case); text statistics (character, byte, word, line, and paragraph counts — inline text, file, or stdin input); text truncation (character-counted max length with configurable ellipsis and end/start/middle position — inline text, file, or stdin input); string encode/decode (HTML entities in attribute or text mode, unicode escapes in JSON or Rust style — inline text, file, or stdin input) |
 | **Converters** (`oxide convert`) | Timestamp ↔ Unix/ISO 8601/RFC 2822/human-readable, with units, precision, and timezones; unit conversion (data storage, data rate, length, time, mass); JSON ↔ YAML ↔ XML document conversion (inline text or file input, stdout or file output) |
 | **Validators** (`oxide validate`) | Email validation (RFC 5321/5322, IDN, SMTPUTF8, address literals, quoted strings); URL/URI validation (WHATWG URL Standard, IDN, IPv4/IPv6 literals, scheme allowlist); IP validation (IPv4/IPv6, RFC 6890 classification, canonical form, zone IDs); UUID validation (v1–v8, nil/max, hyphenated/simple/braced/URN forms, version and variant checks); credit card validation (Luhn checksum, issuer network detection for Visa, Mastercard, American Express, Discover, Diners Club, JCB, UnionPay, Maestro, Mir, RuPay, Elo, Hipercard, Verve, UATP); password strength analysis (zxcvbn-based score 0–4, dictionary/keyboard/sequence/repeat/date/l33t pattern detection, crack-time estimates, personalized word lists); JSON/YAML/XML syntax validation (well-formedness, root/depth reporting, inline text or file input, DTD policy); file type detection (magic bytes, ZIP/OOXML/ODF/EPUB/JAR containers, RIFF/EBML/BMFF probes, text heuristics, extension fallback and cross-check, `--expected` assertions)
 
@@ -27,7 +27,7 @@ A fast, unified CLI toolkit for developers — generators, validators, comparato
 | Category | Description |
 |---|---|
 | **Comparators** | Diff text, JSON, directories; semantic version compare |
-| **Text Utilities** | Slugify, encode/decode |
+| **Text Utilities** | Slugify |
 | **Codecs** | PEM/PFX parsing, ZIP compression |
 | **Converters** | Units, JSON ↔ YAML, color formats |
 | **Data Generator** | Fake personas, names, emails, phones, addresses, companies; sample CSV/JSON data |
@@ -455,6 +455,17 @@ oxide text truncate "hello world" --max-length 5 --ellipsis ""
 oxide text truncate draft.md --max-length 40 --input-file
 cat draft.md | oxide text truncate - --max-length 40
 
+# Encode/decode HTML entities and unicode escapes
+oxide text codec html encode "<b>hi & bye</b>"
+oxide text codec html decode "&lt;b&gt;hi &amp; bye&lt;/b&gt;"
+oxide text codec html encode "a < b & c" --mode text
+oxide text codec html decode "&copy; 2026 &amp; &#x1F680;"
+oxide text codec unicode encode "café 🚀"
+oxide text codec unicode encode "café" --style rust
+oxide text codec unicode decode "caf\u00e9"
+oxide text codec html decode page.html --input-file
+cat page.html | oxide text codec html decode -
+
 # Show help
 oxide --help
 oxide gen --help
@@ -494,6 +505,7 @@ oxide text --help
 oxide text case --help
 oxide text count --help
 oxide text truncate --help
+oxide text codec --help
 ```
 
 ---
@@ -601,7 +613,7 @@ The project follows a two-crate architecture:
 - [x] Case conversion (camelCase, snake_case, kebab-case, etc.)
 - [x] Word/line/paragraph character count
 - [x] Text truncate / ellipsis
-- [ ] String encode/decode (HTML entities, unicode escapes)
+- [x] String encode/decode (HTML entities, unicode escapes)
 - [ ] Detect whitespace and strange characters
 
 ### Phase 6 — Comparators & Diffs
