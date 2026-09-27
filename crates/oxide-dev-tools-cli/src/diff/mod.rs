@@ -1,3 +1,4 @@
+pub mod json_diff;
 pub mod text_diff;
 
 use std::io::Read;
@@ -10,7 +11,7 @@ use crate::error::{CliError, GenericError};
 /// `oxide diff ...` — compare texts and files, git-style
 #[derive(Args)]
 #[command(
-    after_help = "Examples:\n  oxide diff text \"hello\" \"world\"\n  oxide diff text draft.md final.md --files\n  oxide diff text \"abcdef\" \"abxdef\" --mode chars"
+    after_help = "Examples:\n  oxide diff text \"hello\" \"world\"\n  oxide diff text draft.md final.md --files\n  oxide diff text \"abcdef\" \"abxdef\" --mode chars\n  oxide diff json api-v1.json api-v2.json --ignore-order"
 )]
 pub struct DiffArgs {
     #[command(subcommand)]
@@ -21,11 +22,14 @@ pub struct DiffArgs {
 pub enum DiffKind {
     /// Compare two texts or files line by line or character by character.
     Text(text_diff::TextDiffArgs),
+    /// Compare two JSON documents semantically, path by path.
+    Json(json_diff::JsonDiffArgs),
 }
 
 pub fn exec(args: DiffArgs) -> Result<(), CliError> {
     match args.kind {
         DiffKind::Text(args) => text_diff::exec(args).map_err(Into::into),
+        DiffKind::Json(args) => json_diff::exec(args).map_err(Into::into),
     }
 }
 

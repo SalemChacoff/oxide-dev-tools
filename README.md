@@ -21,13 +21,13 @@ A fast, unified CLI toolkit for developers — generators, validators, comparato
 | **Text Utilities** (`oxide text`) | Case conversion (camelCase, PascalCase, snake_case, SCREAMING_SNAKE_CASE, kebab-case, SCREAMING-KEBAB-CASE, dot.case, Title Case, lower case, upper case); text statistics (character, byte, word, line, and paragraph counts — inline text, file, or stdin input); text truncation (character-counted max length with configurable ellipsis and end/start/middle position — inline text, file, or stdin input); string encode/decode (HTML entities in attribute or text mode, unicode escapes in JSON or Rust style — inline text, file, or stdin input); character scanning (whitespace, hidden, and non-ASCII detection in any plain text with line, column, code point, and name reporting — inline text, file, or stdin input) |
 | **Converters** (`oxide convert`) | Timestamp ↔ Unix/ISO 8601/RFC 2822/human-readable, with units, precision, and timezones; unit conversion (data storage, data rate, length, time, mass); JSON ↔ YAML ↔ XML document conversion (inline text or file input, stdout or file output) |
 | **Validators** (`oxide validate`) | Email validation (RFC 5321/5322, IDN, SMTPUTF8, address literals, quoted strings); URL/URI validation (WHATWG URL Standard, IDN, IPv4/IPv6 literals, scheme allowlist); IP validation (IPv4/IPv6, RFC 6890 classification, canonical form, zone IDs); UUID validation (v1–v8, nil/max, hyphenated/simple/braced/URN forms, version and variant checks); credit card validation (Luhn checksum, issuer network detection for Visa, Mastercard, American Express, Discover, Diners Club, JCB, UnionPay, Maestro, Mir, RuPay, Elo, Hipercard, Verve, UATP); password strength analysis (zxcvbn-based score 0–4, dictionary/keyboard/sequence/repeat/date/l33t pattern detection, crack-time estimates, personalized word lists); JSON/YAML/XML syntax validation (well-formedness, root/depth reporting, inline text or file input, DTD policy); file type detection (magic bytes, ZIP/OOXML/ODF/EPUB/JAR containers, RIFF/EBML/BMFF probes, text heuristics, extension fallback and cross-check, `--expected` assertions) |
-| **Comparators** (`oxide diff`) | Text diff (git-style unified line diff with context hunks; character-by-character diff for short strings — inline text, file, or stdin inputs, CRLF-normalized) |
+| **Comparators** (`oxide diff`) | Text diff (git-style unified line diff with context hunks; character-by-character diff for short strings — inline text, file, or stdin inputs, CRLF-normalized); JSON deep compare (semantic tree comparison with path-addressed differences, set-based array matching, relative numeric tolerance, RFC 6902 patch output, and CI-friendly `--check` mode — inline text, file, or stdin inputs) |
 
 ### 🚧 Planned / In progress
 
 | Category | Description |
 |---|---|
-| **Comparators** | JSON deep compare, semantic version compare, directory comparison |
+| **Comparators** | Semantic version compare, directory comparison |
 | **Text Utilities** | Slugify |
 | **Codecs** | PEM/PFX parsing, ZIP compression |
 | **Converters** | Units, JSON ↔ YAML, color formats |
@@ -484,6 +484,19 @@ cat draft.md | oxide diff text - final.md
 # Compare two short strings character by character
 oxide diff text "abcdef" "abxdef" --mode chars
 
+# Deep-compare two JSON documents (member order is irrelevant)
+oxide diff json "{\"name\":\"ann\"}" "{\"name\":\"bob\"}"
+oxide diff json api-v1.json api-v2.json
+
+# Compare arrays as sets, allow 5% numeric drift, skip noisy members
+oxide diff json old.json new.json --ignore-order
+oxide diff json before.json after.json --tolerance 5
+oxide diff json draft.json final.json --ignore-key timestamp --ignore-key version
+
+# Emit an RFC 6902 patch, or check equality for CI (silent exit 1 on differences)
+oxide diff json api-v1.json api-v2.json --format json
+oxide diff json api-v1.json api-v2.json --check
+
 # Show help
 oxide --help
 oxide gen --help
@@ -527,6 +540,7 @@ oxide text scan --help
 oxide text codec --help
 oxide diff --help
 oxide diff text --help
+oxide diff json --help
 ```
 
 ---
@@ -639,7 +653,7 @@ The project follows a two-crate architecture:
 
 ### Phase 6 — Comparators & Diffs
 - [x] Text diff (line-based and character-based)
-- [ ] JSON deep compare
+- [x] JSON deep compare
 - [ ] Semantic version comparison
 - [ ] Directory structure comparison
 

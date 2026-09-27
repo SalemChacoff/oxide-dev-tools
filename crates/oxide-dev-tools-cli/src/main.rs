@@ -21,7 +21,7 @@ enum Tool {
     Codec(codecs::CodecArgs),
     /// Convert values between formats (timestamps, units, etc.).
     Convert(converters::ConvertArgs),
-    /// Compare texts and files, git-style.
+    /// Compare texts, files, and JSON documents, git-style.
     Diff(diff::DiffArgs),
     /// Generate IDs, ULIDs, NanoIDs, passwords, tokens, etc.
     Gen(generators::GenArgs),
@@ -44,7 +44,9 @@ fn main() {
     };
 
     if let Err(e) = result {
-        eprintln!("Error: {e}");
+        if !e.is_silent() {
+            eprintln!("Error: {e}");
+        }
         std::process::exit(1);
     }
 }

@@ -31,6 +31,14 @@ pub enum CliError {
     Valid(ValidError),
 }
 
+impl CliError {
+    /// Whether the error only signals a failed `--check` comparison: the
+    /// CLI exits nonzero without printing a message (like `git diff --quiet`).
+    pub fn is_silent(&self) -> bool {
+        matches!(self, CliError::Diff(DiffError::CheckFailed))
+    }
+}
+
 impl fmt::Display for CliError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
@@ -97,6 +105,20 @@ impl From<ValidError> for CliError {
 mod tests {
     use super::*;
     use std::error::Error;
+
+    #[test]
+    fn check_failed_is_silent() {
+        let err = CliError::from(DiffError::CheckFailed);
+        assert!(err.is_silent());
+    }
+
+    #[test]
+    fn other_errors_are_not_silent() {
+        let err = CliError::from(DiffError::from(oxide_dev_tools_core::TextDiffError::InputTooLong { limit: 8 }));
+        assert!(!err.is_silent());
+        let err = CliError::from(GenError::from(GenericError::Argument("bad flag".into())));
+        assert!(!err.is_silent());
+    }
 
     #[test]
     fn root_displays_category_error() {
