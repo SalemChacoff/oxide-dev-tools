@@ -21,7 +21,7 @@ enum Tool {
     Codec(codecs::CodecArgs),
     /// Convert values between formats (timestamps, units, etc.).
     Convert(converters::ConvertArgs),
-    /// Compare texts, files, and JSON documents, git-style.
+    /// Compare texts, files, JSON documents, and semantic versions, git-style.
     Diff(diff::DiffArgs),
     /// Generate IDs, ULIDs, NanoIDs, passwords, tokens, etc.
     Gen(generators::GenArgs),

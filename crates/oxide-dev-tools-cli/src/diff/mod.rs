@@ -1,4 +1,5 @@
 pub mod json_diff;
+pub mod semver_diff;
 pub mod text_diff;
 
 use std::io::Read;
@@ -8,10 +9,11 @@ use clap::{Args, Subcommand};
 
 use crate::error::{CliError, GenericError};
 
-/// `oxide diff ...` — compare texts and files, git-style
+/// `oxide diff ...` — compare texts, files, JSON documents, and semantic
+/// versions, git-style
 #[derive(Args)]
 #[command(
-    after_help = "Examples:\n  oxide diff text \"hello\" \"world\"\n  oxide diff text draft.md final.md --files\n  oxide diff text \"abcdef\" \"abxdef\" --mode chars\n  oxide diff json api-v1.json api-v2.json --ignore-order"
+    after_help = "Examples:\n  oxide diff text \"hello\" \"world\"\n  oxide diff text draft.md final.md --files\n  oxide diff text \"abcdef\" \"abxdef\" --mode chars\n  oxide diff json api-v1.json api-v2.json --ignore-order\n  oxide diff semver compare 1.2.3 2.0.0\n  oxide diff semver satisfies 1.2.3 \"^1.2\""
 )]
 pub struct DiffArgs {
     #[command(subcommand)]
@@ -24,12 +26,15 @@ pub enum DiffKind {
     Text(text_diff::TextDiffArgs),
     /// Compare two JSON documents semantically, path by path.
     Json(json_diff::JsonDiffArgs),
+    /// Compare versions by SemVer 2.0.0 precedence, or check requirement ranges.
+    Semver(semver_diff::SemverArgs),
 }
 
 pub fn exec(args: DiffArgs) -> Result<(), CliError> {
     match args.kind {
         DiffKind::Text(args) => text_diff::exec(args).map_err(Into::into),
         DiffKind::Json(args) => json_diff::exec(args).map_err(Into::into),
+        DiffKind::Semver(args) => semver_diff::exec(args).map_err(Into::into),
     }
 }
 

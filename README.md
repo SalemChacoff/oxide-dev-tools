@@ -21,13 +21,13 @@ A fast, unified CLI toolkit for developers — generators, validators, comparato
 | **Text Utilities** (`oxide text`) | Case conversion (camelCase, PascalCase, snake_case, SCREAMING_SNAKE_CASE, kebab-case, SCREAMING-KEBAB-CASE, dot.case, Title Case, lower case, upper case); text statistics (character, byte, word, line, and paragraph counts — inline text, file, or stdin input); text truncation (character-counted max length with configurable ellipsis and end/start/middle position — inline text, file, or stdin input); string encode/decode (HTML entities in attribute or text mode, unicode escapes in JSON or Rust style — inline text, file, or stdin input); character scanning (whitespace, hidden, and non-ASCII detection in any plain text with line, column, code point, and name reporting — inline text, file, or stdin input) |
 | **Converters** (`oxide convert`) | Timestamp ↔ Unix/ISO 8601/RFC 2822/human-readable, with units, precision, and timezones; unit conversion (data storage, data rate, length, time, mass); JSON ↔ YAML ↔ XML document conversion (inline text or file input, stdout or file output) |
 | **Validators** (`oxide validate`) | Email validation (RFC 5321/5322, IDN, SMTPUTF8, address literals, quoted strings); URL/URI validation (WHATWG URL Standard, IDN, IPv4/IPv6 literals, scheme allowlist); IP validation (IPv4/IPv6, RFC 6890 classification, canonical form, zone IDs); UUID validation (v1–v8, nil/max, hyphenated/simple/braced/URN forms, version and variant checks); credit card validation (Luhn checksum, issuer network detection for Visa, Mastercard, American Express, Discover, Diners Club, JCB, UnionPay, Maestro, Mir, RuPay, Elo, Hipercard, Verve, UATP); password strength analysis (zxcvbn-based score 0–4, dictionary/keyboard/sequence/repeat/date/l33t pattern detection, crack-time estimates, personalized word lists); JSON/YAML/XML syntax validation (well-formedness, root/depth reporting, inline text or file input, DTD policy); file type detection (magic bytes, ZIP/OOXML/ODF/EPUB/JAR containers, RIFF/EBML/BMFF probes, text heuristics, extension fallback and cross-check, `--expected` assertions) |
-| **Comparators** (`oxide diff`) | Text diff (git-style unified line diff with context hunks; character-by-character diff for short strings — inline text, file, or stdin inputs, CRLF-normalized); JSON deep compare (semantic tree comparison with path-addressed differences, set-based array matching, relative numeric tolerance, RFC 6902 patch output, and CI-friendly `--check` mode — inline text, file, or stdin inputs) |
+| **Comparators** (`oxide diff`) | Text diff (git-style unified line diff with context hunks; character-by-character diff for short strings — inline text, file, or stdin inputs, CRLF-normalized); JSON deep compare (semantic tree comparison with path-addressed differences, set-based array matching, relative numeric tolerance, RFC 6902 patch output, and CI-friendly `--check` mode — inline text, file, or stdin inputs); semantic version compare (SemVer 2.0.0 precedence with pre-release-aware ordering and build-metadata-insensitive equality; Cargo-style requirement checks `^1.2`, `~1.0`, `>=1.0.0, <2.0.0`, wildcards; `--expect` relation assertions and CI-friendly `--check` mode) |
 
 ### 🚧 Planned / In progress
 
 | Category | Description |
 |---|---|
-| **Comparators** | Semantic version compare, directory comparison |
+| **Comparators** | Directory comparison |
 | **Text Utilities** | Slugify |
 | **Codecs** | PEM/PFX parsing, ZIP compression |
 | **Converters** | Units, JSON ↔ YAML, color formats |
@@ -497,6 +497,19 @@ oxide diff json draft.json final.json --ignore-key timestamp --ignore-key versio
 oxide diff json api-v1.json api-v2.json --format json
 oxide diff json api-v1.json api-v2.json --check
 
+# Compare two versions by SemVer 2.0.0 precedence (pre-release aware)
+oxide diff semver compare 1.2.3 2.0.0
+oxide diff semver compare 1.0.0-rc.1 1.0.0
+
+# Assert a relation, or check equality silently for CI (exit 1 on mismatch)
+oxide diff semver compare 1.2.3 2.0.0 --expect lt
+oxide diff semver compare 1.2.3 1.2.3 --check
+
+# Check a version against a Cargo-style requirement range
+oxide diff semver satisfies 1.2.3 "^1.2"
+oxide diff semver satisfies 1.5.0 ">=1.0.0, <2.0.0"
+oxide diff semver satisfies 2.0.0 "^1.2" --check
+
 # Show help
 oxide --help
 oxide gen --help
@@ -541,6 +554,9 @@ oxide text codec --help
 oxide diff --help
 oxide diff text --help
 oxide diff json --help
+oxide diff semver --help
+oxide diff semver compare --help
+oxide diff semver satisfies --help
 ```
 
 ---
@@ -654,7 +670,7 @@ The project follows a two-crate architecture:
 ### Phase 6 — Comparators & Diffs
 - [x] Text diff (line-based and character-based)
 - [x] JSON deep compare
-- [ ] Semantic version comparison
+- [x] Semantic version comparison
 - [ ] Directory structure comparison
 
 ### Phase 7 — File Generators & Scaffolding

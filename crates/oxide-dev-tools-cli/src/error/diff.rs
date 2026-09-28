@@ -1,6 +1,6 @@
 use std::fmt;
 
-use oxide_dev_tools_core::{JsonDiffError, TextDiffError};
+use oxide_dev_tools_core::{JsonDiffError, SemverError, TextDiffError};
 
 use super::GenericError;
 
@@ -9,9 +9,15 @@ use super::GenericError;
 pub enum DiffError {
     Text(TextDiffError),
     Json(JsonDiffError),
+    Semver(SemverError),
     /// A `--check` comparison found differences; the CLI exits nonzero
     /// without printing a message (mirrors `git diff --quiet`).
     CheckFailed,
+    /// A semver `--expect` relation or `satisfies` requirement was not met.
+    ExpectationFailed {
+        /// Human-readable explanation of what was expected.
+        message: String,
+    },
     /// An argument or I/O failure shared with the other categories.
     Generic(GenericError),
 }
@@ -21,7 +27,9 @@ impl fmt::Display for DiffError {
         match self {
             DiffError::Text(e) => write!(f, "{e}"),
             DiffError::Json(e) => write!(f, "{e}"),
+            DiffError::Semver(e) => write!(f, "{e}"),
             DiffError::CheckFailed => write!(f, "documents differ"),
+            DiffError::ExpectationFailed { message } => write!(f, "{message}"),
             DiffError::Generic(e) => write!(f, "{e}"),
         }
     }
@@ -32,7 +40,9 @@ impl std::error::Error for DiffError {
         match self {
             DiffError::Text(e) => Some(e),
             DiffError::Json(e) => Some(e),
+            DiffError::Semver(e) => Some(e),
             DiffError::CheckFailed => None,
+            DiffError::ExpectationFailed { .. } => None,
             DiffError::Generic(e) => Some(e),
         }
     }
@@ -47,6 +57,12 @@ impl From<TextDiffError> for DiffError {
 impl From<JsonDiffError> for DiffError {
     fn from(e: JsonDiffError) -> Self {
         DiffError::Json(e)
+    }
+}
+
+impl From<SemverError> for DiffError {
+    fn from(e: SemverError) -> Self {
+        DiffError::Semver(e)
     }
 }
 
@@ -76,6 +92,25 @@ mod tests {
         });
         assert_eq!(err.to_string(), "right JSON input must be at most 4 characters");
         assert!(err.source().is_some());
+    }
+
+    #[test]
+    fn from_semver_error_is_transparent() {
+        let err = DiffError::from(SemverError::InputTooLong {
+            side: oxide_dev_tools_core::SemverSide::Left,
+            limit: 4,
+        });
+        assert_eq!(err.to_string(), "left semver input must be at most 4 characters");
+        assert!(err.source().is_some());
+    }
+
+    #[test]
+    fn expectation_failed_displays_message_without_source() {
+        let err = DiffError::ExpectationFailed {
+            message: "expected 1.2.3 < 2.0.0".into(),
+        };
+        assert_eq!(err.to_string(), "expected 1.2.3 < 2.0.0");
+        assert!(err.source().is_none());
     }
 
     #[test]
