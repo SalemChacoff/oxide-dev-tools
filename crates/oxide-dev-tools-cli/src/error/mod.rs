@@ -1,5 +1,6 @@
 mod codecs;
 mod converters;
+mod diff;
 mod generators;
 mod generic;
 mod text;
@@ -7,6 +8,7 @@ mod validators;
 
 pub use codecs::CodecError;
 pub use converters::ConvertError;
+pub use diff::DiffError;
 pub use generators::GenError;
 pub use generic::GenericError;
 pub use text::TextError;
@@ -23,9 +25,18 @@ use std::fmt;
 pub enum CliError {
     Codec(CodecError),
     Convert(ConvertError),
+    Diff(DiffError),
     Gen(GenError),
     Text(TextError),
     Valid(ValidError),
+}
+
+impl CliError {
+    /// Whether the error only signals a failed `--check` comparison: the
+    /// CLI exits nonzero without printing a message (like `git diff --quiet`).
+    pub fn is_silent(&self) -> bool {
+        matches!(self, CliError::Diff(DiffError::CheckFailed))
+    }
 }
 
 impl fmt::Display for CliError {
@@ -33,6 +44,7 @@ impl fmt::Display for CliError {
         match self {
             CliError::Codec(e) => write!(f, "{e}"),
             CliError::Convert(e) => write!(f, "{e}"),
+            CliError::Diff(e) => write!(f, "{e}"),
             CliError::Gen(e) => write!(f, "{e}"),
             CliError::Text(e) => write!(f, "{e}"),
             CliError::Valid(e) => write!(f, "{e}"),
@@ -45,6 +57,7 @@ impl std::error::Error for CliError {
         match self {
             CliError::Codec(e) => Some(e),
             CliError::Convert(e) => Some(e),
+            CliError::Diff(e) => Some(e),
             CliError::Gen(e) => Some(e),
             CliError::Text(e) => Some(e),
             CliError::Valid(e) => Some(e),
@@ -61,6 +74,12 @@ impl From<CodecError> for CliError {
 impl From<ConvertError> for CliError {
     fn from(e: ConvertError) -> Self {
         CliError::Convert(e)
+    }
+}
+
+impl From<DiffError> for CliError {
+    fn from(e: DiffError) -> Self {
+        CliError::Diff(e)
     }
 }
 
@@ -88,6 +107,20 @@ mod tests {
     use std::error::Error;
 
     #[test]
+    fn check_failed_is_silent() {
+        let err = CliError::from(DiffError::CheckFailed);
+        assert!(err.is_silent());
+    }
+
+    #[test]
+    fn other_errors_are_not_silent() {
+        let err = CliError::from(DiffError::from(oxide_dev_tools_core::TextDiffError::InputTooLong { limit: 8 }));
+        assert!(!err.is_silent());
+        let err = CliError::from(GenError::from(GenericError::Argument("bad flag".into())));
+        assert!(!err.is_silent());
+    }
+
+    #[test]
     fn root_displays_category_error() {
         let err = CliError::from(GenError::from(GenericError::Io("disk full".into())));
         assert_eq!(err.to_string(), "disk full");
@@ -104,6 +137,13 @@ mod tests {
     fn root_displays_convert_error() {
         let err = CliError::from(ConvertError::from(oxide_dev_tools_core::DocError::MissingRoot));
         assert_eq!(err.to_string(), "XML document has no root element");
+    }
+
+    #[test]
+    fn root_displays_diff_error() {
+        let err = CliError::from(DiffError::from(oxide_dev_tools_core::TextDiffError::InputTooLong { limit: 8 }));
+        assert_eq!(err.to_string(), "character diff inputs must be at most 8 characters");
+        assert!(err.source().is_some());
     }
 
     #[test]
