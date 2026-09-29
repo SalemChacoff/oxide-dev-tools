@@ -8,6 +8,9 @@ mod validators;
 pub use codecs::base64_codec::{Base64Alphabet, Base64Error, Base64Kind, Base64Options, convert_base64};
 pub use codecs::hex_codec::{HexCase, HexError, HexKind, HexOptions, convert_hex};
 pub use codecs::url_codec::{UrlError, UrlKind, UrlMode, UrlOptions, convert_url};
+pub use comparators::dir_diff::{
+    DirChangeKind, DirDiffError, DirDiffOptions, DirDiffReport, DirEntryDiff, DirEntryKind, DirSide, compare_dirs,
+};
 pub use comparators::json_diff::{
     JsonChangeKind, JsonDiffError, JsonDiffOptions, JsonDiffReport, JsonDifference, JsonSide, compare_json,
 };

@@ -1,6 +1,6 @@
 use std::fmt;
 
-use oxide_dev_tools_core::{JsonDiffError, SemverError, TextDiffError};
+use oxide_dev_tools_core::{DirDiffError, JsonDiffError, SemverError, TextDiffError};
 
 use super::GenericError;
 
@@ -10,6 +10,7 @@ pub enum DiffError {
     Text(TextDiffError),
     Json(JsonDiffError),
     Semver(SemverError),
+    Dir(DirDiffError),
     /// A `--check` comparison found differences; the CLI exits nonzero
     /// without printing a message (mirrors `git diff --quiet`).
     CheckFailed,
@@ -28,6 +29,7 @@ impl fmt::Display for DiffError {
             DiffError::Text(e) => write!(f, "{e}"),
             DiffError::Json(e) => write!(f, "{e}"),
             DiffError::Semver(e) => write!(f, "{e}"),
+            DiffError::Dir(e) => write!(f, "{e}"),
             DiffError::CheckFailed => write!(f, "documents differ"),
             DiffError::ExpectationFailed { message } => write!(f, "{message}"),
             DiffError::Generic(e) => write!(f, "{e}"),
@@ -41,6 +43,7 @@ impl std::error::Error for DiffError {
             DiffError::Text(e) => Some(e),
             DiffError::Json(e) => Some(e),
             DiffError::Semver(e) => Some(e),
+            DiffError::Dir(e) => Some(e),
             DiffError::CheckFailed => None,
             DiffError::ExpectationFailed { .. } => None,
             DiffError::Generic(e) => Some(e),
@@ -63,6 +66,12 @@ impl From<JsonDiffError> for DiffError {
 impl From<SemverError> for DiffError {
     fn from(e: SemverError) -> Self {
         DiffError::Semver(e)
+    }
+}
+
+impl From<DirDiffError> for DiffError {
+    fn from(e: DirDiffError) -> Self {
+        DiffError::Dir(e)
     }
 }
 
@@ -101,6 +110,16 @@ mod tests {
             limit: 4,
         });
         assert_eq!(err.to_string(), "left semver input must be at most 4 characters");
+        assert!(err.source().is_some());
+    }
+
+    #[test]
+    fn from_dir_error_is_transparent() {
+        let err = DiffError::from(DirDiffError::RootMissing {
+            side: oxide_dev_tools_core::DirSide::Right,
+            path: "nowhere".into(),
+        });
+        assert_eq!(err.to_string(), "right root directory \"nowhere\" does not exist");
         assert!(err.source().is_some());
     }
 
