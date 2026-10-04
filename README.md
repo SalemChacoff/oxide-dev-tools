@@ -684,20 +684,103 @@ The project follows a two-crate architecture:
 - [x] Semantic version comparison
 - [x] Directory structure comparison
 
-### Phase 7 — File Generators & Scaffolding
+### Phase 7 — UI
+
+Desktop GUI for the oxide toolkit built with GPUI Kit. Covers all six tool
+categories, each with its sub-tools mirroring the core/CLI structure. All UI
+work goes through the installed agent skills (`ui-workflow` orchestrator:
+`gpui-kit-design-guides` → `gpui-kit` → `component-test-rules` →
+`security-audit`).
+
+#### Phase 7.1 — Foundations & skills
+- [ ] Create the `ui-workflow` orchestrator skill (mirrors `new-tool-workflow`; routes design → coding → test rules → security gates for every UI step)
+- [ ] Create the `ui-base-design` skill — owns the base design every new tool follows (shell, tokens, density, form field and output panel patterns, lexicon, theme rules) so the style stays consistent
+- [ ] Create the `add-tool-ui` skill — recipe for adding one tool page to an existing category (e.g. `codecs` → base64): form built from the core `Options`, category wiring, tests
+- [ ] Security gate: run `security-audit` on `gpui-kit` BEFORE adding it to `[workspace.dependencies]` (advisories, 7-day release age, license vs `deny.toml`)
+- [ ] Toolchain check: confirm the pinned 1.85 MSRV satisfies `gpui-kit`; bump `rust-toolchain.toml` only if required
+- [ ] Add `crates/oxide-dev-tools-gui` (bin `oxide-gui`) to the workspace with its crate-level `AGENTS.md`; it depends on `oxide-dev-tools-core` + `gpui-kit` only — core never knows about the GUI
+
+#### Phase 7.2 — Design system
+- [ ] Write `docs/design/phase7-ui.md`: primary task, stable objects, sidebar-workspace shell, screen map, keyboard path
+- [ ] Visual language: semantic tokens via `cx.theme()`, medium density, rem-based sizes — no raw values
+- [ ] Theme: light and dark modes, system-following default with manual override in Settings
+- [ ] Component mapping table (screen region → gpui-kit component)
+- [ ] Interface lexicon (noun destinations, verb commands), interaction states, empty/loading/error copy
+- [ ] Run the Design review checklist and Accessibility checklist against the design
+
+#### Phase 7.3 — App components
+- [ ] `tool_field` (label + help + validation beside the field)
+- [ ] `output_panel` (result view + Copy + Export…)
+- [ ] `category_item` / sidebar tool entries
+- [ ] `recent_runs` list
+- [ ] `settings_panel` (theme, defaults)
+- [ ] Builder + complex-logic tests per `component-test-rules.md`
+
+#### Phase 7.4 — Core shell
+- [ ] Window bootstrap: `gpui_kit::init`, `Root` at window top, TitleBar
+- [ ] Sidebar menu with the six categories and their sub-tools
+- [ ] Command palette search (⌘K / Ctrl+K) over all tools
+- [ ] Detail-pane switching, keybindings, focus management (Escape, focus return)
+- [ ] Notifications, empty/loading/error states, minimum window size, resizable sidebar
+
+#### Phase 7.5 — Generators UI
+- [ ] `id` — UUID v1–v8, ULID, NanoID
+- [ ] `key` — passwords, tokens, JWTs (HS256)
+- [ ] `lorem` — words, sentences, paragraphs
+- [ ] `fake` — personas, names, emails, phones, addresses, companies
+- [ ] `sample` — PDF, PNG, JPG
+
+#### Phase 7.6 — Codecs UI
+- [ ] Base64 encode/decode (standard, URL-safe)
+- [ ] Hex encode/decode
+- [ ] URL encode/decode
+- [ ] PEM/PFX parsing and ZIP compression (once the core tools land)
+
+#### Phase 7.7 — Text Utilities UI
+- [ ] Case conversion
+- [ ] Text statistics
+- [ ] Truncate / ellipsis
+- [ ] String encode/decode (HTML entities, unicode escapes)
+- [ ] Character scanning (whitespace, hidden, non-ASCII)
+
+#### Phase 7.8 — Converters UI
+- [ ] Timestamp converter
+- [ ] Unit converter
+- [ ] JSON ↔ YAML ↔ XML document conversion
+
+#### Phase 7.9 — Validators UI
+- [ ] Email, URL/URI, IP
+- [ ] UUID, credit card
+- [ ] Password strength
+- [ ] JSON/YAML/XML syntax
+- [ ] File type detection
+
+#### Phase 7.10 — Comparators UI
+- [ ] Text diff
+- [ ] JSON deep compare
+- [ ] SemVer comparison
+- [ ] Directory comparison
+
+#### Phase 7.11 — Quality, CI & docs
+- [ ] UI integration tests per `gpui/test.md` (headless windows, `TestAppContext`, real events)
+- [ ] Workspace gates green: fmt, clippy `-D warnings`, nextest `--all-features`, `cargo deny check`, coverage ≥ 50%
+- [ ] README updates: Features table, Project Structure, Usage (`cargo run -p oxide-dev-tools-gui`)
+- [ ] Packaging (installers, DMG/MSI) stays deferred to Phase 10
+
+### Phase 8 — File Generators & Scaffolding
 - [ ] `.gitignore` generator
 - [ ] License file generator
 - [ ] Dockerfile generator
 - [ ] CI config generator (GitHub Actions, GitLab CI)
 - [ ] Boilerplate scaffolding for common project types
 
-### Phase 8 — Structural Analyzers
+### Phase 9 — Structural Analyzers
 - [ ] JSON/YAML schema inference
 - [ ] Directory tree visualizer
 - [ ] Dependency graph analyzer (for Cargo.toml, package.json, etc.)
 - [ ] Duplicate file finder
 
-### Phase 9 — Polish & Distribution
+### Phase 10 — Polish & Distribution
 - [ ] Shell completions (bash, zsh, fish, PowerShell)
 - [ ] Man page generation
 - [ ] Pre-built binaries for Linux, macOS, Windows
