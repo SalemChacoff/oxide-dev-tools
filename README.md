@@ -693,15 +693,16 @@ work goes through the installed agent skills (`ui-workflow` orchestrator:
 `security-audit`).
 
 #### Phase 7.1 — Foundations & skills
-- [ ] Create the `ui-workflow` orchestrator skill (mirrors `new-tool-workflow`; routes design → coding → test rules → security gates for every UI step)
-- [ ] Create the `ui-base-design` skill — owns the base design every new tool follows (shell, tokens, density, form field and output panel patterns, lexicon, theme rules) so the style stays consistent
-- [ ] Create the `add-tool-ui` skill — recipe for adding one tool page to an existing category (e.g. `codecs` → base64): form built from the core `Options`, category wiring, tests
-- [ ] Security gate: run `security-audit` on `gpui-kit` BEFORE adding it to `[workspace.dependencies]` (advisories, 7-day release age, license vs `deny.toml`)
-- [ ] Toolchain check: confirm the pinned 1.85 MSRV satisfies `gpui-kit`; bump `rust-toolchain.toml` only if required
-- [ ] Add `crates/oxide-dev-tools-gui` (bin `oxide-gui`) to the workspace with its crate-level `AGENTS.md`; it depends on `oxide-dev-tools-core` + `gpui-kit` only — core never knows about the GUI
+- [x] Create the `ui-workflow` orchestrator skill (mirrors `new-tool-workflow`; routes design → coding → test rules → security gates for every UI step)
+- [x] Create the `ui-base-design` skill — owns the base design every new tool follows (shell, tokens, density, form field and output panel patterns, lexicon, theme rules) so the style stays consistent
+- [x] Create the `add-tool-ui` skill — recipe for adding one tool page to an existing category (e.g. `codecs` → base64): form built from the core `Options`, category wiring, tests
+- [x] Security gate: `security-audit` on `gpui-kit` passed — pinned `0.6.6` (7-day rule; `0.7.0` eligible 2026-10-05), no vulnerabilities, 5 informational advisories ignored by ID, licenses recorded in `deny.toml`
+- [x] Toolchain check: the gpui-kit tree needs Rust ≥ 1.92 — workspace `rust-version` bumped 1.85 → 1.92; `rust-toolchain.toml` (1.97.1) unchanged
+- [x] Add `crates/oxide-dev-tools-gui` (bin `oxide-gui`) to the workspace with its crate-level `AGENTS.md`; it depends on `oxide-dev-tools-core` + `gpui-kit` only — core never knows about the GUI
 
 #### Phase 7.2 — Design system
-- [ ] Write `docs/design/phase7-ui.md`: primary task, stable objects, sidebar-workspace shell, screen map, keyboard path
+- [x] Write `docs/design/phase7-ui.md`: primary task, stable objects, sidebar-workspace shell, screen map, keyboard path
+- [x] Static HTML/CSS mock in `docs/design/mock/` (home grid, tool pages A/B/C, settings, component states) for eyes-on design review
 - [ ] Visual language: semantic tokens via `cx.theme()`, medium density, rem-based sizes — no raw values
 - [ ] Theme: light and dark modes, system-following default with manual override in Settings
 - [ ] Component mapping table (screen region → gpui-kit component)

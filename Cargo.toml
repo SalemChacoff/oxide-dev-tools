@@ -2,13 +2,14 @@
 members = [
     "crates/oxide-dev-tools-core",
     "crates/oxide-dev-tools-cli",
+    "crates/oxide-dev-tools-gui",
 ]
 resolver = "2"
 
 [workspace.package]
 version = "0.1.0"
 edition = "2024"
-rust-version = "1.85"
+rust-version = "1.92"
 license = "MIT"
 repository = "https://github.com/SalemChacoff/oxide-dev-tools"
 
@@ -40,6 +41,9 @@ serde_yaml_ng = "0.10.0"
 sha2 = "0.10.9"
 url = "2.5.8"
 zxcvbn = "3.1.1"
+# Pinned per the 7-day supply-chain rule (security-audit skill):
+# 0.7.0 becomes eligible 2026-10-05; 0.6.5 is yanked. Re-audit before upgrading.
+gpui-kit = "0.6.6"
 
 [profile.release]
 lto = "thin"

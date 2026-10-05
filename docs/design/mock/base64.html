@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>oxide — Base64</title>
+  <link rel="stylesheet" href="design.css">
+</head>
+<body>
+  <div class="app">
+    <header class="titlebar">
+      <div class="brand"><span class="brand-dot"></span>oxide</div>
+      <div class="spacer"></div>
+      <select class="theme-select input" aria-label="Theme">
+        <option value="system">System</option>
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+      </select>
+      <div class="win-controls"><span class="win">−</span><span class="win">□</span><span class="win">×</span></div>
+    </header>
+
+    <nav class="sidebar">
+      <details class="side-group" open>
+        <summary class="side-title">Generators <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="side-items">
+          <a class="side-item" href="uuid.html">ID</a>
+          <a class="side-item" href="#">Key</a>
+          <a class="side-item" href="#">Lorem ipsum</a>
+          <a class="side-item" href="#">Fake data</a>
+          <a class="side-item" href="#">Sample files</a>
+        </div>
+      </details>
+      <details class="side-group" open>
+        <summary class="side-title">Codecs <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="side-items">
+          <a class="side-item active" href="base64.html">Base64</a>
+          <a class="side-item" href="#">Hex</a>
+          <a class="side-item" href="#">URL</a>
+        </div>
+      </details>
+      <details class="side-group" open>
+        <summary class="side-title">Text <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="side-items">
+          <a class="side-item" href="#">Case</a>
+          <a class="side-item" href="#">Statistics</a>
+          <a class="side-item" href="#">Truncate</a>
+          <a class="side-item" href="#">Encode / decode</a>
+          <a class="side-item" href="#">Scan characters</a>
+        </div>
+      </details>
+      <details class="side-group" open>
+        <summary class="side-title">Converters <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="side-items">
+          <a class="side-item" href="#">Timestamp</a>
+          <a class="side-item" href="#">Units</a>
+          <a class="side-item" href="#">Documents</a>
+        </div>
+      </details>
+      <details class="side-group" open>
+        <summary class="side-title">Validators <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="side-items">
+          <a class="side-item" href="email.html">Email</a>
+          <a class="side-item" href="#">URL / URI</a>
+          <a class="side-item" href="#">IP address</a>
+          <a class="side-item" href="#">UUID</a>
+          <a class="side-item" href="#">Credit card</a>
+          <a class="side-item" href="#">Password</a>
+          <a class="side-item" href="#">Syntax</a>
+          <a class="side-item" href="#">File type</a>
+        </div>
+      </details>
+      <details class="side-group" open>
+        <summary class="side-title">Comparators <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="side-items">
+          <a class="side-item" href="#">Diff</a>
+          <a class="side-item" href="#">JSON compare</a>
+          <a class="side-item" href="#">SemVer</a>
+          <a class="side-item" href="#">Directories</a>
+        </div>
+      </details>
+      <details class="side-group" open>
+        <summary class="side-title">App <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="side-items">
+          <a class="side-item" href="settings.html">Settings</a>
+          <a class="side-item" href="components.html">Components</a>
+        </div>
+      </details>
+    </nav>
+
+    <main class="content fill">
+      <div class="search">
+        <span class="search-icon">
+          <svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        </span>
+        <input type="text" placeholder="Search tools…" aria-label="Search tools">
+        <kbd>Ctrl K</kbd>
+      </div>
+
+      <div class="page-head center">
+        <h1>Base64</h1>
+        <p>Encode text to Base64, or decode Base64 back to text. Standard and URL-safe alphabets.</p>
+      </div>
+
+      <div class="tool-wrap">
+      <div class="panes">
+        <section class="pane">
+          <div class="pane-head">
+            <span class="pane-title">Input</span>
+            <div class="tabs"><span class="tab active">Encode</span><span class="tab">Decode</span></div>
+          </div>
+          <div class="pane-body">
+            <div class="field">
+              <label for="alphabet">Alphabet</label>
+              <select id="alphabet" class="input">
+                <option>Standard</option>
+                <option>URL-safe</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="input">Text</label>
+              <textarea id="input" class="input" style="min-height:120px">The quick brown fox jumps over the lazy dog.</textarea>
+              <div class="help">Empty input is allowed; the result will be empty.</div>
+            </div>
+            <div class="demo-note">Validation state</div>
+            <div class="field">
+              <label for="bad">Decode error example</label>
+              <textarea id="bad" class="input error" style="min-height:64px">VGhpcyBpcyBub3QgdmFsaWQgYmFzZTY0ISE=</textarea>
+              <div class="msg">
+                <svg class="ic" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.7 18-8-14a2 2 0 0 0-3.5 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3z"/><path d="M12 9v4M12 17h.01"/></svg>
+                Invalid Base64 input: unexpected character "!" at offset 30.
+              </div>
+            </div>
+          </div>
+          <div class="pane-footer">
+            <button class="btn btn-primary">Encode</button>
+            <button class="btn btn-ghost">Swap</button>
+            <button class="btn btn-ghost">Clear</button>
+          </div>
+        </section>
+
+        <section class="pane">
+          <div class="pane-head">
+            <span class="pane-title">Output</span>
+            <div class="pane-actions">
+              <button class="btn btn-outline btn-sm">
+                <svg class="ic" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                Copy
+              </button>
+              <button class="btn btn-outline btn-sm">
+                <svg class="ic" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                Export…
+              </button>
+            </div>
+          </div>
+          <div class="pane-body">
+            <div class="output">VGhlIHF1aWNrIGJyb3duIGZveCBqdW1wcyBvdmVyIHRoZSBsYXp5IGRvZy4=</div>
+          </div>
+        </section>
+      </div>
+      </div>
+    </main>
+  </div>
+  <script src="mock.js"></script>
+</body>
+</html>

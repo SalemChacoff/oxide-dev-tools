@@ -1,0 +1,15 @@
+[package]
+name = "oxide-dev-tools-gui"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Desktop GUI for oxide-dev-tools (GPUI Kit)"
+
+[[bin]]
+name = "oxide-gui"
+path = "src/main.rs"
+
+[dependencies]
+oxide-dev-tools-core = { path = "../oxide-dev-tools-core", version = "0.1.0" }
+gpui-kit = { workspace = true }

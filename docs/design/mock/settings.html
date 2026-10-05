@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>oxide — Settings</title>
+  <link rel="stylesheet" href="design.css">
+</head>
+<body>
+  <div class="app">
+    <header class="titlebar">
+      <div class="brand"><span class="brand-dot"></span>oxide</div>
+      <div class="spacer"></div>
+      <select class="theme-select input" aria-label="Theme">
+        <option value="system">System</option>
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+      </select>
+      <div class="win-controls"><span class="win">−</span><span class="win">□</span><span class="win">×</span></div>
+    </header>
+
+    <nav class="sidebar">
+      <details class="side-group" open>
+        <summary class="side-title">Generators <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="side-items">
+          <a class="side-item" href="uuid.html">ID</a>
+          <a class="side-item" href="#">Key</a>
+          <a class="side-item" href="#">Lorem ipsum</a>
+          <a class="side-item" href="#">Fake data</a>
+          <a class="side-item" href="#">Sample files</a>
+        </div>
+      </details>
+      <details class="side-group" open>
+        <summary class="side-title">Codecs <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="side-items">
+          <a class="side-item" href="base64.html">Base64</a>
+          <a class="side-item" href="#">Hex</a>
+          <a class="side-item" href="#">URL</a>
+        </div>
+      </details>
+      <details class="side-group" open>
+        <summary class="side-title">Text <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="side-items">
+          <a class="side-item" href="#">Case</a>
+          <a class="side-item" href="#">Statistics</a>
+          <a class="side-item" href="#">Truncate</a>
+          <a class="side-item" href="#">Encode / decode</a>
+          <a class="side-item" href="#">Scan characters</a>
+        </div>
+      </details>
+      <details class="side-group" open>
+        <summary class="side-title">Converters <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="side-items">
+          <a class="side-item" href="#">Timestamp</a>
+          <a class="side-item" href="#">Units</a>
+          <a class="side-item" href="#">Documents</a>
+        </div>
+      </details>
+      <details class="side-group" open>
+        <summary class="side-title">Validators <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="side-items">
+          <a class="side-item" href="email.html">Email</a>
+          <a class="side-item" href="#">URL / URI</a>
+          <a class="side-item" href="#">IP address</a>
+          <a class="side-item" href="#">UUID</a>
+          <a class="side-item" href="#">Credit card</a>
+          <a class="side-item" href="#">Password</a>
+          <a class="side-item" href="#">Syntax</a>
+          <a class="side-item" href="#">File type</a>
+        </div>
+      </details>
+      <details class="side-group" open>
+        <summary class="side-title">Comparators <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="side-items">
+          <a class="side-item" href="#">Diff</a>
+          <a class="side-item" href="#">JSON compare</a>
+          <a class="side-item" href="#">SemVer</a>
+          <a class="side-item" href="#">Directories</a>
+        </div>
+      </details>
+      <details class="side-group" open>
+        <summary class="side-title">App <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="side-items">
+          <a class="side-item active" href="settings.html">Settings</a>
+          <a class="side-item" href="components.html">Components</a>
+        </div>
+      </details>
+    </nav>
+
+    <main class="content">
+      <div class="search">
+        <span class="search-icon">
+          <svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        </span>
+        <input type="text" placeholder="Search tools…" aria-label="Search tools">
+        <kbd>Ctrl K</kbd>
+      </div>
+
+      <div class="page-head center">
+        <h1>Settings</h1>
+        <p>Appearance and behavior for the oxide desktop app.</p>
+      </div>
+
+      <div class="section">
+        <div class="group">
+          <div class="group-title">Appearance</div>
+          <div class="row">
+            <span class="row-label">Theme<small>System follows your OS appearance</small></span>
+            <select class="theme-select input" style="max-width:150px" aria-label="Theme">
+              <option value="system">System</option>
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+            </select>
+          </div>
+          <div class="row">
+            <span class="row-label">Density<small>Compact tightens tool pages and lists</small></span>
+            <select class="input" style="max-width:150px">
+              <option>Comfortable</option>
+              <option>Compact</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="group">
+          <div class="group-title">Behavior</div>
+          <div class="row">
+            <span class="row-label">Copy results automatically<small>Copy a result to the clipboard when a run finishes</small></span>
+            <span class="switch on"><span class="knob"></span></span>
+          </div>
+          <div class="row">
+            <span class="row-label">Show shortcuts in tooltips<small>Append keyboard hints to tooltips</small></span>
+            <span class="switch on"><span class="knob"></span></span>
+          </div>
+          <div class="row">
+            <span class="row-label">Keep recent runs<small>Show the last results on the home view</small></span>
+            <span class="switch"><span class="knob"></span></span>
+          </div>
+        </div>
+
+        <div class="group">
+          <div class="group-title">About</div>
+          <div class="row">
+            <span class="row-label">oxide-dev-tools<small>MIT licensed — github.com/SalemChacoff/oxide-dev-tools</small></span>
+            <span class="badge badge-neutral">0.1.0</span>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="mock.js"></script>
+</body>
+</html>

@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>oxide — Components</title>
+  <link rel="stylesheet" href="design.css">
+</head>
+<body>
+  <div class="app">
+    <header class="titlebar">
+      <div class="brand"><span class="brand-dot"></span>oxide</div>
+      <div class="spacer"></div>
+      <select class="theme-select input" aria-label="Theme">
+        <option value="system">System</option>
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+      </select>
+      <div class="win-controls"><span class="win">−</span><span class="win">□</span><span class="win">×</span></div>
+    </header>
+
+    <nav class="sidebar">
+      <details class="side-group" open>
+        <summary class="side-title">Generators <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="side-items">
+          <a class="side-item" href="uuid.html">ID</a>
+          <a class="side-item" href="#">Key</a>
+          <a class="side-item" href="#">Lorem ipsum</a>
+          <a class="side-item" href="#">Fake data</a>
+          <a class="side-item" href="#">Sample files</a>
+        </div>
+      </details>
+      <details class="side-group" open>
+        <summary class="side-title">Codecs <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="side-items">
+          <a class="side-item" href="base64.html">Base64</a>
+          <a class="side-item" href="#">Hex</a>
+          <a class="side-item" href="#">URL</a>
+        </div>
+      </details>
+      <details class="side-group" open>
+        <summary class="side-title">Text <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="side-items">
+          <a class="side-item" href="#">Case</a>
+          <a class="side-item" href="#">Statistics</a>
+          <a class="side-item" href="#">Truncate</a>
+          <a class="side-item" href="#">Encode / decode</a>
+          <a class="side-item" href="#">Scan characters</a>
+        </div>
+      </details>
+      <details class="side-group" open>
+        <summary class="side-title">Converters <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="side-items">
+          <a class="side-item" href="#">Timestamp</a>
+          <a class="side-item" href="#">Units</a>
+          <a class="side-item" href="#">Documents</a>
+        </div>
+      </details>
+      <details class="side-group" open>
+        <summary class="side-title">Validators <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="side-items">
+          <a class="side-item" href="email.html">Email</a>
+          <a class="side-item" href="#">URL / URI</a>
+          <a class="side-item" href="#">IP address</a>
+          <a class="side-item" href="#">UUID</a>
+          <a class="side-item" href="#">Credit card</a>
+          <a class="side-item" href="#">Password</a>
+          <a class="side-item" href="#">Syntax</a>
+          <a class="side-item" href="#">File type</a>
+        </div>
+      </details>
+      <details class="side-group" open>
+        <summary class="side-title">Comparators <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="side-items">
+          <a class="side-item" href="#">Diff</a>
+          <a class="side-item" href="#">JSON compare</a>
+          <a class="side-item" href="#">SemVer</a>
+          <a class="side-item" href="#">Directories</a>
+        </div>
+      </details>
+      <details class="side-group" open>
+        <summary class="side-title">App <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="side-items">
+          <a class="side-item" href="settings.html">Settings</a>
+          <a class="side-item active" href="components.html">Components</a>
+        </div>
+      </details>
+    </nav>
+
+    <main class="content">
+      <div class="search">
+        <span class="search-icon">
+          <svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        </span>
+        <input type="text" placeholder="Search tools…" aria-label="Search tools">
+        <kbd>Ctrl K</kbd>
+      </div>
+
+      <div class="page-head center">
+        <h1>Components &amp; states</h1>
+        <p>Reference for the design review: every state must be visible and consistent.</p>
+      </div>
+
+      <div class="section">
+
+        <div class="comp-label">Buttons</div>
+        <div class="comp-row">
+          <button class="btn btn-primary">Generate</button>
+          <button class="btn btn-outline">Copy</button>
+          <button class="btn btn-ghost">Clear</button>
+          <button class="btn btn-danger">Delete</button>
+          <button class="btn btn-primary" disabled>Disabled</button>
+          <button class="btn btn-primary"><span class="spinner"></span>Loading</button>
+          <button class="btn btn-outline btn-sm">Export…</button>
+        </div>
+
+        <div class="comp-label">Inputs</div>
+        <div class="comp-row">
+          <input class="input" style="max-width:220px" value="Default">
+          <input class="input" style="max-width:220px" value="Focused" autofocus>
+          <input class="input error" style="max-width:220px" value="Invalid">
+          <input class="input" style="max-width:220px" value="Disabled" disabled>
+          <select class="input" style="max-width:220px"><option>Select…</option><option>Option A</option></select>
+        </div>
+        <div class="field" style="max-width:220px">
+          <div class="msg">
+            <svg class="ic" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.7 18-8-14a2 2 0 0 0-3.5 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3z"/><path d="M12 9v4M12 17h.01"/></svg>
+            Value is required.
+          </div>
+        </div>
+
+        <div class="comp-label">Selection</div>
+        <div class="comp-row">
+          <label class="check"><input type="checkbox" checked> Uppercase</label>
+          <label class="check"><input type="checkbox"> With hyphens</label>
+          <label class="check"><input type="radio" name="demo-radio" checked> Standard</label>
+          <label class="check"><input type="radio" name="demo-radio"> URL-safe</label>
+          <span class="switch on"><span class="knob"></span></span>
+          <span class="switch"><span class="knob"></span></span>
+        </div>
+
+        <div class="comp-label">Tabs</div>
+        <div class="comp-row">
+          <div class="tabs"><span class="tab active">Encode</span><span class="tab">Decode</span></div>
+        </div>
+
+        <div class="comp-label">Badges &amp; keyboard</div>
+        <div class="comp-row">
+          <span class="badge badge-success">Valid</span>
+          <span class="badge badge-danger">Invalid</span>
+          <span class="badge badge-neutral">Ready</span>
+          <span class="badge badge-neutral">Running</span>
+          <kbd>Ctrl</kbd> <kbd>K</kbd>
+          <span class="tip"><button class="btn btn-outline btn-sm">Hover</button><span class="tooltip">Copy result · Ctrl C</span></span>
+        </div>
+
+        <div class="comp-label">Alerts</div>
+        <div class="comp-row" style="flex-direction:column; align-items:stretch">
+          <div class="alert">
+            <svg class="ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            <span>The directory contains 1,204 files; the comparison may take a few seconds.</span>
+          </div>
+          <div class="alert alert-danger">
+            <svg class="ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.7 18-8-14a2 2 0 0 0-3.5 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3z"/><path d="M12 9v4M12 17h.01"/></svg>
+            <span>Couldn't read <span class="muted">input.txt</span>. Check that the file exists and try again.</span>
+          </div>
+        </div>
+
+        <div class="comp-label">Progress</div>
+        <div class="comp-row" style="flex-direction:column; align-items:stretch">
+          <div class="progress"><i></i></div>
+          <div class="btn-row">
+            <span class="spinner surface"></span>
+            <span class="muted" style="font-size:12.5px">Generating sample files…</span>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="toast-demo">
+        <div class="toast">
+          <svg class="ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          <span>10 IDs generated and copied.</span>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="mock.js"></script>
+</body>
+</html>

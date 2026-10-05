@@ -10,6 +10,13 @@ allow = [
     "BSD-2-Clause",
     "BSD-3-Clause",
     "Unicode-3.0",
+    # Added for the gpui-kit 0.6.6 tree (Phase 7 security gate, user-approved 2026-10-04):
+    "MPL-2.0",
+    "0BSD",
+    "Zlib",
+    "CC0-1.0",
+    "ISC",
+    "bzip2-1.0.6",
 ]
 confidence-threshold = 0.8
 
@@ -17,21 +24,96 @@ confidence-threshold = 0.8
 version = 2
 db-path = "~/.cargo/advisory-db"
 db-urls = ["https://github.com/RustSec/advisory-db"]
-ignore = []
+# gpui-kit tree (gpui-pre 0.3.6 pins these; no patches exist). Informational
+# "unmaintained" notices, not vulnerabilities. User-approved 2026-10-04;
+# re-check on gpui-kit upgrades. `unmaintained` stays deny for everything else.
+ignore = [
+    "RUSTSEC-2024-0384", # instant
+    "RUSTSEC-2024-0436", # paste
+    "RUSTSEC-2025-0134", # rustls-pemfile
+    "RUSTSEC-2026-0206", # rustybuzz
+    "RUSTSEC-2026-0192", # ttf-parser
+]
 
 [bans]
 multiple-versions = "deny"
 wildcards = "deny"
-# Older duplicate versions kept only because they come from
-# semver-incompatible transitive deps that cannot be unified:
-#   - rand 0.9.x / rand_core 0.9.x / getrandom 0.3.x: pulled in by nanoid 0.5.0
-#   - r-efi 5.x and syn 2.x: only present in the target-independent graph
-#   - cpufeatures 0.2.x: pulled in by sha2 0.10.x (chacha20 needs 0.3.x)
+# Duplicate versions that cannot be unified. Name-level skips for the
+# gpui-kit 0.6.6 tree: the pinned gpui-pre 0.3.6 stack plus platform-specific
+# variants (windows-*, objc2-*, core-foundation) pull separate versions of
+# these. Revisit on gpui-kit upgrades.
 skip = [
-    { name = "getrandom", version = "0.3.4" },
+    { name = "atomic" },
+    { name = "base64" },
+    { name = "bit-set" },
+    { name = "bit-vec" },
+    { name = "bitflags" },
+    { name = "block-buffer" },
+    { name = "core-foundation" },
+    { name = "crypto-common" },
+    { name = "digest" },
+    { name = "dirs" },
+    { name = "dirs-sys" },
+    { name = "foldhash" },
+    { name = "font-types" },
+    { name = "getrandom" },
+    { name = "gif" },
+    { name = "hashbrown" },
+    { name = "heck" },
+    { name = "imagesize" },
+    { name = "itertools" },
+    { name = "kurbo" },
+    { name = "miniz_oxide" },
+    { name = "objc2" },
+    { name = "objc2-app-kit" },
+    { name = "objc2-foundation" },
+    { name = "phf" },
+    { name = "phf_generator" },
+    { name = "phf_shared" },
+    { name = "png" },
+    { name = "pollster" },
+    { name = "rand" },
+    { name = "rand_core" },
+    { name = "read-fonts" },
+    { name = "redox_users" },
+    { name = "resvg" },
+    { name = "roxmltree" },
+    { name = "rustc-hash" },
+    { name = "serde_spanned" },
+    { name = "sha2" },
+    { name = "shlex" },
+    { name = "skrifa" },
+    { name = "spin" },
+    { name = "svgtypes" },
+    { name = "thiserror" },
+    { name = "thiserror-impl" },
+    { name = "toml" },
+    { name = "toml_datetime" },
+    { name = "toml_edit" },
+    { name = "usvg" },
+    { name = "windows" },
+    { name = "windows-core" },
+    { name = "windows-implement" },
+    { name = "windows-interface" },
+    { name = "windows-link" },
+    { name = "windows-registry" },
+    { name = "windows-result" },
+    { name = "windows-strings" },
+    { name = "windows-sys" },
+    { name = "windows-targets" },
+    { name = "windows_aarch64_gnullvm" },
+    { name = "windows_aarch64_msvc" },
+    { name = "windows_i686_gnu" },
+    { name = "windows_i686_gnullvm" },
+    { name = "windows_i686_msvc" },
+    { name = "windows_x86_64_gnu" },
+    { name = "windows_x86_64_gnullvm" },
+    { name = "windows_x86_64_msvc" },
+    { name = "winnow" },
+    { name = "zune-core" },
+    { name = "zune-jpeg" },
+    # Older duplicate versions from before the gpui-kit tree, kept with exact versions:
     { name = "r-efi", version = "5.3.0" },
-    { name = "rand", version = "0.9.5" },
-    { name = "rand_core", version = "0.9.5" },
     { name = "syn", version = "2.0.119" },
     { name = "cpufeatures", version = "0.2.17" },
 ]
