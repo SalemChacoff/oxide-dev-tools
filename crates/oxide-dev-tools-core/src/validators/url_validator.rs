@@ -122,12 +122,12 @@ fn finish(parsed: Url, options: &UrlValidationOptions, report: &mut UrlReport) {
     report.fragment = parsed.fragment().map(str::to_string);
     report.normalized = parsed.to_string();
 
-    if let Some(allowed) = &options.allowed_schemes {
-        if !allowed.iter().any(|scheme| scheme.eq_ignore_ascii_case(&report.scheme)) {
-            report
-                .issues
-                .push(format!("scheme '{}' is not allowed (allowed: {})", report.scheme, allowed.join(", ")));
-        }
+    if let Some(allowed) = &options.allowed_schemes
+        && !allowed.iter().any(|scheme| scheme.eq_ignore_ascii_case(&report.scheme))
+    {
+        report
+            .issues
+            .push(format!("scheme '{}' is not allowed (allowed: {})", report.scheme, allowed.join(", ")));
     }
 
     if options.require_host && parsed.host().is_none() {

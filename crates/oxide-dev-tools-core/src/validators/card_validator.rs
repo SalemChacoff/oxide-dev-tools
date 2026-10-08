@@ -188,7 +188,7 @@ fn check_luhn(digits: &str) -> bool {
         }
         sum += value;
     }
-    sum % 10 == 0
+    sum.is_multiple_of(10)
 }
 
 // -------- Network detection --------

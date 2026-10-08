@@ -177,12 +177,12 @@ pub fn convert_unit(kind: UnitKind) -> Result<String, UnitError> {
         UnitKind::Time(options) => (UnitCategory::Time, options),
         UnitKind::Mass(options) => (UnitCategory::Mass, options),
     };
-    if let Some(precision) = options.precision {
-        if precision > MAX_PRECISION {
-            return Err(UnitError::InvalidPrecision(format!(
-                "precision {precision} is out of range (0..={MAX_PRECISION})"
-            )));
-        }
+    if let Some(precision) = options.precision
+        && precision > MAX_PRECISION
+    {
+        return Err(UnitError::InvalidPrecision(format!(
+            "precision {precision} is out of range (0..={MAX_PRECISION})"
+        )));
     }
     let anchor = parse_anchor(options.anchor.as_deref())?;
     let (value, from, to) = resolve_input(&options, category)?;

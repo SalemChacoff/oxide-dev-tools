@@ -13,3 +13,8 @@ path = "src/main.rs"
 [dependencies]
 oxide-dev-tools-core = { path = "../oxide-dev-tools-core", version = "0.1.0" }
 gpui-kit = { workspace = true }
+
+[dev-dependencies]
+# `test-support` enables #[gpui_kit::test] and TestAppContext for headless UI
+# tests; it stays out of ordinary builds (gpui-kit docs/test.md).
+gpui-kit = { workspace = true, features = ["test-support"] }

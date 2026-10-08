@@ -703,11 +703,11 @@ work goes through the installed agent skills (`ui-workflow` orchestrator:
 #### Phase 7.2 — Design system
 - [x] Write `docs/design/phase7-ui.md`: primary task, stable objects, sidebar-workspace shell, screen map, keyboard path
 - [x] Static HTML/CSS mock in `docs/design/mock/` (home grid, tool pages A/B/C, settings, component states) for eyes-on design review
-- [ ] Visual language: semantic tokens via `cx.theme()`, medium density, rem-based sizes — no raw values
-- [ ] Theme: light and dark modes, system-following default with manual override in Settings
-- [ ] Component mapping table (screen region → gpui-kit component)
-- [ ] Interface lexicon (noun destinations, verb commands), interaction states, empty/loading/error copy
-- [ ] Run the Design review checklist and Accessibility checklist against the design
+- [x] Visual language: semantic tokens via `cx.theme()`, medium density, rem-based sizes — no raw values (theme module in `crates/oxide-dev-tools-gui/src/theme.rs`; raw values live only there)
+- [x] Theme: light and dark modes, system-following default with manual override in Settings (`ThemePreference`, resolved via `ThemeMode::from(WindowAppearance)`)
+- [x] Component mapping table (screen region → gpui-kit component) — verified against the gpui-kit 0.6.6 catalog
+- [x] Interface lexicon (noun destinations, verb commands), interaction states, empty/loading/error copy (§7, §7.1)
+- [x] Run the Design review checklist and Accessibility checklist against the design (§12)
 
 #### Phase 7.3 — App components
 - [ ] `tool_field` (label + help + validation beside the field)

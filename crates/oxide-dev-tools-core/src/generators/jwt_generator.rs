@@ -90,12 +90,12 @@ fn parse_claims(payload: &str) -> Result<Value, JwtError> {
         None => return Err(JwtError::MissingClaim(String::from("sub"))),
     }
 
-    if let Some(exp) = claims.get("exp") {
-        if exp.as_u64().is_none() {
-            return Err(JwtError::InvalidClaim(String::from(
-                "claim \"exp\" must be a non-negative integer Unix timestamp",
-            )));
-        }
+    if let Some(exp) = claims.get("exp")
+        && exp.as_u64().is_none()
+    {
+        return Err(JwtError::InvalidClaim(String::from(
+            "claim \"exp\" must be a non-negative integer Unix timestamp",
+        )));
     }
 
     Ok(claims)

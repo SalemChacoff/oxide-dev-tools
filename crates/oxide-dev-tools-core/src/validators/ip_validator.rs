@@ -166,11 +166,11 @@ pub fn validate_ip(options: IpOptions) -> IpReport {
 // -------- Parsing --------
 
 fn parse_ipv4_input(input: &str, options: &IpOptions, report: &mut IpReport) {
-    if !options.allow_leading_zeros {
-        if let Some(octet) = leading_zero_octet(input) {
-            report.issues.push(format!("IPv4 octet '{octet}' has a leading zero"));
-            return;
-        }
+    if !options.allow_leading_zeros
+        && let Some(octet) = leading_zero_octet(input)
+    {
+        report.issues.push(format!("IPv4 octet '{octet}' has a leading zero"));
+        return;
     }
     match strip_leading_zeros(input).parse::<Ipv4Addr>() {
         Ok(addr) => {
