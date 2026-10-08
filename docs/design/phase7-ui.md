@@ -185,6 +185,10 @@ Implementation shape (gpui-kit 0.6.6, Phase 7.2):
 - **States**: `Ready`, `Running`, `Done`, `Invalid`.
 - No `Management`/`Module`/`System` wrappers; sentence case; confirmations name
   object and verb (`Delete "Recent runs"?` + `Delete`); no `Are you sure?`/`OK`.
+- All copy lives in `crates/oxide-dev-tools-gui/locales/ui.yml` (English
+  default, `en` fallback) and renders via `rust_i18n::t!` — the
+  `gpui-kit-i18n` skill owns this contract; the tables below seed the English
+  values.
 
 ### 7.1 State copy (empty / loading / error)
 
@@ -219,6 +223,7 @@ Implementation shape (gpui-kit 0.6.6, Phase 7.2):
 | `gpui-kit-design-guides` | Normative design rules — read the guide file, not this summary |
 | `gpui-kit` | Coding rules, component catalog, GPUI mechanics |
 | `security-audit` | Mandatory gate before `gpui-kit` enters `[workspace.dependencies]` |
+| `gpui-kit-i18n` | English-default i18n contract for every tool page (rust-i18n + gpui-kit recipe) |
 
 Component tests follow
 `.agents/skills/gpui-kit/references/component-test-rules.md`.

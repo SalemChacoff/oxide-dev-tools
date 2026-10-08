@@ -5002,6 +5002,7 @@ version = "0.1.0"
 dependencies = [
  "gpui-kit",
  "oxide-dev-tools-core",
+ "rust-i18n",
 ]
 
 [[package]]

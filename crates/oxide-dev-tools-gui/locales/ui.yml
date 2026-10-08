@@ -1,0 +1,72 @@
+_version: 2
+
+# Application locale file for oxide-dev-tools-gui (the gpui-kit-i18n contract).
+#
+# English is the default language: every key MUST define `en`, which is also
+# the fallback for any locale rust-i18n does not know. Other languages are
+# added as sibling entries under the same message key and may define only the
+# keys they override.
+#
+# `app.*` holds the application's own strings; tool pages add their keys under
+# `app.<category>.<tool>.*` (Phase 7.5-7.10). `gpui_component.*` overrides
+# GPUI Component's built-in strings — copy key names exactly from the gpui-kit
+# tree (crates/component/locales/ui.yml); Calendar's `month.January` is one
+# nested key, for example:
+#
+# gpui_component:
+#   Calendar:
+#     month.January:
+#       fr: Janvier
+
+app:
+  common:
+    copy:
+      en: Copy
+    export:
+      en: Export…
+    generate:
+      en: Generate
+    validate:
+      en: Validate
+    convert:
+      en: Convert
+    compare:
+      en: Compare
+    cancel:
+      en: Cancel
+    delete:
+      en: Delete
+    overwrite:
+      en: Overwrite
+    language:
+      en: Language
+    clear_search:
+      en: Clear search
+  state:
+    pick_tool:
+      en: Pick a tool from the sidebar or search
+    no_matches:
+      en: No tools match “%{query}”
+    running:
+      en: Running…
+    ready:
+      en: Ready
+    done:
+      en: Done
+    invalid:
+      en: Invalid
+    nothing_to_show:
+      en: Nothing to show
+  settings:
+    title:
+      en: Settings
+    theme:
+      en: Theme
+    system:
+      en: System
+    light:
+      en: Light
+    dark:
+      en: Dark
+    defaults:
+      en: Defaults

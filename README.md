@@ -698,7 +698,9 @@ work goes through the installed agent skills (`ui-workflow` orchestrator:
 - [x] Create the `add-tool-ui` skill — recipe for adding one tool page to an existing category (e.g. `codecs` → base64): form built from the core `Options`, category wiring, tests
 - [x] Security gate: `security-audit` on `gpui-kit` passed — pinned `0.6.6` (7-day rule; `0.7.0` eligible 2026-10-05), no vulnerabilities, 5 informational advisories ignored by ID, licenses recorded in `deny.toml`
 - [x] Toolchain check: the gpui-kit tree needs Rust ≥ 1.92 — workspace `rust-version` bumped 1.85 → 1.92; `rust-toolchain.toml` (1.97.1) unchanged
-- [x] Add `crates/oxide-dev-tools-gui` (bin `oxide-gui`) to the workspace with its crate-level `AGENTS.md`; it depends on `oxide-dev-tools-core` + `gpui-kit` only — core never knows about the GUI
+- [x] Add `crates/oxide-dev-tools-gui` (bin `oxide-gui`) to the workspace with its crate-level `AGENTS.md`; it depends on `oxide-dev-tools-core` + `gpui-kit` (+ `rust-i18n` since the i18n wiring) — core never knows about the GUI
+- [x] Create the `gpui-kit-i18n` skill — English-default i18n contract for every UI tool implementation (rust-i18n + gpui-kit `extend!` recipe from the GPUI Kit docs)
+- [x] I18n wired in the GUI crate: `rust-i18n 4.2.4` (MIT, 7-day rule, already unified in `Cargo.lock` via gpui-component), `locales/ui.yml` with `en` fallback, `src/i18n.rs` (`extend!` before `gpui_kit::init` at bootstrap)
 
 #### Phase 7.2 — Design system
 - [x] Write `docs/design/phase7-ui.md`: primary task, stable objects, sidebar-workspace shell, screen map, keyboard path
@@ -710,6 +712,7 @@ work goes through the installed agent skills (`ui-workflow` orchestrator:
 - [x] Run the Design review checklist and Accessibility checklist against the design (§12)
 
 #### Phase 7.3 — App components
+- [ ] Every component string via `t!` with English keys in `locales/ui.yml` (the `gpui-kit-i18n` contract)
 - [ ] `tool_field` (label + help + validation beside the field)
 - [ ] `output_panel` (result view + Copy + Export…)
 - [ ] `category_item` / sidebar tool entries

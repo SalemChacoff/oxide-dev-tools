@@ -44,6 +44,10 @@ zxcvbn = "3.1.1"
 # Pinned per the 7-day supply-chain rule (security-audit skill):
 # 0.7.0 becomes eligible 2026-10-05; 0.6.5 is yanked. Re-audit before upgrading.
 gpui-kit = "0.6.6"
+# English-default i18n for the GUI (gpui-kit-i18n skill). 4.2.4 is the version
+# already unified in Cargo.lock via gpui-component (^4.2.0) — no duplicate
+# version. MIT, published 2026-09-29 (7-day rule satisfied).
+rust-i18n = "4.2.4"
 
 [profile.release]
 lto = "thin"
