@@ -165,8 +165,35 @@ fn json_to_yaml(input: &str) -> Result<String, DocError> {
 }
 
 fn yaml_to_json(input: &str) -> Result<String, DocError> {
-    let value = parse_yaml(input)?;
+    let mut value = parse_yaml(input)?;
+    sort_object_keys(&mut value);
     serde_json::to_string(&value).map_err(|error| DocError::InvalidJson(error.to_string()))
+}
+
+/// Sort every object's keys lexicographically so JSON output is stable.
+///
+/// `serde_json::Map` is a `BTreeMap` normally, but becomes an `IndexMap` when
+/// `serde_json`'s `preserve_order` feature is enabled by another workspace
+/// member (gpui-kit pulls it in), which would make the output depend on parse
+/// order. Sorting here keeps the documented contract — sorted keys — in every
+/// build configuration.
+fn sort_object_keys(value: &mut Value) {
+    match value {
+        Value::Object(object) => {
+            let mut entries: Vec<_> = std::mem::take(object).into_iter().collect();
+            entries.sort_by(|(left, _), (right, _)| left.cmp(right));
+            object.extend(entries);
+            for child in object.values_mut() {
+                sort_object_keys(child);
+            }
+        }
+        Value::Array(items) => {
+            for item in items {
+                sort_object_keys(item);
+            }
+        }
+        _ => {}
+    }
 }
 
 fn parse_yaml(input: &str) -> Result<Value, DocError> {
@@ -324,7 +351,8 @@ fn is_name_char(character: char) -> bool {
 // -------- Reading XML --------
 
 fn xml_to_json(input: &str, pretty: bool) -> Result<String, DocError> {
-    let value = parse_xml(input)?;
+    let mut value = parse_xml(input)?;
+    sort_object_keys(&mut value);
     let result = if pretty {
         serde_json::to_string_pretty(&value)
     } else {
