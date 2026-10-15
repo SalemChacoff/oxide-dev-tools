@@ -40,8 +40,25 @@ app:
       en: Overwrite
     language:
       en: Language
+    clear:
+      en: Clear
+    search:
+      en: Search tools…
     clear_search:
       en: Clear search
+  categories:
+    generators:
+      en: Generators
+    codecs:
+      en: Codecs
+    text:
+      en: Text
+    converters:
+      en: Converters
+    validators:
+      en: Validators
+    comparators:
+      en: Comparators
   state:
     pick_tool:
       en: Pick a tool from the sidebar or search
@@ -60,6 +77,8 @@ app:
   settings:
     title:
       en: Settings
+    appearance:
+      en: Appearance
     theme:
       en: Theme
     system:
@@ -70,3 +89,37 @@ app:
       en: Dark
     defaults:
       en: Defaults
+    theme_help:
+      en: Follows your system appearance
+    reset_defaults:
+      en: Reset defaults
+    defaults_help:
+      en: Restore the default options for every tool
+  result:
+    title:
+      en: Result
+    copy_hint:
+      en: Copy result
+  recent:
+    title:
+      en: Recent runs
+    empty:
+      en: Nothing here yet. Run a tool and it will appear here.
+    clear_history:
+      en: Clear history
+    clear_title:
+      en: Clear recent runs?
+    clear_body:
+      en: This cannot be undone.
+    clear_action:
+      en: Clear
+    just_now:
+      en: just now
+    minutes_ago:
+      en: "%{n}m ago"
+    hours_ago:
+      en: "%{n}h ago"
+    days_ago:
+      en: "%{n}d ago"
+    weeks_ago:
+      en: "%{n}w ago"

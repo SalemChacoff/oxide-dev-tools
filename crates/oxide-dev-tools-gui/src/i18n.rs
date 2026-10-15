@@ -32,6 +32,10 @@ mod tests {
         rust_i18n::set_locale("en");
         assert_eq!(rust_i18n::t!("app.common.copy"), "Copy");
         assert_eq!(rust_i18n::t!("app.settings.title"), "Settings");
+        assert_eq!(rust_i18n::t!("app.result.title"), "Result");
+        assert_eq!(rust_i18n::t!("app.recent.title"), "Recent runs");
+        assert_eq!(rust_i18n::t!("app.categories.generators"), "Generators");
+        assert_eq!(rust_i18n::t!("app.recent.minutes_ago", n = 3), "3m ago");
 
         // Unknown locales fall back to English instead of returning the key.
         rust_i18n::set_locale("xx-YY");

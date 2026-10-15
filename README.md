@@ -712,13 +712,14 @@ work goes through the installed agent skills (`ui-workflow` orchestrator:
 - [x] Run the Design review checklist and Accessibility checklist against the design (§12)
 
 #### Phase 7.3 — App components
-- [ ] Every component string via `t!` with English keys in `locales/ui.yml` (the `gpui-kit-i18n` contract)
-- [ ] `tool_field` (label + help + validation beside the field)
-- [ ] `output_panel` (result view + Copy + Export…)
-- [ ] `category_item` / sidebar tool entries
-- [ ] `recent_runs` list
-- [ ] `settings_panel` (theme, defaults)
-- [ ] Builder + complex-logic tests per `component-test-rules.md`
+- [x] Every component string via `t!` with English keys in `locales/ui.yml` (the `gpui-kit-i18n` contract)
+- [x] `tool_field` (label + help + validation beside the field)
+- [x] `output_panel` (result view + Copy + Export…)
+- [x] `category_item` / sidebar tool entries (built on the tool registry: `ToolMeta`, six categories, search index)
+- [x] `tool_card` (home-grid card — the design spec's other app component; ships early for the 7.4 home view)
+- [x] `recent_runs` list (capped history, ULID row identity, named clear confirmation)
+- [x] `settings_panel` (theme System/Light/Dark via `RadioGroup`, defaults reset)
+- [x] Builder + complex-logic tests per `component-test-rules.md` (24 GUI tests; reference corpora re-vendored — see `ui-workflow` DoD)
 
 #### Phase 7.4 — Core shell
 - [ ] Window bootstrap: `gpui_kit::init`, `Root` at window top, TitleBar

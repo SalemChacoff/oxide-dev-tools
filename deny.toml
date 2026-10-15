@@ -33,6 +33,12 @@ ignore = [
     "RUSTSEC-2025-0134", # rustls-pemfile
     "RUSTSEC-2026-0206", # rustybuzz
     "RUSTSEC-2026-0192", # ttf-parser
+    # unsafe-libyaml (via serde_yaml_ng, a workspace dependency of core): the
+    # crate is archived read-only with no patched release — serde_yaml_ng is
+    # itself the maintained fork, but still links it. Informational
+    # "unmaintained" notice, not a vulnerability. Added with Phase 7.3
+    # (2026-10-15); re-check when serde_yaml_ng drops or vendors the binding.
+    "RUSTSEC-2024-0449", # unsafe-libyaml
 ]
 
 [bans]
