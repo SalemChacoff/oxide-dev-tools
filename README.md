@@ -722,11 +722,11 @@ work goes through the installed agent skills (`ui-workflow` orchestrator:
 - [x] Builder + complex-logic tests per `component-test-rules.md` (24 GUI tests; reference corpora re-vendored — see `ui-workflow` DoD)
 
 #### Phase 7.4 — Core shell
-- [ ] Window bootstrap: `gpui_kit::init`, `Root` at window top, TitleBar
-- [ ] Sidebar menu with the six categories and their sub-tools
-- [ ] Command palette search (⌘K / Ctrl+K) over all tools
-- [ ] Detail-pane switching, keybindings, focus management (Escape, focus return)
-- [ ] Notifications, empty/loading/error states, minimum window size, resizable sidebar
+- [x] Window bootstrap: `gpui_kit::init`, `Root` at window top, TitleBar
+- [x] Sidebar menu with the six categories and their sub-tools
+- [x] Command palette search (⌘K / Ctrl+K) over all tools
+- [x] Detail-pane switching, keybindings, focus management (Escape, focus return)
+- [x] Notifications, empty/loading/error states, minimum window size, resizable sidebar
 
 #### Phase 7.5 — Generators UI
 - [ ] `id` — UUID v1–v8, ULID, NanoID

@@ -39,6 +39,16 @@ ignore = [
     # "unmaintained" notice, not a vulnerability. Added with Phase 7.3
     # (2026-10-15); re-check when serde_yaml_ng drops or vendors the binding.
     "RUSTSEC-2024-0449", # unsafe-libyaml
+    # zbus family (zbus_names / zvariant / zvariant_derive): merged into zbus
+    # 6.0 as modules; "No safe upgrade is available" per the advisories. They
+    # hang off the Linux accessibility stack only (gpui-pre-linux ->
+    # accesskit_unix -> atspi-*), never linked on Windows/macOS builds.
+    # Informational "unmaintained" notices published after the 2026-10-04
+    # audit. Recorded with Phase 7.4 (2026-10-18); re-check on gpui-kit
+    # upgrades.
+    "RUSTSEC-2026-0370", # zbus_names
+    "RUSTSEC-2026-0371", # zvariant
+    "RUSTSEC-2026-0372", # zvariant_derive
 ]
 
 [bans]

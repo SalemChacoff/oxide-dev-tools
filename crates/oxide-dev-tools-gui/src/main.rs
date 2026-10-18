@@ -1,13 +1,14 @@
 //! Desktop GUI for oxide-dev-tools (README Phase 7).
 //!
-//! The window bootstrap lands in Phase 7.4; this stub keeps the crate
-//! compiling while the Phase 7.2 design system (the `theme` module), the
-//! i18n wiring, and the Phase 7.3 app components (`shared`) land. At
-//! bootstrap, call `i18n::init(cx)` inside `gpui_kit::application().run(...)`
-//! before `gpui_kit::init(cx)`.
+//! Bootstrap order is a contract: `i18n::init` registers the application's
+//! locales, then `gpui_kit::init` initializes every enabled library layer,
+//! and only then does `shell::bootstrap::run` install the registry global
+//! and open the shell window (`Root` at the top, `TitleBar` chrome, the
+//! oxide-design theme applied from the window appearance).
 
 pub mod i18n;
 pub mod shared;
+pub mod shell;
 pub mod theme;
 
 // The application's locale file (locales/ui.yml). English is the default
@@ -15,5 +16,9 @@ pub mod theme;
 rust_i18n::i18n!("locales", fallback = "en");
 
 fn main() {
-    println!("oxide-gui: window bootstrap lands in Phase 7.4");
+    gpui_kit::application().with_assets(gpui_kit::assets::Assets).run(|cx| {
+        i18n::init(cx);
+        gpui_kit::init(cx);
+        shell::bootstrap::run(cx);
+    });
 }

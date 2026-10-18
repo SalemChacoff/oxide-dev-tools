@@ -106,8 +106,8 @@ graph TD
 - **Shell**: TitleBar (drag region, window controls) → Sidebar (categories as
   expandable/collapsible groups, tools as items, visible active state) →
   detail area (`flex_1()`, `min_w_0()`). Minimum window size enforced
-  (880×600, from the mock) so every tool displays correctly; sidebar resizable; Escape
-  dismisses topmost overlay and returns focus to its trigger.
+  (900×640, from the mock) so every tool displays correctly; sidebar resizable
+  (180–400px); Escape dismisses topmost overlay and returns focus to its trigger.
 - **Home**: search input **centered at the top** of the page + tool cards grouped
   by category. Card = icon + two lines: tool name on line 1, one-line
   description on line 2; hover/focus/selected states; Enter opens.
@@ -123,7 +123,7 @@ graph TD
 - **Placement and resizing**: tool content is **top-centered**. Patterns A/B
   are capped at ~1060px and stretch to fill the remaining window height (panes
   scroll internally); Pattern C is a centered column capped at 560px. The
-  window enforces a minimum size (880×600, from the mock) so every tool
+  window enforces a minimum size (900×640, from the mock) so every tool
   displays correctly.
 - **Search**: the search input sits at the **very top center of every page**, above the page title (global tool search, not just home). The icon lives in an isolated slot separated by a hairline from the text field (`| icon | text |`, `Ctrl K` chip at the end); focus ring on the whole component. The command palette (⌘K / Ctrl+K) jumps to any tool and the home search filters cards live.
 
@@ -240,8 +240,8 @@ Component tests follow
 
 - Confirm the exact primary hue (Rust orange `#CE422B` vs alternatives) in both
   themes; check contrast for focus rings and `primary` on `surface`.
-- Decide sidebar collapse behavior on narrow windows (minimum window size is
-  settled at 880×600, from the mock).
+- Sidebar collapse on narrow windows — resolved (Phase 7.4): no collapse; the
+  minimum window size keeps every tool visible.
 - Decide sample-file tools' save path UX (Pattern B extension).
 - Give the unmapped gpui-kit slots (`info`, `warning`, chart colors) oxide
   values or confirm the library fallbacks.
@@ -263,19 +263,26 @@ cannot be verified without a real window stay open for Phase 7.4.
    metadata, primary only for the run commit (§3, §5).
 4. Could it do less? — yes: hover toolbars, link-buttons, full-page scroll and
    a footer catch-all were dropped (§2).
-5. Structure exact — partial: the mock fixes the alignment spines; rendered
-   pixel checks wait for real windows (Phase 7.4).
+5. Structure exact — verified by bounds assertions on the shell (card grid
+   width, sidebar min/max via `Resizable`); rendered pixel checks for tool
+   pages wait for their screens (7.5+).
 6. Follows the component system — yes: §5 maps every region to a standard
    gpui-kit component; only `tool_card` and `tool_field` are app wrappers.
 7. Usable in every state and constraint — partial: states are specified (§3.3,
-   §7.1); keyboard path and zoom need the shell to verify.
-8. Tested in a real window — open: Phase 7.4 bootstrap.
+   §7.1); the shell's keyboard path (Tab, Enter, Escape, palette focus
+   return) is covered by UI integration tests (Phase 7.4); zoom at larger
+   base fonts still needs a real-window check.
+8. Tested in a real window — yes: the shell runs under `Root` with the
+   `TitleBar` and enforces the 900×640 minimum (Phase 7.4); headless UI
+   integration tests drive clicks, keys, focus, and navigation.
 
 **Accessibility checklist**
 
-- Keyboard reachable — specified (§1, §3.3); verified with the shell.
-- Focus order, visible focus, overlay focus return — specified (orange ring,
-  Escape + return); verified with the shell.
+- Keyboard reachable — yes: sidebar rows, cards, search, palette, and theme
+  control are keyboard-operable; covered by Phase 7.4 tests.
+- Focus order, visible focus, overlay focus return — yes: the search header
+  owns one visible ring, the palette traps focus and Escape returns it to the
+  trigger; covered by Phase 7.4 tests.
 - Names/tooltips for icon-only controls — specified (§3.2); verified per screen.
 - Contrast — open: the design review must measure the palette pairs (§11).
 - Status not by color alone — enforced: validation verdicts pair `Badge`/`Tag`

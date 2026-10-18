@@ -74,6 +74,172 @@ app:
       en: Invalid
     nothing_to_show:
       en: Nothing to show
+  shell:
+    brand:
+      en: oxide
+    palette_placeholder:
+      en: Search tools…
+    placeholder_title:
+      en: Not available yet
+    placeholder_description:
+      en: This tool’s page ships in an upcoming phase. Search and navigation are already wired.
+  tools:
+    generators:
+      id:
+        title:
+          en: UUID
+        description:
+          en: Generate UUIDs (v1–v8), ULIDs, and NanoIDs.
+      key:
+        title:
+          en: Password
+        description:
+          en: Passwords, tokens, and JWTs (HS256).
+      lorem:
+        title:
+          en: Lorem ipsum
+        description:
+          en: Words, sentences, and paragraphs.
+      fake:
+        title:
+          en: Fake data
+        description:
+          en: Personas, names, emails, phones, addresses, companies.
+      sample:
+        title:
+          en: Sample files
+        description:
+          en: PDF, PNG, and JPG fixtures.
+    codecs:
+      base64:
+        title:
+          en: Base64
+        description:
+          en: Encode and decode, standard and URL-safe.
+      hex:
+        title:
+          en: Hex
+        description:
+          en: Encode and decode hexadecimal.
+      url-codec:
+        title:
+          en: URL
+        description:
+          en: Encode and decode URL components.
+    text:
+      case:
+        title:
+          en: Case
+        description:
+          en: Convert between case conventions.
+      codec:
+        title:
+          en: String codec
+        description:
+          en: HTML entities and Unicode escapes.
+      count:
+        title:
+          en: Text statistics
+        description:
+          en: Characters, words, and lines.
+      scan:
+        title:
+          en: Character scan
+        description:
+          en: Whitespace, hidden, and non-ASCII characters.
+      truncate:
+        title:
+          en: Truncate
+        description:
+          en: Clip and pad text to a length.
+    converters:
+      doc:
+        title:
+          en: Document
+        description:
+          en: JSON, YAML, and XML documents.
+      timestamp:
+        title:
+          en: Timestamp
+        description:
+          en: Unix ↔ human-readable dates.
+      unit:
+        title:
+          en: Unit
+        description:
+          en: Length, mass, rate, storage, and time.
+    validators:
+      card:
+        title:
+          en: Credit card
+        description:
+          en: Check credit card numbers.
+      email:
+        title:
+          en: Email
+        description:
+          en: Check email address syntax.
+      file:
+        title:
+          en: File type
+        description:
+          en: Detect file types from content.
+      ip:
+        title:
+          en: IP
+        description:
+          en: Check IPv4 and IPv6 addresses.
+      json-validator:
+        title:
+          en: JSON
+        description:
+          en: Check JSON syntax.
+      password:
+        title:
+          en: Password strength
+        description:
+          en: Rate password strength.
+      url-validator:
+        title:
+          en: URL
+        description:
+          en: Check URL syntax.
+      uuid:
+        title:
+          en: UUID
+        description:
+          en: Check UUID formats.
+      xml:
+        title:
+          en: XML
+        description:
+          en: Check XML syntax.
+      yaml:
+        title:
+          en: YAML
+        description:
+          en: Check YAML syntax.
+    comparators:
+      dir:
+        title:
+          en: Directory
+        description:
+          en: Compare two directories.
+      json-diff:
+        title:
+          en: JSON
+        description:
+          en: Deep-compare two JSON documents.
+      semver:
+        title:
+          en: SemVer
+        description:
+          en: Order and compare semantic versions.
+      text:
+        title:
+          en: Text diff
+        description:
+          en: Side-by-side and inline text diffs.
   settings:
     title:
       en: Settings
