@@ -24,9 +24,10 @@ confidence-threshold = 0.8
 version = 2
 db-path = "~/.cargo/advisory-db"
 db-urls = ["https://github.com/RustSec/advisory-db"]
-# gpui-kit tree (gpui-pre 0.3.6 pins these; no patches exist). Informational
+# gpui-kit tree (gpui-pre 0.3.8 pins these; no patches exist). Informational
 # "unmaintained" notices, not vulnerabilities. User-approved 2026-10-04;
-# re-check on gpui-kit upgrades. `unmaintained` stays deny for everything else.
+# re-checked on the 0.7.1 upgrade (2026-10-18), no patches upstream. Re-check
+# on further gpui-kit upgrades. `unmaintained` stays deny for everything else.
 ignore = [
     "RUSTSEC-2024-0384", # instant
     "RUSTSEC-2024-0436", # paste
@@ -44,10 +45,10 @@ ignore = [
     # hang off the Linux accessibility stack only (gpui-pre-linux ->
     # accesskit_unix -> atspi-*), never linked on Windows/macOS builds.
     # Informational "unmaintained" notices published after the 2026-10-04
-    # audit. Recorded with Phase 7.4 (2026-10-18); re-check on gpui-kit
-    # upgrades.
-    "RUSTSEC-2026-0370", # zbus_names
-    "RUSTSEC-2026-0371", # zvariant
+    # audit. Recorded with Phase 7.4 (2026-10-18); re-checked on the 0.7.1
+    # upgrade, same versions pinned via gpui-pre 0.3.8. Re-check on upgrades.
+    "RUSTSEC-2026-0370", # zvariant
+    "RUSTSEC-2026-0371", # zbus_names
     "RUSTSEC-2026-0372", # zvariant_derive
 ]
 

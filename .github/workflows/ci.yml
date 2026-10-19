@@ -49,6 +49,12 @@ jobs:
           toolchain: stable
           components: clippy
 
+      # gpui-kit 0.7.x (gpui-pre 0.3.8) builds zed-font-kit on Linux, which
+      # needs fontconfig dev files at compile time (yeslogic-fontconfig-sys).
+      - name: Install Linux system dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libfontconfig1-dev
+
       - name: Cache dependencies
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
 
@@ -92,6 +98,12 @@ jobs:
         uses: taiki-e/install-action@b6b84cf49ebfe0176417bdce007c624f0db37f20 # v2.86.2
         with:
           tool: nextest
+
+      # gpui-kit 0.7.x (gpui-pre 0.3.8) builds zed-font-kit on Linux, which
+      # needs fontconfig dev files at compile time (yeslogic-fontconfig-sys).
+      - name: Install Linux system dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libfontconfig1-dev
 
       - name: Run tests (nextest)
         run: cargo nextest run --workspace --all-features --locked

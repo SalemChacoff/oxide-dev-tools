@@ -6,7 +6,7 @@
 //! the enforced minimum size, the oxide-design theme applies, and the shell
 //! goes under one gpui-kit `Root` (overlays, notifications, modal focus).
 
-use gpui_kit::component::{Root, TitleBar};
+use gpui_kit::component::TitleBar;
 use gpui_kit::{App, AppContext as _, Pixels, Size, WindowOptions, px, size};
 
 use crate::shared::registry::{RegistryError, ToolRegistry, ToolRegistryGlobal};
@@ -44,10 +44,9 @@ pub fn run(cx: &mut App) {
         ..TitleBar::window_options()
     };
 
-    if let Err(error) = cx.open_window(options, |window, cx| {
-        let shell = cx.new(|cx| ShellView::new(window, cx));
+    if let Err(error) = gpui_kit::open_window(options, cx, |window, cx| {
         theme::apply(cx, ThemePreference::System, window.appearance());
-        cx.new(|cx| Root::new(shell, window, cx))
+        cx.new(|cx| ShellView::new(window, cx))
     }) {
         eprintln!("oxide-gui: failed to open window: {error:#}");
     }
