@@ -130,7 +130,7 @@ impl Render for SettingsPanel {
                                     .child(
                                         div()
                                             .text_xs()
-                                            .text_color(cx.theme().muted)
+                                            .text_color(cx.theme().muted_foreground)
                                             .child(rust_i18n::t!("app.settings.theme_help")),
                                     ),
                             )
@@ -155,7 +155,7 @@ impl Render for SettingsPanel {
                             .child(
                                 div()
                                     .text_sm()
-                                    .text_color(cx.theme().muted)
+                                    .text_color(cx.theme().muted_foreground)
                                     .child(rust_i18n::t!("app.settings.defaults_help")),
                             )
                             .child(self.render_reset_button()),

@@ -87,7 +87,7 @@ impl RenderOnce for ToolCard {
                         div()
                             .w_full()
                             .text_xs()
-                            .text_color(cx.theme().muted)
+                            .text_color(cx.theme().muted_foreground)
                             .whitespace_nowrap()
                             .text_ellipsis()
                             .child(self.description),
