@@ -3,9 +3,9 @@
 //! and command palette, plus the navigation, palette, seed, notification,
 //! and action contracts those surfaces share.
 //!
-//! Tool-page modules (one per category) join from Phase 7.5 on and replace
-//! the placeholder pages with the real ones; the registry and navigation
-//! here do not change.
+//! Tool-page modules (one per category, starting with `crate::generators`
+//! in Phase 7.5) replace the placeholder pages with the real ones; the
+//! registry and navigation here do not change.
 
 pub mod actions;
 pub mod bootstrap;

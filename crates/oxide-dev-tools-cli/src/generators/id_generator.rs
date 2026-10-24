@@ -1,6 +1,5 @@
 use clap::{Args, Subcommand};
 use oxide_dev_tools_core::*;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use crate::error::{GenError, GenericError};
 
@@ -110,24 +109,6 @@ pub fn exec(args: IdArgs) -> Result<(), GenError> {
     Ok(())
 }
 
-/// Parse an ISO 8601 date string (`YYYY-MM-DD`) into [`SystemTime`].
-///
-/// Returns `None` when no date is given — the caller (core generator)
-/// will then use the current time as its default.
-fn parse_date(date: Option<String>) -> Result<Option<SystemTime>, GenericError> {
-    match date {
-        Some(s) => {
-            let naive = s
-                .parse::<chrono::NaiveDate>()
-                .map_err(|_| GenericError::from(format!("invalid date \"{s}\", expected YYYY-MM-DD")))?;
-            let epoch = chrono::NaiveDate::from_ymd_opt(1970, 1, 1).unwrap();
-            let secs = naive.signed_duration_since(epoch).num_seconds();
-            Ok(Some(UNIX_EPOCH + Duration::from_secs(secs.max(0) as u64)))
-        }
-        None => Ok(None),
-    }
-}
-
 /// Parse optional `--namespace` and `--name` into an optional tuple for
 /// UUID v3/v5 custom generation.
 ///
@@ -150,39 +131,6 @@ fn parse_uuid_params(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::time::UNIX_EPOCH;
-
-    #[test]
-    fn parse_date_none_returns_none() {
-        assert!(parse_date(None).unwrap().is_none());
-    }
-
-    #[test]
-    fn parse_date_valid_date() {
-        let t = parse_date(Some("2026-06-01".into())).unwrap().unwrap();
-        let dur = t.duration_since(UNIX_EPOCH).unwrap();
-        assert!(dur.as_secs() > 1_700_000_000, "unexpected timestamp: {}", dur.as_secs());
-        assert!(dur.as_secs() < 2_000_000_000, "unexpected timestamp: {}", dur.as_secs());
-    }
-
-    #[test]
-    fn parse_date_invalid_format_errors() {
-        let err = parse_date(Some("not-a-date".into())).unwrap_err().to_string();
-        assert!(err.contains("invalid date"));
-    }
-
-    #[test]
-    fn parse_date_wrong_order_errors() {
-        let err = parse_date(Some("01-06-2026".into())).unwrap_err().to_string();
-        assert!(err.contains("invalid date"));
-    }
-
-    #[test]
-    fn parse_date_unix_epoch() {
-        let t = parse_date(Some("1970-01-01".into())).unwrap().unwrap();
-        let dur = t.duration_since(UNIX_EPOCH).unwrap();
-        assert_eq!(dur.as_secs(), 0);
-    }
 
     #[test]
     fn parse_uuid_params_none_returns_none() {

@@ -6,6 +6,7 @@
 //! and open the shell window (`Root` at the top, `TitleBar` chrome, the
 //! oxide-design theme applied from the window appearance).
 
+pub mod generators;
 pub mod i18n;
 pub mod shared;
 pub mod shell;

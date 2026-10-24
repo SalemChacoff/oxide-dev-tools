@@ -24,6 +24,8 @@ app:
       en: Copy
     export:
       en: Export…
+    save:
+      en: Save
     generate:
       en: Generate
     validate:
@@ -240,6 +242,234 @@ app:
           en: Text diff
         description:
           en: Side-by-side and inline text diffs.
+  generators:
+    id:
+      kind:
+        en: Kind
+      kind_help:
+        en: The identifier format to generate.
+      date:
+        en: Date
+      date_help:
+        en: Optional YYYY-MM-DD date for time-based UUIDs; empty means now.
+      date_placeholder:
+        en: "2026-05-12"
+      namespace:
+        en: Namespace
+      namespace_help:
+        en: The RFC 4122 namespace used to hash the name.
+      name:
+        en: Name
+      name_help:
+        en: The name to hash into the UUID; empty keeps the default.
+      name_placeholder:
+        en: example.com
+      name_validation:
+        en: Namespace and name must be provided together.
+      custom_namespace:
+        en: Custom namespace UUID
+      mode_uuid_v1:
+        en: UUID v1
+      mode_uuid_v3:
+        en: UUID v3
+      mode_uuid_v4:
+        en: UUID v4
+      mode_uuid_v5:
+        en: UUID v5
+      mode_uuid_v6:
+        en: UUID v6
+      mode_uuid_v7:
+        en: UUID v7
+      mode_uuid_v8:
+        en: UUID v8
+      mode_ulid:
+        en: ULID
+      mode_nanoid:
+        en: NanoID
+      namespace_default:
+        en: Default (DNS)
+      namespace_dns:
+        en: DNS
+      namespace_url:
+        en: URL
+      namespace_oid:
+        en: OID
+      namespace_x500:
+        en: X.500
+      namespace_custom:
+        en: Custom UUID…
+    key:
+      password:
+        en: Password
+      token:
+        en: Token
+      jwt:
+        en: JWT
+      length:
+        en: Length
+      length_placeholder:
+        en: "16"
+      length_help_password:
+        en: Characters in the password.
+      length_help_token:
+        en: Random bytes (hex output is 2× this length).
+      lowercase:
+        en: Lowercase (a–z)
+      uppercase:
+        en: Uppercase (A–Z)
+      digits:
+        en: Digits (0–9)
+      special:
+        en: Symbols (!@#$%^&*)
+      encoding:
+        en: Encoding
+      encoding_hex:
+        en: Hex
+      encoding_base64:
+        en: Base64
+      payload:
+        en: Payload
+      payload_help:
+        en: JSON object with a non-empty "sub" claim.
+      secret:
+        en: Secret
+      secret_help:
+        en: HMAC-SHA256 signing key.
+      secret_validation:
+        en: Secret must not be empty.
+      expiry:
+        en: Expiry
+      expiry_placeholder:
+        en: 1h
+      expiry_help:
+        en: Duration (1h, 30m), seconds from now (3600), or an absolute Unix timestamp.
+      validation_number:
+        en: Enter a whole number.
+    lorem:
+      words:
+        en: Words
+      sentences:
+        en: Sentences
+      paragraphs:
+        en: Paragraphs
+      count:
+        en: Count
+      count_placeholder:
+        en: "50"
+      count_help_words:
+        en: Number of words to generate.
+      count_help_sentences:
+        en: Number of sentences to generate.
+      count_help_paragraphs:
+        en: Number of paragraphs to generate.
+      min_words:
+        en: Minimum words per sentence
+      min_words_placeholder:
+        en: "5"
+      max_words:
+        en: Maximum words per sentence
+      max_words_placeholder:
+        en: "15"
+      sentences_per_paragraph:
+        en: Sentences per paragraph
+      sentences_placeholder:
+        en: "4"
+      start:
+        en: Start with "Lorem ipsum dolor sit amet"
+      validation_count:
+        en: Count must be at least 1.
+      validation_range:
+        en: Min_words must not exceed max_words.
+    fake:
+      kind:
+        en: Type
+      count:
+        en: Count
+      count_placeholder:
+        en: "1"
+      count_help:
+        en: Number of values to generate.
+      validation_count:
+        en: Count must be at least 1.
+      mode_person:
+        en: Persona
+      mode_name:
+        en: Given name
+      mode_surname:
+        en: Family name
+      mode_full_name:
+        en: Full name
+      mode_email:
+        en: Email
+      mode_phone:
+        en: Phone
+      mode_address:
+        en: Address
+      mode_city:
+        en: City
+      mode_country:
+        en: Country
+      mode_company:
+        en: Company
+      mode_job_title:
+        en: Job title
+      mode_username:
+        en: Username
+    sample:
+      pdf:
+        en: PDF
+      png:
+        en: PNG
+      jpg:
+        en: JPG
+      tamper:
+        en: Tamper
+      tamper_help:
+        en: Corrupt the output to test parsing robustness.
+      tamper_none:
+        en: None
+      tamper_magic:
+        en: Magic bytes
+      tamper_truncate:
+        en: Truncate
+      tamper_zero:
+        en: Zero fill
+      tamper_text:
+        en: Text fill
+      size:
+        en: Size (bytes)
+      size_placeholder:
+        en: "1024"
+      size_help:
+        en: Exact byte count; empty means the smallest valid file.
+      pages:
+        en: Pages
+      text:
+        en: Text
+      text_help:
+        en: Text drawn on every page; empty means a placeholder.
+      width:
+        en: Width (px)
+      height:
+        en: Height (px)
+      color:
+        en: Color
+      color_help:
+        en: RRGGBB hex or a named color; empty means gray.
+      validation_number:
+        en: Enter a whole number.
+      path:
+        en: Save to
+      export_title:
+        en: Export "%{name}"
+      saved:
+        en: Saved "%{path}"
+      save_failed:
+        en: "Couldn't save \"%{path}\": %{error}"
+      overwrite_title:
+        en: Overwrite "%{name}"?
+      overwrite_body:
+        en: The file already exists. Replacing it cannot be undone.
   settings:
     title:
       en: Settings

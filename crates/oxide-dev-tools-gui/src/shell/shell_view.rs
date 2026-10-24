@@ -25,6 +25,7 @@ use gpui_kit::{
     prelude::FluentBuilder as _, px,
 };
 
+use crate::generators::{FakeView, IdView, KeyView, LoremView, RunReporter, SampleView};
 use crate::shared::recent_runs::{RecentRuns, RecentRunsState};
 use crate::shared::registry::registry;
 use crate::shared::settings_panel::{SettingsPanel, SettingsState};
@@ -45,6 +46,11 @@ pub struct ShellView {
     pub(crate) recent_runs: Entity<RecentRuns>,
     pub(crate) resizable: Entity<ResizableState>,
     pub(crate) palette_open: bool,
+    id_page: Entity<IdView>,
+    key_page: Entity<KeyView>,
+    lorem_page: Entity<LoremView>,
+    fake_page: Entity<FakeView>,
+    sample_page: Entity<SampleView>,
     _subscriptions: Vec<Subscription>,
 }
 
@@ -62,6 +68,23 @@ impl ShellView {
         // The history view reuses the shell's history and reopens runs
         // through the shell; the weak handle exists before the shell does.
         let weak_shell = cx.weak_entity();
+
+        // Tool pages report finished runs through the reporter so the shell
+        // history records them (Phase 7.5).
+        let run_reporter: RunReporter = {
+            let weak_shell = weak_shell.clone();
+            std::rc::Rc::new(move |tool_id, summary, cx| {
+                if let Some(shell) = weak_shell.upgrade() {
+                    shell.update(cx, |shell, cx| shell.record_run(tool_id, summary, cx));
+                }
+            })
+        };
+        let id_page = cx.new(|cx| IdView::new(window, cx).on_run(run_reporter.clone()));
+        let key_page = cx.new(|cx| KeyView::new(window, cx).on_run(run_reporter.clone()));
+        let lorem_page = cx.new(|cx| LoremView::new(window, cx).on_run(run_reporter.clone()));
+        let fake_page = cx.new(|cx| FakeView::new(window, cx).on_run(run_reporter.clone()));
+        let sample_page = cx.new(|cx| SampleView::new(window, cx).on_run(run_reporter));
+
         let recent_runs = cx.new(|cx| {
             let weak_shell = weak_shell.clone();
             RecentRuns::with_history(recent.clone(), window, cx).on_open_tool(move |id, window, cx| {
@@ -113,6 +136,11 @@ impl ShellView {
             recent_runs,
             resizable,
             palette_open: false,
+            id_page,
+            key_page,
+            lorem_page,
+            fake_page,
+            sample_page,
             _subscriptions: subscriptions,
         }
     }
@@ -133,6 +161,12 @@ impl ShellView {
         if self.palette_open {
             self.close_palette(window, cx);
         }
+        cx.notify();
+    }
+
+    /// Records a finished tool run in the shared recent-runs history.
+    fn record_run(&mut self, tool_id: &str, summary: &str, cx: &mut Context<Self>) {
+        self.recent.update(cx, |state, cx| state.record(tool_id, summary, cx));
         cx.notify();
     }
 
@@ -246,47 +280,58 @@ impl ShellView {
         }
     }
 
-    /// Tool pages from Phase 7.5 on replace this placeholder — an honest
-    /// "not available yet" state until the real page lands.
-    fn render_tool_page(&self, id: SharedString, cx: &mut Context<Self>) -> impl IntoElement {
-        let title = registry(cx)
-            .find(&id)
-            .map_or_else(|| id.to_string(), |meta| meta.title());
+    /// Tool pages from Phase 7.5 on replace the placeholder for shipped
+    /// tools — an honest "not available yet" state stays for the rest.
+    fn render_tool_page(&self, id: SharedString, cx: &mut Context<Self>) -> AnyElement {
+        match id.as_ref() {
+            "id" => self.id_page.clone().into_any_element(),
+            "key" => self.key_page.clone().into_any_element(),
+            "lorem" => self.lorem_page.clone().into_any_element(),
+            "fake" => self.fake_page.clone().into_any_element(),
+            "sample" => self.sample_page.clone().into_any_element(),
+            _ => {
+                let title = registry(cx)
+                    .find(&id)
+                    .map_or_else(|| id.to_string(), |meta| meta.title());
 
-        v_flex()
-            .id("tool-page")
-            .test_support()
-            .flex_1()
-            .min_h_0()
-            .w_full()
-            .overflow_y_scroll()
-            .px_6()
-            .pb_6()
-            .child(
-                h_flex()
-                    .justify_center()
-                    .child(div().text_lg().font_semibold().child(title)),
-            )
-            .child(
-                div()
-                    .id("tool-placeholder")
+                v_flex()
+                    .id("tool-page")
                     .test_support()
-                    .mx_auto()
-                    .w_128()
-                    .pt_10()
+                    .flex_1()
+                    .min_h_0()
+                    .w_full()
+                    .overflow_y_scroll()
+                    .px_6()
+                    .pb_6()
                     .child(
-                        Empty::new().header(
-                            EmptyHeader::new()
-                                .title(
-                                    EmptyTitle::new().child(rust_i18n::t!("app.shell.placeholder_title").into_owned()),
-                                )
-                                .description(
-                                    EmptyDescription::new()
-                                        .child(rust_i18n::t!("app.shell.placeholder_description").into_owned()),
+                        h_flex()
+                            .justify_center()
+                            .child(div().text_lg().font_semibold().child(title)),
+                    )
+                    .child(
+                        div()
+                            .id("tool-placeholder")
+                            .test_support()
+                            .mx_auto()
+                            .w_128()
+                            .pt_10()
+                            .child(
+                                Empty::new().header(
+                                    EmptyHeader::new()
+                                        .title(
+                                            EmptyTitle::new()
+                                                .child(rust_i18n::t!("app.shell.placeholder_title").into_owned()),
+                                        )
+                                        .description(
+                                            EmptyDescription::new()
+                                                .child(rust_i18n::t!("app.shell.placeholder_description").into_owned()),
+                                        ),
                                 ),
-                        ),
-                    ),
-            )
+                            ),
+                    )
+                    .into_any_element()
+            }
+        }
     }
 
     /// The settings page: the Phase 7.3 panel over the shared state.
@@ -442,7 +487,9 @@ mod tests {
         cx.update(|window, cx| {
             _ = window.draw(cx);
             assert!(window.try_find("tool-page").is_some());
-            assert!(window.try_find("tool-placeholder").is_some());
+            // The id tool shipped in Phase 7.5 — the placeholder is gone.
+            assert!(window.try_find("id-mode").is_some());
+            assert!(window.try_find("tool-placeholder").is_none());
             assert!(window.try_find("home-page").is_none());
         });
     }

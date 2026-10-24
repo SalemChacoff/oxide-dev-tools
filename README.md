@@ -729,11 +729,11 @@ work goes through the installed agent skills (`ui-workflow` orchestrator:
 - [x] Notifications, empty/loading/error states, minimum window size, resizable sidebar
 
 #### Phase 7.5 — Generators UI
-- [ ] `id` — UUID v1–v8, ULID, NanoID
-- [ ] `key` — passwords, tokens, JWTs (HS256)
-- [ ] `lorem` — words, sentences, paragraphs
-- [ ] `fake` — personas, names, emails, phones, addresses, companies
-- [ ] `sample` — PDF, PNG, JPG
+- [x] `id` — UUID v1–v8, ULID, NanoID
+- [x] `key` — passwords, tokens, JWTs (HS256)
+- [x] `lorem` — words, sentences, paragraphs
+- [x] `fake` — personas, names, emails, phones, addresses, companies
+- [x] `sample` — PDF, PNG, JPG
 
 #### Phase 7.6 — Codecs UI
 - [ ] Base64 encode/decode (standard, URL-safe)
