@@ -69,7 +69,11 @@ impl RenderOnce for SearchHeader {
                     .items_center()
                     .border_r_1()
                     .border_color(cx.theme().border)
-                    .child(Icon::new(IconName::Search).size_4().text_color(cx.theme().muted)),
+                    .child(
+                        Icon::new(IconName::Search)
+                            .size_4()
+                            .text_color(cx.theme().muted_foreground),
+                    ),
             )
             .child(Input::new(&self.state).appearance(false).flex_1())
             .child(

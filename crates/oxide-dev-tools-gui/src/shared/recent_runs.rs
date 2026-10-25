@@ -215,7 +215,7 @@ impl Render for RecentRuns {
                 this.child(
                     div()
                         .text_sm()
-                        .text_color(cx.theme().muted)
+                        .text_color(cx.theme().muted_foreground)
                         .child(rust_i18n::t!("app.recent.empty"))
                         .id((ElementId::from("recent-runs"), "empty"))
                         .test_support(),
@@ -268,7 +268,7 @@ fn render_run_row(run: &RecentRun, view: &RecentRuns, cx: &mut Context<RecentRun
                 .items_center()
                 .rounded(cx.theme().radius)
                 .hover(|style| style.bg(tokens.surface_2))
-                .child(Icon::new(icon).size_4().text_color(cx.theme().muted))
+                .child(Icon::new(icon).size_4().text_color(cx.theme().muted_foreground))
                 .child(
                     v_flex()
                         .flex_1()
@@ -279,13 +279,13 @@ fn render_run_row(run: &RecentRun, view: &RecentRuns, cx: &mut Context<RecentRun
                             div()
                                 .w_full()
                                 .text_xs()
-                                .text_color(cx.theme().muted)
+                                .text_color(cx.theme().muted_foreground)
                                 .whitespace_nowrap()
                                 .text_ellipsis()
                                 .child(run.summary().clone()),
                         ),
                 )
-                .child(div().text_xs().text_color(cx.theme().muted).child(time)),
+                .child(div().text_xs().text_color(cx.theme().muted_foreground).child(time)),
         )
 }
 

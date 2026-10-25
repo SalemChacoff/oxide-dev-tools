@@ -266,7 +266,8 @@ fn build_config(mode: ThemeMode) -> ThemeConfig {
 }
 
 /// Neutral structure: `surface` fills containers, `surface_2` fills hover and
-/// stripe slots, `border` draws every hairline, `muted` reads as muted text.
+/// stripe slots, `border` draws every hairline, and `muted_foreground` is muted
+/// text. gpui-kit's `muted` slot is the `surface_2` fill, never text.
 fn assign_surfaces(dark: bool, colors: &mut ThemeConfigColors) {
     let background = if dark {
         palette::BACKGROUND_DARK
@@ -535,6 +536,7 @@ mod tests {
         assert_eq!(colors.background.as_deref(), Some("#FFFFFF"));
         assert_eq!(colors.sidebar.as_deref(), Some("#F7F7F8"));
         assert_eq!(colors.list_hover.as_deref(), Some("#EFEFF1"));
+        assert_eq!(colors.muted.as_deref(), Some("#EFEFF1"));
         assert_eq!(colors.border.as_deref(), Some("#E4E5E7"));
         assert_eq!(colors.foreground.as_deref(), Some("#17181A"));
         assert_eq!(colors.muted_foreground.as_deref(), Some("#6B6E73"));
@@ -554,6 +556,7 @@ mod tests {
         assert_eq!(colors.background.as_deref(), Some("#0E0E0F"));
         assert_eq!(colors.sidebar.as_deref(), Some("#17181A"));
         assert_eq!(colors.list_hover.as_deref(), Some("#202224"));
+        assert_eq!(colors.muted.as_deref(), Some("#202224"));
         assert_eq!(colors.border.as_deref(), Some("#2A2C2F"));
         assert_eq!(colors.foreground.as_deref(), Some("#F2F2F3"));
         assert_eq!(colors.muted_foreground.as_deref(), Some("#8E9094"));

@@ -84,7 +84,7 @@ impl RenderOnce for ToolField {
                         .test_support()
                 } else {
                     message
-                        .text_color(cx.theme().muted)
+                        .text_color(cx.theme().muted_foreground)
                         .id((self.id.clone(), "help"))
                         .test_support()
                 })

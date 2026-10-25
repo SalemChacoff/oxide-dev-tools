@@ -30,10 +30,14 @@ System follows your OS. Dark tokens live under `[data-theme="dark"]` in
 
 `design.css` `:root` custom properties map 1:1 to the semantic tokens in
 `../phase7-ui.md` §3.1 (`--primary`, `--background`, `--surface`, `--border`,
-`--foreground`, `--muted`, `--danger`, `--success`, …). Hex values appear only
+`foreground`, `--muted`, `--danger`, `--success`, …). Hex values appear only
 there. When the gpui-kit theme module is built, it must define the same token
 names — the mock is the source of truth for values until the design review
 tunes them.
+
+`--muted` is text: in the gpui-kit theme it maps to `colors.muted_foreground`.
+gpui-kit's `muted` slot is the `--surface-2` fill, so the two systems do not
+share names 1:1.
 
 ## What to review (eyes-on checklist)
 

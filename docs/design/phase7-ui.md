@@ -68,6 +68,20 @@ the design review may tune them.
 - Orange-tinted hover/focus states elsewhere (transparent overlays at ~10%).
 - Tabular numerals for counts, sizes, and timestamps in outputs.
 
+**Text vs fill accessors.** The design token `muted` is text, but gpui-kit
+reuses the name `muted` for a fill, so the names do not map 1:1:
+
+| Intent | Design token | Read in code as |
+|---|---|---|
+| Primary text | `foreground` | `cx.theme().foreground` |
+| Secondary text — descriptions, help, placeholders, inactive, timestamps, empty/loading states | `muted` | `cx.theme().muted_foreground` (or `OxideTheme::tokens(cx).muted`) |
+| Hover and stripe fill | `surface-2` | `cx.theme().muted` (or `OxideTheme::tokens(cx).surface_2`) |
+
+Never pass `cx.theme().muted` to `.text_color(...)`: it is the `surface-2`
+fill, so it renders near-white-on-white in light mode and near-black-on-dark in
+dark mode. Every text color comes from `foreground`, `muted_foreground`,
+`primary`, `danger`, or `success`.
+
 ### 3.2 Type, spacing, shape
 
 - Base font and rem scaling from the gpui-kit theme (the zoom control).
@@ -170,6 +184,9 @@ Implementation shape (gpui-kit 0.6.6, Phase 7.2):
   feeds buttons, active nav, rings, and selection. Slots with no design token
   yet (`info`, `warning`, charts) keep the library fallbacks until the design
   review gives them values.
+- gpui-kit's `muted` slot is the `surface-2` fill; muted text is
+  `colors.muted_foreground`. The design token `muted` therefore maps to
+  `muted_foreground`, never to `colors.muted`.
 - App-level tokens gpui-kit has no slot for (`surface`, `surface-2`, the
   tints, `radius-s`) are published through the `theme::OxideTheme` global
   (`OxideTheme::tokens(cx)`) for app components — the design-system state the
@@ -215,6 +232,8 @@ Implementation shape (gpui-kit 0.6.6, Phase 7.2):
 - One accent color; no gradients; mono for data only; no footer catch-all.
 - Never invent a gpui-kit API — verify against the component docs
   (`https://gpui-kit.com/component/{name}.md`) and vendored references.
+- Secondary copy uses `cx.theme().muted_foreground`; `cx.theme().muted` is a
+  fill and must never be used as a text color.
 
 ## 9. Agent skills & workflow
 

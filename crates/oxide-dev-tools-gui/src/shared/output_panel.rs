@@ -116,7 +116,7 @@ impl RenderOnce for OutputPanel {
                         div()
                             .text_xs()
                             .font_semibold()
-                            .text_color(cx.theme().muted)
+                            .text_color(cx.theme().muted_foreground)
                             .child(rust_i18n::t!("app.result.title")),
                     )
                     .child(self.render_actions(has_content, is_binary)),
@@ -136,7 +136,7 @@ impl RenderOnce for OutputPanel {
                                 .child(
                                     div()
                                         .text_sm()
-                                        .text_color(cx.theme().muted)
+                                        .text_color(cx.theme().muted_foreground)
                                         .child(rust_i18n::t!("app.state.running")),
                                 )
                                 .id((self.id.clone(), "loading"))
@@ -171,7 +171,7 @@ impl RenderOnce for OutputPanel {
                             div()
                                 .p_3()
                                 .text_sm()
-                                .text_color(cx.theme().muted)
+                                .text_color(cx.theme().muted_foreground)
                                 .child(rust_i18n::t!("app.state.nothing_to_show"))
                                 .id((self.id.clone(), "empty"))
                                 .test_support(),
