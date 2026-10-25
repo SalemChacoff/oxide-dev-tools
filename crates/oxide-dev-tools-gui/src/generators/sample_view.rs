@@ -5,26 +5,24 @@
 //! and `Export…` opens a save dialog with the named-object overwrite
 //! confirmation the interface lexicon requires.
 
-use gpui_kit::base::TestSupportExt as _;
 use gpui_kit::component::alert::Alert;
 use gpui_kit::component::button::{Button, ButtonVariants as _};
 use gpui_kit::component::dialog::DialogButtonProps;
 use gpui_kit::component::input::{Input, InputState, NumberInput};
 use gpui_kit::component::notification::Notification;
-use gpui_kit::component::scroll::ScrollableElement as _;
 use gpui_kit::component::searchable_list::SearchableVec;
 use gpui_kit::component::select::{Select, SelectEvent, SelectState};
 use gpui_kit::component::tab::{Tab, TabBar};
-use gpui_kit::component::{Disableable as _, StyledExt as _, WindowExt as _, h_flex, v_flex};
+use gpui_kit::component::{Disableable as _, WindowExt as _, v_flex};
 use gpui_kit::{
-    App, AppContext as _, Context, ElementId, Entity, InteractiveElement as _, IntoElement, ParentElement as _, Render,
-    SharedString, Styled as _, Subscription, Window, div, prelude::FluentBuilder as _, px,
+    App, AppContext as _, Context, ElementId, Entity, IntoElement, ParentElement as _, Render, SharedString,
+    Styled as _, Subscription, Window, div, prelude::FluentBuilder as _,
 };
 use oxide_dev_tools_core::{JpgOptions, PdfOptions, PngOptions, SampleKind, TamperKind, generate_sample_file};
 
 use super::{RunReporter, report_run, summarize};
 use crate::shared::registry::registry;
-use crate::shared::{OutputPanel, ToolField};
+use crate::shared::{OutputPanel, ToolField, ToolPage};
 
 /// The three file formats behind the page's tabs.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -138,7 +136,12 @@ impl SampleView {
             )
         });
 
-        let subscriptions = vec![cx.subscribe(&tamper_select, Self::on_tamper_confirm)];
+        let subscriptions = vec![
+            cx.subscribe(&tamper_select, Self::on_tamper_confirm),
+            // Resizes re-run the render so the panes switch between the
+            // side-by-side and stacked layouts.
+            cx.observe_window_bounds(window, |_, _, cx| cx.notify()),
+        ];
 
         let pages = cx.new(|cx| InputState::new(window, cx));
         pages.update(cx, |input, cx| input.set_value("1", window, cx));
@@ -555,85 +558,52 @@ impl Render for SampleView {
             }
         });
 
-        v_flex()
-            .id("tool-page")
-            .test_support()
-            .flex_1()
-            .min_h_0()
-            .w_full()
-            .px_6()
-            .pb_6()
+        let form = v_flex()
+            .gap_4()
             .child(
-                h_flex()
-                    .justify_center()
-                    .child(div().text_lg().font_semibold().child(title)),
+                TabBar::new("sample-mode")
+                    .selected_index(self.mode.index())
+                    .children([
+                        Tab::new().label(rust_i18n::t!("app.generators.sample.pdf")),
+                        Tab::new().label(rust_i18n::t!("app.generators.sample.png")),
+                        Tab::new().label(rust_i18n::t!("app.generators.sample.jpg")),
+                    ])
+                    .on_click(cx.listener(|this, index, _, cx| {
+                        let mode = SampleMode::from_index(*index);
+                        if mode != this.mode {
+                            this.mode = mode;
+                            cx.notify();
+                        }
+                    })),
             )
             .child(
-                h_flex()
-                    .flex_1()
-                    .min_h_0()
-                    .pt_4()
-                    .gap_4()
-                    .items_stretch()
-                    .w_full()
-                    .mx_auto()
-                    .max_w(px(1060.))
-                    .child(
-                        v_flex()
-                            .w_96()
-                            .min_h_0()
-                            .overflow_y_scrollbar()
-                            .id("sample-form")
-                            .gap_4()
-                            .child(
-                                TabBar::new("sample-mode")
-                                    .selected_index(self.mode.index())
-                                    .children([
-                                        Tab::new().label(rust_i18n::t!("app.generators.sample.pdf")),
-                                        Tab::new().label(rust_i18n::t!("app.generators.sample.png")),
-                                        Tab::new().label(rust_i18n::t!("app.generators.sample.jpg")),
-                                    ])
-                                    .on_click(cx.listener(|this, index, _, cx| {
-                                        let mode = SampleMode::from_index(*index);
-                                        if mode != this.mode {
-                                            this.mode = mode;
-                                            cx.notify();
-                                        }
-                                    })),
-                            )
-                            .child(
-                                ToolField::new(
-                                    "sample-tamper",
-                                    rust_i18n::t!("app.generators.sample.tamper"),
-                                    Select::new(&self.tamper_select).id("sample-tamper-select").w_full(),
-                                )
-                                .help(rust_i18n::t!("app.generators.sample.tamper_help")),
-                            )
-                            .child(size_field)
-                            .when(self.mode == SampleMode::Pdf, |this| {
-                                this.child(pages_field).child(
-                                    ToolField::new(
-                                        "sample-text",
-                                        rust_i18n::t!("app.generators.sample.text"),
-                                        Input::new(&self.text),
-                                    )
-                                    .help(rust_i18n::t!("app.generators.sample.text_help")),
-                                )
-                            })
-                            .when(self.mode == SampleMode::Png, |this| {
-                                this.child(width_field).child(height_field).child(
-                                    ToolField::new(
-                                        "sample-color",
-                                        rust_i18n::t!("app.generators.sample.color"),
-                                        Input::new(&self.color),
-                                    )
-                                    .help(rust_i18n::t!("app.generators.sample.color_help")),
-                                )
-                            })
-                            .child(self.render_actions(invalid, cx)),
+                ToolField::new(
+                    "sample-tamper",
+                    rust_i18n::t!("app.generators.sample.tamper"),
+                    Select::new(&self.tamper_select).id("sample-tamper-select").w_full(),
+                )
+                .help(rust_i18n::t!("app.generators.sample.tamper_help")),
+            )
+            .child(size_field)
+            .when(self.mode == SampleMode::Pdf, |this| {
+                this.child(pages_field).child(
+                    ToolField::new("sample-text", rust_i18n::t!("app.generators.sample.text"), Input::new(&self.text))
+                        .help(rust_i18n::t!("app.generators.sample.text_help")),
+                )
+            })
+            .when(self.mode == SampleMode::Png, |this| {
+                this.child(width_field).child(height_field).child(
+                    ToolField::new(
+                        "sample-color",
+                        rust_i18n::t!("app.generators.sample.color"),
+                        Input::new(&self.color),
                     )
-                    .child(div().flex_1().min_h_0().child(panel)),
-            )
+                    .help(rust_i18n::t!("app.generators.sample.color_help")),
+                )
+            })
+            .child(self.render_actions(invalid, cx));
+
+        ToolPage::new(title, form, panel).form_id("sample-form")
     }
 }
 

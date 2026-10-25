@@ -24,6 +24,7 @@ pub mod registry;
 pub mod settings_panel;
 pub mod tool_card;
 pub mod tool_field;
+pub mod tool_page;
 
 pub use category_item::{sidebar_category_group, sidebar_tool_item};
 pub use output_panel::OutputPanel;
@@ -32,3 +33,4 @@ pub use registry::{Category, RegistryError, ToolMeta, ToolRegistry, ToolRegistry
 pub use settings_panel::{SettingsPanel, SettingsState};
 pub use tool_card::ToolCard;
 pub use tool_field::ToolField;
+pub use tool_page::ToolPage;

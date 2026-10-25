@@ -4,23 +4,21 @@
 //! One mode select over the core's twelve `FakeKind` variants plus a shared
 //! count; the output joins generated values with newlines.
 
-use gpui_kit::base::TestSupportExt as _;
 use gpui_kit::component::alert::Alert;
 use gpui_kit::component::button::{Button, ButtonVariants as _};
 use gpui_kit::component::input::{InputState, NumberInput};
-use gpui_kit::component::scroll::ScrollableElement as _;
 use gpui_kit::component::searchable_list::SearchableVec;
 use gpui_kit::component::select::{Select, SelectEvent, SelectState};
-use gpui_kit::component::{Disableable as _, StyledExt as _, h_flex, v_flex};
+use gpui_kit::component::{Disableable as _, v_flex};
 use gpui_kit::{
-    App, AppContext as _, Context, ElementId, Entity, InteractiveElement as _, IntoElement, ParentElement as _, Render,
-    SharedString, Styled as _, Subscription, Window, div, prelude::FluentBuilder as _, px,
+    App, AppContext as _, Context, ElementId, Entity, IntoElement, ParentElement as _, Render, SharedString,
+    Styled as _, Subscription, Window, prelude::FluentBuilder as _,
 };
 use oxide_dev_tools_core::{FakeKind, FakeOptions, generate_fake};
 
 use super::{RunReporter, report_run, summarize};
 use crate::shared::registry::registry;
-use crate::shared::{OutputPanel, ToolField};
+use crate::shared::{OutputPanel, ToolField, ToolPage};
 
 /// The selectable fake-data kinds, in select order.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -121,7 +119,12 @@ impl FakeView {
             )
         });
 
-        let subscriptions = vec![cx.subscribe(&mode_select, Self::on_mode_confirm)];
+        let subscriptions = vec![
+            cx.subscribe(&mode_select, Self::on_mode_confirm),
+            // Resizes re-run the render so the panes switch between the
+            // side-by-side and stacked layouts.
+            cx.observe_window_bounds(window, |_, _, cx| cx.notify()),
+        ];
 
         let count = cx.new(|cx| {
             InputState::new(window, cx).placeholder(rust_i18n::t!("app.generators.fake.count_placeholder").into_owned())
@@ -234,51 +237,17 @@ impl Render for FakeView {
             None => count_field,
         };
 
-        v_flex()
-            .id("tool-page")
-            .test_support()
-            .flex_1()
-            .min_h_0()
-            .w_full()
-            .px_6()
-            .pb_6()
-            .child(
-                h_flex()
-                    .justify_center()
-                    .child(div().text_lg().font_semibold().child(title)),
-            )
-            .child(
-                h_flex()
-                    .flex_1()
-                    .min_h_0()
-                    .pt_4()
-                    .gap_4()
-                    .items_stretch()
-                    .w_full()
-                    .mx_auto()
-                    .max_w(px(1060.))
-                    .child(
-                        v_flex()
-                            .w_96()
-                            .min_h_0()
-                            .overflow_y_scrollbar()
-                            .id("fake-form")
-                            .gap_4()
-                            .child(ToolField::new(
-                                "fake-mode",
-                                rust_i18n::t!("app.generators.fake.kind"),
-                                Select::new(&self.mode_select).id("fake-mode-select").w_full(),
-                            ))
-                            .child(count_field)
-                            .child(self.render_actions(count_invalid, cx)),
-                    )
-                    .child(
-                        div()
-                            .flex_1()
-                            .min_h_0()
-                            .child(OutputPanel::new("fake-output").content(self.result.clone())),
-                    ),
-            )
+        let form = v_flex()
+            .gap_4()
+            .child(ToolField::new(
+                "fake-mode",
+                rust_i18n::t!("app.generators.fake.kind"),
+                Select::new(&self.mode_select).id("fake-mode-select").w_full(),
+            ))
+            .child(count_field)
+            .child(self.render_actions(count_invalid, cx));
+
+        ToolPage::new(title, form, OutputPanel::new("fake-output").content(self.result.clone())).form_id("fake-form")
     }
 }
 

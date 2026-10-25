@@ -124,7 +124,10 @@ graph TD
   are capped at ~1060px and stretch to fill the remaining window height (panes
   scroll internally); Pattern C is a centered column capped at 560px. The
   window enforces a minimum size (900×640, from the mock) so every tool
-  displays correctly.
+  displays correctly. **Responsive stacking** (Phase 7.5): below a 960px
+  window width the A/B panes stack — form on top (capped at 24rem, scrolling
+  internally), result below filling the rest — so the result pane keeps its
+  room at the minimum window size.
 - **Search**: the search input sits at the **very top center of every page**, above the page title (global tool search, not just home). The icon lives in an isolated slot separated by a hairline from the text field (`| icon | text |`, `Ctrl K` chip at the end); focus ring on the whole component. The command palette (⌘K / Ctrl+K) jumps to any tool and the home search filters cards live.
 
 ## 5. Component mapping (region → gpui-kit component)

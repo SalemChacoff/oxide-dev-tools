@@ -6,23 +6,21 @@
 //! (`parse_date`, `parse_namespace_uuid`) at render time, so the copy is the
 //! core's, not a reimplementation.
 
-use gpui_kit::base::TestSupportExt as _;
 use gpui_kit::component::alert::Alert;
 use gpui_kit::component::button::{Button, ButtonVariants as _};
 use gpui_kit::component::input::{Input, InputState};
-use gpui_kit::component::scroll::ScrollableElement as _;
 use gpui_kit::component::searchable_list::SearchableVec;
 use gpui_kit::component::select::{Select, SelectEvent, SelectState};
-use gpui_kit::component::{Disableable as _, StyledExt as _, h_flex, v_flex};
+use gpui_kit::component::{Disableable as _, v_flex};
 use gpui_kit::{
-    App, AppContext as _, Context, ElementId, Entity, InteractiveElement as _, IntoElement, ParentElement as _, Render,
-    SharedString, Styled as _, Subscription, Window, div, prelude::FluentBuilder as _, px,
+    App, AppContext as _, Context, ElementId, Entity, IntoElement, ParentElement as _, Render, SharedString,
+    Styled as _, Subscription, Window, prelude::FluentBuilder as _,
 };
 use oxide_dev_tools_core::{IdKind, STANDARD_UUID_NAMESPACES, generate_id, parse_date, parse_namespace_uuid};
 
 use super::{RunReporter, report_run, sentence_case, summarize};
 use crate::shared::registry::registry;
-use crate::shared::{OutputPanel, ToolField};
+use crate::shared::{OutputPanel, ToolField, ToolPage};
 
 /// The selectable identifier formats, in select order.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -157,6 +155,9 @@ impl IdView {
         let subscriptions = vec![
             cx.subscribe(&mode_select, Self::on_mode_confirm),
             cx.subscribe(&namespace_select, Self::on_namespace_confirm),
+            // Resizes re-run the render so the panes switch between the
+            // side-by-side and stacked layouts.
+            cx.observe_window_bounds(window, |_, _, cx| cx.notify()),
         ];
 
         Self {
@@ -397,68 +398,32 @@ impl Render for IdView {
             None => name_field,
         };
 
-        v_flex()
-            .id("tool-page")
-            .test_support()
-            .flex_1()
-            .min_h_0()
-            .w_full()
-            .px_6()
-            .pb_6()
+        let form = v_flex()
+            .gap_4()
             .child(
-                h_flex()
-                    .justify_center()
-                    .child(div().text_lg().font_semibold().child(title)),
+                ToolField::new(
+                    "id-mode",
+                    rust_i18n::t!("app.generators.id.kind"),
+                    Select::new(&self.mode_select).id("id-mode-select").w_full(),
+                )
+                .help(rust_i18n::t!("app.generators.id.kind_help")),
             )
-            .child(
-                h_flex()
-                    .flex_1()
-                    .min_h_0()
-                    .pt_4()
-                    .gap_4()
-                    .items_stretch()
-                    .w_full()
-                    .mx_auto()
-                    .max_w(px(1060.))
-                    .child(
-                        v_flex()
-                            .w_96()
-                            .min_h_0()
-                            .overflow_y_scrollbar()
-                            .id("id-form")
-                            .gap_4()
-                            .child(
-                                ToolField::new(
-                                    "id-mode",
-                                    rust_i18n::t!("app.generators.id.kind"),
-                                    Select::new(&self.mode_select).id("id-mode-select").w_full(),
-                                )
-                                .help(rust_i18n::t!("app.generators.id.kind_help")),
-                            )
-                            .when(self.show_date(), |this| this.child(date_field))
-                            .when(self.show_namespace(), |this| {
-                                this.child(
-                                    ToolField::new(
-                                        "id-namespace",
-                                        rust_i18n::t!("app.generators.id.namespace"),
-                                        Select::new(&self.namespace_select).id("id-namespace-select").w_full(),
-                                    )
-                                    .help(rust_i18n::t!("app.generators.id.namespace_help")),
-                                )
-                                .when(self.namespace == NamespaceChoice::Custom, |this| {
-                                    this.child(namespace_uuid_field)
-                                })
-                                .child(name_field)
-                            })
-                            .child(self.render_actions(invalid, cx)),
+            .when(self.show_date(), |this| this.child(date_field))
+            .when(self.show_namespace(), |this| {
+                this.child(
+                    ToolField::new(
+                        "id-namespace",
+                        rust_i18n::t!("app.generators.id.namespace"),
+                        Select::new(&self.namespace_select).id("id-namespace-select").w_full(),
                     )
-                    .child(
-                        div()
-                            .flex_1()
-                            .min_h_0()
-                            .child(OutputPanel::new("id-output").content(self.result.clone())),
-                    ),
-            )
+                    .help(rust_i18n::t!("app.generators.id.namespace_help")),
+                )
+                .when(self.namespace == NamespaceChoice::Custom, |this| this.child(namespace_uuid_field))
+                .child(name_field)
+            })
+            .child(self.render_actions(invalid, cx));
+
+        ToolPage::new(title, form, OutputPanel::new("id-output").content(self.result.clone())).form_id("id-form")
     }
 }
 
@@ -567,6 +532,39 @@ mod tests {
         cx.update(|window, cx| {
             _ = window.draw(cx);
             assert!(window.try_find((ElementId::from("id-output"), "content")).is_none());
+        });
+    }
+
+    #[gpui_kit::test]
+    fn narrow_windows_stack_the_result_under_the_form(cx: &mut TestAppContext) {
+        install(cx);
+        let bounds = gpui_kit::Bounds {
+            origin: gpui_kit::Point::default(),
+            size: gpui_kit::Size {
+                width: gpui_kit::px(800.),
+                height: gpui_kit::px(640.),
+            },
+        };
+        let (window, _content) = cx.update(|cx| {
+            gpui_kit::open_window(
+                gpui_kit::WindowOptions {
+                    window_bounds: Some(gpui_kit::WindowBounds::Windowed(bounds)),
+                    ..Default::default()
+                },
+                cx,
+                |window, cx| cx.new(|cx| IdView::new(window, cx)),
+            )
+            .expect("open test window")
+        });
+        let cx: &mut VisualTestContext = VisualTestContext::from_window(window, cx).into_mut();
+
+        cx.update(|window, cx| {
+            _ = window.draw(cx);
+            assert!(window.try_find((ElementId::from("tool-panes"), "stacked")).is_some());
+            assert!(window.try_find((ElementId::from("tool-panes"), "side")).is_none());
+            // The form and the result pane both stay reachable.
+            assert!(window.try_find("id-mode").is_some());
+            assert!(window.try_find("id-output").is_some());
         });
     }
 }

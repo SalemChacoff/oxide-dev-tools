@@ -3,23 +3,21 @@
 //! Three modes behind a `TabBar`, mirroring the core's `LoremKind` variants.
 //! Validation copy mirrors the core `LoremError` messages.
 
-use gpui_kit::base::TestSupportExt as _;
 use gpui_kit::component::alert::Alert;
 use gpui_kit::component::button::{Button, ButtonVariants as _};
 use gpui_kit::component::checkbox::Checkbox;
 use gpui_kit::component::input::{InputState, NumberInput};
-use gpui_kit::component::scroll::ScrollableElement as _;
 use gpui_kit::component::tab::{Tab, TabBar};
-use gpui_kit::component::{Disableable as _, StyledExt as _, h_flex, v_flex};
+use gpui_kit::component::{Disableable as _, v_flex};
 use gpui_kit::{
-    App, AppContext as _, Context, ElementId, Entity, InteractiveElement as _, IntoElement, ParentElement as _, Render,
-    SharedString, Styled as _, Window, div, prelude::FluentBuilder as _, px,
+    App, AppContext as _, Context, ElementId, Entity, IntoElement, ParentElement as _, Render, SharedString,
+    Styled as _, Subscription, Window, prelude::FluentBuilder as _,
 };
 use oxide_dev_tools_core::{LoremKind, ParagraphOptions, SentenceOptions, WordOptions, generate_lorem};
 
 use super::{RunReporter, report_run, summarize};
 use crate::shared::registry::registry;
-use crate::shared::{OutputPanel, ToolField};
+use crate::shared::{OutputPanel, ToolField, ToolPage};
 
 /// The three generator types behind the page's tabs.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -67,6 +65,7 @@ pub struct LoremView {
     result: SharedString,
     error: Option<SharedString>,
     on_run: Option<RunReporter>,
+    _subscriptions: Vec<Subscription>,
 }
 
 impl LoremView {
@@ -103,6 +102,9 @@ impl LoremView {
             result: SharedString::default(),
             error: None,
             on_run: None,
+            // Resizes re-run the render so the panes switch between the
+            // side-by-side and stacked layouts.
+            _subscriptions: vec![cx.observe_window_bounds(window, |_, _, cx| cx.notify())],
         }
     }
 
@@ -327,77 +329,43 @@ impl Render for LoremView {
             None => sentences_field,
         };
 
-        v_flex()
-            .id("tool-page")
-            .test_support()
-            .flex_1()
-            .min_h_0()
-            .w_full()
-            .px_6()
-            .pb_6()
+        let form = v_flex()
+            .gap_4()
             .child(
-                h_flex()
-                    .justify_center()
-                    .child(div().text_lg().font_semibold().child(title)),
+                TabBar::new("lorem-mode")
+                    .selected_index(self.mode.index())
+                    .children([
+                        Tab::new().label(rust_i18n::t!("app.generators.lorem.words")),
+                        Tab::new().label(rust_i18n::t!("app.generators.lorem.sentences")),
+                        Tab::new().label(rust_i18n::t!("app.generators.lorem.paragraphs")),
+                    ])
+                    .on_click(cx.listener(|this, index, window, cx| {
+                        let mode = LoremMode::from_index(*index);
+                        if mode != this.mode {
+                            this.mode = mode;
+                            let count = this.count.clone();
+                            count.update(cx, |input, cx| {
+                                input.set_value(mode.default_count(), window, cx);
+                            });
+                            cx.notify();
+                        }
+                    })),
             )
+            .child(count_field)
+            .when(self.mode == LoremMode::Sentences, |this| this.child(min_field).child(max_field))
+            .when(self.mode == LoremMode::Paragraphs, |this| this.child(sentences_field))
             .child(
-                h_flex()
-                    .flex_1()
-                    .min_h_0()
-                    .pt_4()
-                    .gap_4()
-                    .items_stretch()
-                    .w_full()
-                    .mx_auto()
-                    .max_w(px(1060.))
-                    .child(
-                        v_flex()
-                            .w_96()
-                            .min_h_0()
-                            .overflow_y_scrollbar()
-                            .id("lorem-form")
-                            .gap_4()
-                            .child(
-                                TabBar::new("lorem-mode")
-                                    .selected_index(self.mode.index())
-                                    .children([
-                                        Tab::new().label(rust_i18n::t!("app.generators.lorem.words")),
-                                        Tab::new().label(rust_i18n::t!("app.generators.lorem.sentences")),
-                                        Tab::new().label(rust_i18n::t!("app.generators.lorem.paragraphs")),
-                                    ])
-                                    .on_click(cx.listener(|this, index, window, cx| {
-                                        let mode = LoremMode::from_index(*index);
-                                        if mode != this.mode {
-                                            this.mode = mode;
-                                            let count = this.count.clone();
-                                            count.update(cx, |input, cx| {
-                                                input.set_value(mode.default_count(), window, cx);
-                                            });
-                                            cx.notify();
-                                        }
-                                    })),
-                            )
-                            .child(count_field)
-                            .when(self.mode == LoremMode::Sentences, |this| this.child(min_field).child(max_field))
-                            .when(self.mode == LoremMode::Paragraphs, |this| this.child(sentences_field))
-                            .child(
-                                Checkbox::new("lorem-start")
-                                    .checked(self.start_with_lorem)
-                                    .label(rust_i18n::t!("app.generators.lorem.start").into_owned())
-                                    .on_change(cx.listener(|this, checked, _, cx| {
-                                        this.start_with_lorem = *checked;
-                                        cx.notify();
-                                    })),
-                            )
-                            .child(self.render_actions(invalid, cx)),
-                    )
-                    .child(
-                        div()
-                            .flex_1()
-                            .min_h_0()
-                            .child(OutputPanel::new("lorem-output").content(self.result.clone())),
-                    ),
+                Checkbox::new("lorem-start")
+                    .checked(self.start_with_lorem)
+                    .label(rust_i18n::t!("app.generators.lorem.start").into_owned())
+                    .on_change(cx.listener(|this, checked, _, cx| {
+                        this.start_with_lorem = *checked;
+                        cx.notify();
+                    })),
             )
+            .child(self.render_actions(invalid, cx));
+
+        ToolPage::new(title, form, OutputPanel::new("lorem-output").content(self.result.clone())).form_id("lorem-form")
     }
 }
 
