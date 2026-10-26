@@ -6,7 +6,9 @@
 //! plain monospace text run (a `TextView` would parse it as Markdown and
 //! corrupt UUIDs, JSON, and diffs that happen to look like syntax). Whitespace
 //! runs collapse under the default `Normal` whitespace; pages whose data must
-//! keep exact spacing (diffs) revisit this in Phase 7.10.
+//! keep exact spacing (diffs) revisit this in Phase 7.10. Long text wraps at
+//! word boundaries to the pane width, so the result grows vertically and
+//! scrolls instead of widening the pane.
 //!
 //! States: content, empty (`Nothing to show`), and loading (spinner row while
 //! a run is actually in flight — previous content stays visible). The export
@@ -124,6 +126,8 @@ impl RenderOnce for OutputPanel {
             .child(
                 div()
                     .flex_1()
+                    .w_full()
+                    .min_w_0()
                     .min_h_0()
                     .overflow_y_scrollbar()
                     .when(self.loading, |this| {
@@ -158,9 +162,11 @@ impl RenderOnce for OutputPanel {
                     .when(!is_binary && has_content, |this| {
                         this.child(
                             div()
+                                .w_full()
                                 .p_3()
                                 .font_family(mono_family)
                                 .text_sm()
+                                .whitespace_normal()
                                 .child(self.content.clone())
                                 .id((self.id.clone(), "content"))
                                 .test_support(),

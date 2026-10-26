@@ -403,6 +403,70 @@ mod tests {
     }
 
     #[gpui_kit::test]
+    fn long_result_wraps_inside_the_output_pane(cx: &mut TestAppContext) {
+        install(cx);
+        // Wide window: the side-by-side layout is the one where an unwrapped
+        // line can force the result pane past the window edge.
+        let bounds = gpui_kit::Bounds {
+            origin: gpui_kit::Point::default(),
+            size: gpui_kit::Size {
+                width: gpui_kit::px(1200.),
+                height: gpui_kit::px(800.),
+            },
+        };
+        let (window, view) = cx.update(|cx| {
+            gpui_kit::open_window(
+                gpui_kit::WindowOptions {
+                    window_bounds: Some(gpui_kit::WindowBounds::Windowed(bounds)),
+                    ..Default::default()
+                },
+                cx,
+                |window, cx| cx.new(|cx| LoremView::new(window, cx)),
+            )
+            .expect("open test window")
+        });
+        let cx: &mut VisualTestContext = VisualTestContext::from_window(window, cx).into_mut();
+
+        // One logical line far wider than any pane: it must wrap, not widen
+        // the result surface.
+        let long = "lorem ipsum dolor sit amet consectetur adipiscing elit ".repeat(40);
+        cx.update(|_, cx| {
+            view.update(cx, |view, cx| {
+                view.result = long.into();
+                cx.notify();
+            });
+        });
+
+        cx.update(|window, cx| {
+            _ = window.draw(cx);
+            let viewport = window.viewport_size().width;
+            let panel = window.try_find("lorem-output").expect("output panel renders").bounds();
+            let content = window
+                .try_find((ElementId::from("lorem-output"), "content"))
+                .expect("result content renders")
+                .bounds();
+            assert!(
+                panel.size.width <= viewport,
+                "the output pane must stay inside the window: pane {:?}, viewport {:?}",
+                panel.size.width,
+                viewport,
+            );
+            assert!(
+                content.size.width <= panel.size.width,
+                "wrapped content must stay inside the pane: content {:?}, pane {:?}",
+                content.size.width,
+                panel.size.width,
+            );
+            // Wrapping to the pane width turns the line into many rows.
+            assert!(
+                content.size.height > gpui_kit::px(48.),
+                "expected multiple wrapped lines, got {:?}",
+                content.size.height,
+            );
+        });
+    }
+
+    #[gpui_kit::test]
     fn sentences_tab_validates_an_inverted_word_range(cx: &mut TestAppContext) {
         install(cx);
         let (view, cx) = cx.add_window_view(LoremView::new);

@@ -143,6 +143,17 @@ graph TD
   internally), result below filling the rest — so the result pane keeps its
   room at the minimum window size.
 - **Search**: the search input sits at the **very top center of every page**, above the page title (global tool search, not just home). The icon lives in an isolated slot separated by a hairline from the text field (`| icon | text |`, `Ctrl K` chip at the end); focus ring on the whole component. The command palette (⌘K / Ctrl+K) jumps to any tool and the home search filters cards live.
+- **Long content and overflow**: content never widens its pane. Panes keep a
+  definite width, and data/text surfaces take the pane width and wrap
+  (`.w_full().min_w_0()` on the scrolling container, `.w_full()` and
+  `.whitespace_normal()` on the text block) — long results grow vertically and
+  scroll. Use `.whitespace_nowrap()` only for single-line metadata in a row
+  that already sets `min_w_0()` (names, summaries, timestamps), never for
+  result data. Unbreakable tokens (long base64, hashes) are clipped by the
+  shared panel; break-anywhere support belongs there, not in page code. Any
+  page that renders variable-length output needs a bounds-based regression
+  test with an oversized single-line value (see
+  `lorem_view::tests::long_result_wraps_inside_the_output_pane`).
 
 ## 5. Component mapping (region → gpui-kit component)
 
@@ -234,6 +245,8 @@ Implementation shape (gpui-kit 0.6.6, Phase 7.2):
   (`https://gpui-kit.com/component/{name}.md`) and vendored references.
 - Secondary copy uses `cx.theme().muted_foreground`; `cx.theme().muted` is a
   fill and must never be used as a text color.
+- Content never widens its pane: text surfaces take the pane width and wrap;
+  overflow grows vertically and scrolls.
 
 ## 9. Agent skills & workflow
 

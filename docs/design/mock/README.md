@@ -47,6 +47,7 @@ can show:
 - [ ] Hierarchy: does the primary task (run a tool, read the result) dominate each page?
 - [ ] Search: very top center of every page, above the page title; icon isolated from the text by a divider
 - [ ] Resizing: shrink the browser toward the ~900×640 minimum — panes adapt, regions scroll, nothing clips
+- [ ] Long content: a very long result wraps inside its pane; panes never grow horizontally
 - [ ] Color in both themes: orange accent, contrast of `primary`/`muted` on `surface`, danger vs brand distinction
 - [ ] Density: comfortable but not airy; medium default
 - [ ] Minimalism: one accent, borders over shadows, no gradients, mono only for data
