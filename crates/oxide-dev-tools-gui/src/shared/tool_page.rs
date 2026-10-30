@@ -28,6 +28,15 @@ const STACKED_FORM_MAX_H: Pixels = px(384.);
 /// The pattern cap from the design spec (§4): tool content is top-centered.
 const CONTENT_MAX_W: Pixels = px(1060.);
 
+/// Room the scrolling form pane keeps around its content for the focus ring.
+///
+/// gpui-kit paints a focused control's ring as a 3px band just outside its
+/// 1px border, so the ring reaches 4px past the control's box. A GPUI scroll
+/// container masks both axes with one rect; without this padding the ring's
+/// left and right edges are cut off at the pane (the design contract is
+/// "focus ring, never clipped by overflow").
+const FOCUS_RING_CLEARANCE: Pixels = px(4.);
+
 /// The shared tool-page chrome. `form` is the option controls (labels,
 /// fields, run action); `result` is the output surface. This wrapper owns
 /// the pane layout and its responsive switch.
@@ -89,6 +98,7 @@ impl RenderOnce for ToolPage {
                             .w_full()
                             .flex_none()
                             .max_h(STACKED_FORM_MAX_H)
+                            .p(FOCUS_RING_CLEARANCE)
                             .overflow_y_scrollbar()
                             .id(self.form_id.clone())
                             .child(self.form),
@@ -111,6 +121,7 @@ impl RenderOnce for ToolPage {
                         v_flex()
                             .w_96()
                             .min_h_0()
+                            .p(FOCUS_RING_CLEARANCE)
                             .overflow_y_scrollbar()
                             .id(self.form_id)
                             .child(self.form),
@@ -135,8 +146,12 @@ mod tests {
 
     impl Render for ChromeTestView {
         fn render(&mut self, _window: &mut Window, _cx: &mut gpui_kit::Context<Self>) -> impl IntoElement {
-            ToolPage::new("Test tool", v_flex().child("form controls"), v_flex().child("result pane"))
-                .form_id("test-form")
+            ToolPage::new(
+                "Test tool",
+                v_flex().child(div().id("test-control").h_8().w_full().test_support()),
+                v_flex().child("result pane"),
+            )
+            .form_id("test-form")
         }
     }
 
@@ -171,6 +186,26 @@ mod tests {
             _ = window.draw(cx);
             assert!(window.try_find((ElementId::from("tool-panes"), "side")).is_some());
             assert!(window.try_find((ElementId::from("tool-panes"), "stacked")).is_none());
+        });
+    }
+
+    #[gpui_kit::test]
+    fn form_panes_reserve_room_for_the_focus_ring(cx: &mut TestAppContext) {
+        cx.update(gpui_kit::init);
+        let cx = open_with(1200., 800., cx);
+
+        cx.update(|window, cx| {
+            _ = window.draw(cx);
+            let panes = window
+                .try_find((ElementId::from("tool-panes"), "side"))
+                .expect("side-by-side panes render")
+                .bounds();
+            let control = window.try_find("test-control").expect("form control renders").bounds();
+            // The 24rem column starts at the pane's left edge (384px at the
+            // default 16px base font); the ring band needs FOCUS_RING_CLEARANCE
+            // on both sides or the scroll mask cuts it.
+            assert!(control.left() - panes.left() >= FOCUS_RING_CLEARANCE);
+            assert!(panes.left() + px(384.) - control.right() >= FOCUS_RING_CLEARANCE);
         });
     }
 
