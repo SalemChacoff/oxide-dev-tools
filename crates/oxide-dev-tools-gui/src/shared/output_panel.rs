@@ -12,8 +12,8 @@
 //!
 //! States: content, empty (`Nothing to show`), and loading (spinner row while
 //! a run is actually in flight — previous content stays visible). The export
-//! seam emits an event; the owning page opens the save dialog (Phase 7.4
-//! window support).
+//! seam emits an event; the owning page opens the platform's native save
+//! dialog through it.
 
 use std::rc::Rc;
 
@@ -75,7 +75,7 @@ impl OutputPanel {
     }
 
     /// Registers the export command; the panel shows `Export…` only when set.
-    /// The handler opens the save dialog and writes the file.
+    /// The handler opens the platform save dialog and writes the file.
     pub fn on_export(mut self, handler: impl Fn(&ClickEvent, &mut Window, &mut App) + 'static) -> Self {
         self.export_handler = Some(Rc::new(handler));
         self

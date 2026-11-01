@@ -17,6 +17,9 @@ rust-i18n = { workspace = true }
 # Timestamps for the recent-runs history. Already unified in Cargo.lock via
 # oxide-dev-tools-core — no new crate, no security gate needed.
 chrono = { workspace = true }
+# Native save dialog for the tool-page export command; vetted per the
+# ui-workflow security gate (see the root workspace deps comment).
+rfd = { workspace = true }
 
 [dev-dependencies]
 # `test-support` enables #[gpui_kit::test] and TestAppContext for headless UI

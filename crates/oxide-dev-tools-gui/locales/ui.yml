@@ -24,8 +24,6 @@ app:
       en: Copy
     export:
       en: Export…
-    save:
-      en: Save
     generate:
       en: Generate
     validate:
@@ -38,8 +36,6 @@ app:
       en: Cancel
     delete:
       en: Delete
-    overwrite:
-      en: Overwrite
     language:
       en: Language
     clear:
@@ -458,18 +454,10 @@ app:
         en: RRGGBB hex or a named color; empty means gray.
       validation_number:
         en: Enter a whole number.
-      path:
-        en: Save to
-      export_title:
-        en: Export "%{name}"
       saved:
         en: Saved "%{path}"
       save_failed:
         en: "Couldn't save \"%{path}\": %{error}"
-      overwrite_title:
-        en: Overwrite "%{name}"?
-      overwrite_body:
-        en: The file already exists. Replacing it cannot be undone.
   settings:
     title:
       en: Settings

@@ -50,6 +50,12 @@ gpui-kit = "=0.7.1"
 # already unified in Cargo.lock via gpui-component (^4.2.0) — no duplicate
 # version. MIT, published 2026-09-29 (7-day rule satisfied).
 rust-i18n = "4.2.4"
+# Native OS save dialogs for the GUI export command (security gate per the
+# ui-workflow skill): MIT (license allowlist), published 2026-09-12 (7-day
+# supply-chain rule satisfied). Default features (xdg-portal + wayland on
+# Linux) need no GTK build deps; every transitive dependency already unifies
+# with the gpui-kit tree in Cargo.lock. Re-audit before upgrading.
+rfd = "0.17.2"
 
 [profile.release]
 lto = "thin"

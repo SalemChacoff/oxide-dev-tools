@@ -2,12 +2,13 @@
 //!
 //! The only page whose result is binary: generation runs on the background
 //! executor with a real loading state, the output pane shows a size summary,
-//! and `Export…` opens a save dialog with the named-object overwrite
-//! confirmation the interface lexicon requires.
+//! and `Export…` opens the platform's native save dialog (the OS panel also
+//! provides the overwrite confirmation the interface lexicon requires).
+
+use std::rc::Rc;
 
 use gpui_kit::component::alert::Alert;
 use gpui_kit::component::button::{Button, ButtonVariants as _};
-use gpui_kit::component::dialog::DialogButtonProps;
 use gpui_kit::component::input::{Input, InputState, NumberInput};
 use gpui_kit::component::notification::Notification;
 use gpui_kit::component::searchable_list::SearchableVec;
@@ -15,14 +16,14 @@ use gpui_kit::component::select::{Select, SelectEvent, SelectState};
 use gpui_kit::component::tab::{Tab, TabBar};
 use gpui_kit::component::{Disableable as _, WindowExt as _, v_flex};
 use gpui_kit::{
-    App, AppContext as _, Context, ElementId, Entity, IntoElement, ParentElement as _, Render, SharedString,
-    Styled as _, Subscription, Window, div, prelude::FluentBuilder as _,
+    AnyWindowHandle, App, AppContext as _, Context, ElementId, Entity, IntoElement, ParentElement as _, Render,
+    SharedString, Styled as _, Subscription, Window, prelude::FluentBuilder as _,
 };
 use oxide_dev_tools_core::{JpgOptions, PdfOptions, PngOptions, SampleKind, TamperKind, generate_sample_file};
 
 use super::{RunReporter, report_run, summarize};
 use crate::shared::registry::registry;
-use crate::shared::{OutputPanel, ToolField, ToolPage};
+use crate::shared::{NativeSaveFileDialog, OutputPanel, SaveFileDialog, ToolField, ToolPage};
 
 /// The three file formats behind the page's tabs.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -106,7 +107,7 @@ pub struct SampleView {
     width: Entity<InputState>,
     height: Entity<InputState>,
     color: Entity<InputState>,
-    export_path: Entity<InputState>,
+    save_dialog: Rc<dyn SaveFileDialog>,
     result: Option<Vec<u8>>,
     loading: bool,
     error: Option<SharedString>,
@@ -160,7 +161,7 @@ impl SampleView {
             width: cx.new(|cx| InputState::new(window, cx)),
             height: cx.new(|cx| InputState::new(window, cx)),
             color: cx.new(|cx| InputState::new(window, cx)),
-            export_path: cx.new(|cx| InputState::new(window, cx)),
+            save_dialog: Rc::new(NativeSaveFileDialog),
             result: None,
             loading: false,
             error: None,
@@ -357,99 +358,35 @@ impl SampleView {
         let _ = window;
     }
 
-    /// The export command: opens the save dialog with the path prefilled.
-    fn open_export_dialog(&self, window: &mut Window, cx: &mut Context<Self>) {
-        let file_name = self.mode.file_name();
-        self.export_path
-            .update(cx, |input, cx| input.set_value(file_name, window, cx));
-
-        let weak = cx.weak_entity();
-        let path_field = self.export_path.clone();
-        window.open_dialog(cx, move |dialog, _window, _cx| {
-            let field = path_field.clone();
-            dialog
-                .title(div().child(rust_i18n::t!("app.generators.sample.export_title", name = file_name)))
-                .content(move |content, _, _| {
-                    content.child(ToolField::new(
-                        "sample-export-path",
-                        rust_i18n::t!("app.generators.sample.path"),
-                        Input::new(&field),
-                    ))
-                })
-                .button_props(
-                    DialogButtonProps::default()
-                        .ok_text(rust_i18n::t!("app.common.save"))
-                        .cancel_text(rust_i18n::t!("app.common.cancel"))
-                        .show_cancel(true)
-                        .on_ok({
-                            let weak = weak.clone();
-                            move |_, window, cx| {
-                                let Some(view) = weak.upgrade() else {
-                                    return true;
-                                };
-                                let ready = view.read_with(cx, |view, cx| {
-                                    let path = view.export_path.read(cx).value();
-                                    let path = path.trim();
-                                    if path.is_empty() {
-                                        return None;
-                                    }
-                                    view.result.as_ref().map(|bytes| (path.to_string(), bytes.clone()))
-                                });
-                                let Some((path, bytes)) = ready else {
-                                    return false;
-                                };
-                                view.update(cx, |view, cx| {
-                                    if std::path::Path::new(&path).exists() {
-                                        view.open_overwrite_dialog(path, bytes, window, cx);
-                                    } else {
-                                        view.save_bytes(path, bytes, window, cx);
-                                    }
-                                });
-                                true
-                            }
-                        }),
-                )
-        });
-    }
-
-    /// The named overwrite confirmation before replacing an existing file.
-    fn open_overwrite_dialog(&self, path: String, bytes: Vec<u8>, window: &mut Window, cx: &mut Context<Self>) {
-        let name = std::path::Path::new(&path)
-            .file_name()
-            .map_or_else(|| path.clone(), |name| name.to_string_lossy().into_owned());
-        let weak = cx.weak_entity();
-        window.open_alert_dialog(cx, move |dialog, _, _| {
-            dialog
-                .confirm()
-                .title(rust_i18n::t!("app.generators.sample.overwrite_title", name = name))
-                .description(rust_i18n::t!("app.generators.sample.overwrite_body"))
-                .button_props(
-                    DialogButtonProps::default()
-                        .ok_text(rust_i18n::t!("app.common.overwrite"))
-                        .ok_variant(gpui_kit::component::button::ButtonVariant::Danger)
-                        .cancel_text(rust_i18n::t!("app.common.cancel"))
-                        .show_cancel(true)
-                        .on_ok({
-                            let weak = weak.clone();
-                            let path = path.clone();
-                            let bytes = bytes.clone();
-                            move |_, window, cx| {
-                                if let Some(view) = weak.upgrade() {
-                                    view.update(cx, |view, cx| {
-                                        view.save_bytes(path.clone(), bytes.clone(), window, cx)
-                                    });
-                                }
-                                true
-                            }
-                        }),
-                )
-        });
+    /// The export command: opens the platform's native save dialog with the
+    /// file name suggested, then writes the picked file on the background
+    /// executor. Cancelling the dialog is a silent no-op.
+    fn export(&self, window: &mut Window, cx: &mut Context<Self>) {
+        let Some(bytes) = self.result.clone() else {
+            return;
+        };
+        let suggested = SharedString::from(self.mode.file_name());
+        // The dialog future is built on the main thread (rfd's macOS
+        // requirement) and awaited on the background executor.
+        let pick = self.save_dialog.pick_save_path(suggested);
+        let window_handle = window.window_handle();
+        cx.spawn(async move |this, cx| {
+            let Some(path) = pick.await else {
+                return;
+            };
+            let Some(this) = this.upgrade() else {
+                return;
+            };
+            this.update(cx, |view, cx| {
+                view.save_bytes(path.display().to_string(), bytes, window_handle, cx);
+            });
+        })
+        .detach();
     }
 
     /// Writes the bytes to the path on the background executor and reports
     /// the outcome as a notification.
-    fn save_bytes(&self, path: String, bytes: Vec<u8>, window: &mut Window, cx: &mut Context<Self>) {
-        let window_handle = window.window_handle();
+    fn save_bytes(&self, path: String, bytes: Vec<u8>, window_handle: AnyWindowHandle, cx: &mut Context<Self>) {
         let task_path = path.clone();
         let task =
             cx.background_spawn(async move { std::fs::write(&task_path, &bytes).map_err(|err| err.to_string()) });
@@ -553,7 +490,7 @@ impl Render for SampleView {
             let weak = cx.weak_entity();
             move |_, window, cx| {
                 if let Some(view) = weak.upgrade() {
-                    view.update(cx, |view, cx| view.open_export_dialog(window, cx));
+                    view.update(cx, |view, cx| view.export(window, cx));
                 }
             }
         });
@@ -613,6 +550,8 @@ mod tests {
     use gpui_kit::component::Root;
     use gpui_kit::test::TestWindowExt as _;
     use gpui_kit::{TestAppContext, VisualTestContext};
+    use std::future::Future;
+    use std::path::PathBuf;
 
     fn install(cx: &mut TestAppContext) {
         cx.update(gpui_kit::init);
@@ -714,21 +653,61 @@ mod tests {
         });
     }
 
-    #[gpui_kit::test]
-    fn export_opens_the_save_dialog_with_the_file_name_prefilled(cx: &mut TestAppContext) {
-        install(cx);
+    /// A picker stub that records the suggested name and resolves to a fixed
+    /// path (or cancels), so export tests never open a real OS dialog.
+    struct StubSaveDialog {
+        requested: std::cell::RefCell<Option<String>>,
+        result: Option<PathBuf>,
+    }
+
+    impl StubSaveDialog {
+        fn new(result: Option<PathBuf>) -> Self {
+            Self {
+                requested: std::cell::RefCell::new(None),
+                result,
+            }
+        }
+
+        fn requested(&self) -> Option<String> {
+            self.requested.borrow().clone()
+        }
+    }
+
+    impl SaveFileDialog for StubSaveDialog {
+        fn pick_save_path(
+            &self,
+            suggested_name: SharedString,
+        ) -> std::pin::Pin<Box<dyn Future<Output = Option<PathBuf>> + Send>> {
+            *self.requested.borrow_mut() = Some(suggested_name.to_string());
+            Box::pin(std::future::ready(self.result.clone()))
+        }
+    }
+
+    /// Opens the page wrapped in `Root` (notifications render there) with a
+    /// stub save dialog installed, and returns the page handle.
+    fn open_with_dialog(
+        cx: &mut TestAppContext,
+        dialog: Rc<StubSaveDialog>,
+    ) -> (Entity<SampleView>, &mut VisualTestContext) {
         let handle = std::cell::RefCell::new(None);
-        // The dialog overlay needs the component `Root`; the page's run and
-        // export flows are invoked directly, since a Root-wrapped test window
-        // has no definite height for the page's `flex_1` layout.
+        // The notification overlay needs the component `Root`; the page's run
+        // and export flows are invoked directly, since a Root-wrapped test
+        // window has no definite height for the page's `flex_1` layout.
         let (_root, cx) = cx.add_window_view(|window, cx| {
-            let page = cx.new(|cx| SampleView::new(window, cx));
+            let page = cx.new(|cx| {
+                let mut view = SampleView::new(window, cx);
+                view.save_dialog = dialog;
+                view
+            });
             *handle.borrow_mut() = Some(page.clone());
             Root::new(page, window, cx)
         });
-        let cx: &mut VisualTestContext = cx;
         let view = handle.borrow().clone().expect("page handle captured");
+        (view, cx)
+    }
 
+    /// Generates a sample, so the export command has bytes to write.
+    fn generate_result(view: &Entity<SampleView>, cx: &mut VisualTestContext) {
         cx.update(|window, cx| {
             window.render_frame(cx);
             view.update(cx, |view, cx| view.generate(window, cx));
@@ -737,12 +716,44 @@ mod tests {
         cx.update(|window, cx| {
             window.render_frame(cx);
             assert!(window.try_find((ElementId::from("sample-output"), "size")).is_some());
-            view.update(cx, |view, cx| view.open_export_dialog(window, cx));
         });
+    }
+
+    #[gpui_kit::test]
+    fn export_writes_the_picked_file_with_the_suggested_name(cx: &mut TestAppContext) {
+        install(cx);
+        let target = std::env::temp_dir().join(format!("oxide-export-test-{}.pdf", std::process::id()));
+        let _ = std::fs::remove_file(&target);
+        let stub = Rc::new(StubSaveDialog::new(Some(target.clone())));
+        let (view, cx) = open_with_dialog(cx, stub.clone());
+        generate_result(&view, cx);
+
+        let expected = cx.update(|window, cx| {
+            view.update(cx, |view, cx| view.export(window, cx));
+            view.read(cx).result.clone()
+        });
+        cx.run_until_parked();
+
+        assert_eq!(stub.requested().as_deref(), Some("sample.pdf"));
+        let written = std::fs::read(&target).expect("export writes the picked file");
+        assert_eq!(written, expected.expect("generated bytes"));
+        let _ = std::fs::remove_file(&target);
+    }
+
+    #[gpui_kit::test]
+    fn export_cancel_is_a_silent_no_op(cx: &mut TestAppContext) {
+        install(cx);
+        let stub = Rc::new(StubSaveDialog::new(None));
+        let (view, cx) = open_with_dialog(cx, stub.clone());
+        generate_result(&view, cx);
+
         cx.update(|window, cx| {
-            window.render_frame(cx);
-            assert!(window.has_active_dialog(cx));
-            assert!(window.try_find("sample-export-path").is_some());
+            view.update(cx, |view, cx| view.export(window, cx));
         });
+        cx.run_until_parked();
+
+        // The suggestion still reached the dialog, and nothing else changed.
+        assert_eq!(stub.requested().as_deref(), Some("sample.pdf"));
+        assert!(view.read_with(cx, |view, _| view.result.is_some()));
     }
 }
