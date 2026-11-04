@@ -143,9 +143,12 @@ graph TD
   scroll internally); Pattern C is a centered column capped at 560px. The
   window enforces a minimum size (900×640, from the mock) so every tool
   displays correctly. **Responsive stacking** (Phase 7.5): below a 960px
-  window width the A/B panes stack — form on top (capped at 24rem, scrolling
-  internally), result below filling the rest — so the result pane keeps its
-  room at the minimum window size.
+  window width the A/B panes stack into one vertical flow — the form keeps
+  its natural height (every input and the run action stay visible), the
+  result sits directly under it capped near the viewport height with its own
+  scroll, and the page scrolls vertically only when the two together exceed
+  the window — no input is ever hidden behind the result at the minimum
+  window size.
 - **Search**: the search input sits at the **very top center of every page**, above the page title (global tool search, not just home). The icon lives in an isolated slot separated by a hairline from the text field (`| icon | text |`, `Ctrl K` chip at the end); focus ring on the whole component. The command palette (⌘K / Ctrl+K) jumps to any tool and the home search filters cards live.
 - **Long content and overflow**: content never widens its pane. Panes keep a
   definite width, and data/text surfaces take the pane width and wrap

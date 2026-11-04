@@ -14,6 +14,13 @@
 //! a run is actually in flight — previous content stays visible). The export
 //! seam emits an event; the owning page opens the platform's native save
 //! dialog through it.
+//!
+//! Two height modes: side-by-side (wide windows) fills the host pane via
+//! `h_full`; stacked flow (narrow windows, see
+//! `tool_page::stacked_result_cap`) bounds itself — the content area grows
+//! with the data up to one viewport minus the page chrome, then scrolls
+//! internally, so the panel hugs its content instead of collapsing or
+//! stretching the page.
 
 use std::rc::Rc;
 
@@ -25,8 +32,8 @@ use gpui_kit::component::scroll::ScrollableElement as _;
 use gpui_kit::component::spinner::Spinner;
 use gpui_kit::component::{ActiveTheme as _, Disableable as _, Sizable as _, Size, StyledExt as _, h_flex, v_flex};
 use gpui_kit::{
-    App, ClickEvent, ElementId, InteractiveElement as _, IntoElement, ParentElement as _, RenderOnce, SharedString,
-    Styled as _, Window, div, prelude::FluentBuilder as _,
+    App, ClickEvent, Div, ElementId, InteractiveElement as _, IntoElement, ParentElement as _, RenderOnce,
+    SharedString, Styled as _, Window, div, prelude::FluentBuilder as _,
 };
 
 use crate::shared::ClickHandler;
@@ -93,14 +100,30 @@ impl OutputPanel {
 }
 
 impl RenderOnce for OutputPanel {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
         let has_content = self.has_content();
         let is_binary = self.is_binary();
-        let mono_family = cx.theme().mono_font_family.clone();
+
+        // Stacked flow: the page flows the panel under the form, so the panel
+        // bounds itself — the content area caps near the viewport height and
+        // scrolls internally. Side-by-side: the host gives the panel a
+        // definite height and `h_full` fills it.
+        let content_cap = crate::shared::tool_page::stacked_result_cap(window);
+
+        let content_area = match content_cap {
+            Some(cap) => self
+                .content_states(div().w_full().min_w_0().max_h(cap), cx)
+                .overflow_y_scrollbar()
+                .into_any_element(),
+            None => self
+                .content_states(div().flex_1().w_full().min_w_0().min_h_0(), cx)
+                .overflow_y_scrollbar()
+                .into_any_element(),
+        };
 
         v_flex()
             .w_full()
-            .h_full()
+            .when(content_cap.is_none(), |this| this.h_full())
             .bg(OxideTheme::tokens(cx).surface)
             .border_1()
             .border_color(cx.theme().border)
@@ -123,67 +146,7 @@ impl RenderOnce for OutputPanel {
                     )
                     .child(self.render_actions(has_content, is_binary)),
             )
-            .child(
-                div()
-                    .flex_1()
-                    .w_full()
-                    .min_w_0()
-                    .min_h_0()
-                    .overflow_y_scrollbar()
-                    .when(self.loading, |this| {
-                        this.child(
-                            h_flex()
-                                .p_3()
-                                .gap_2()
-                                .items_center()
-                                .child(Spinner::new().small())
-                                .child(
-                                    div()
-                                        .text_sm()
-                                        .text_color(cx.theme().muted_foreground)
-                                        .child(rust_i18n::t!("app.state.running")),
-                                )
-                                .id((self.id.clone(), "loading"))
-                                .test_support(),
-                        )
-                    })
-                    .when(is_binary, |this| {
-                        let size = format_size(self.binary.as_ref().map_or(0, Vec::len));
-                        this.child(
-                            div()
-                                .p_3()
-                                .font_family(mono_family.clone())
-                                .text_sm()
-                                .child(size)
-                                .id((self.id.clone(), "size"))
-                                .test_support(),
-                        )
-                    })
-                    .when(!is_binary && has_content, |this| {
-                        this.child(
-                            div()
-                                .w_full()
-                                .p_3()
-                                .font_family(mono_family)
-                                .text_sm()
-                                .whitespace_normal()
-                                .child(self.content.clone())
-                                .id((self.id.clone(), "content"))
-                                .test_support(),
-                        )
-                    })
-                    .when(!self.loading && !has_content, |this| {
-                        this.child(
-                            div()
-                                .p_3()
-                                .text_sm()
-                                .text_color(cx.theme().muted_foreground)
-                                .child(rust_i18n::t!("app.state.nothing_to_show"))
-                                .id((self.id.clone(), "empty"))
-                                .test_support(),
-                        )
-                    }),
-            )
+            .child(content_area)
             .id(self.id)
             .test_support()
     }
@@ -203,6 +166,71 @@ fn format_size(bytes: usize) -> String {
 }
 
 impl OutputPanel {
+    /// The data-surface states (loading / size / content / empty) applied to
+    /// a pre-built content container, so the stacked-flow and side-by-side
+    /// height modes share one state block.
+    fn content_states(&self, base: Div, cx: &mut App) -> Div {
+        let has_content = self.has_content();
+        let is_binary = self.is_binary();
+        let mono_family = cx.theme().mono_font_family.clone();
+        let muted_fg = cx.theme().muted_foreground;
+        let panel_id = self.id.clone();
+
+        base.when(self.loading, |this| {
+            this.child(
+                h_flex()
+                    .p_3()
+                    .gap_2()
+                    .items_center()
+                    .child(Spinner::new().small())
+                    .child(
+                        div()
+                            .text_sm()
+                            .text_color(muted_fg)
+                            .child(rust_i18n::t!("app.state.running")),
+                    )
+                    .id((panel_id.clone(), "loading"))
+                    .test_support(),
+            )
+        })
+        .when(is_binary, |this| {
+            let size = format_size(self.binary.as_ref().map_or(0, Vec::len));
+            this.child(
+                div()
+                    .p_3()
+                    .font_family(mono_family.clone())
+                    .text_sm()
+                    .child(size)
+                    .id((panel_id.clone(), "size"))
+                    .test_support(),
+            )
+        })
+        .when(!is_binary && has_content, |this| {
+            this.child(
+                div()
+                    .w_full()
+                    .p_3()
+                    .font_family(mono_family)
+                    .text_sm()
+                    .whitespace_normal()
+                    .child(self.content.clone())
+                    .id((panel_id.clone(), "content"))
+                    .test_support(),
+            )
+        })
+        .when(!self.loading && !has_content, |this| {
+            this.child(
+                div()
+                    .p_3()
+                    .text_sm()
+                    .text_color(muted_fg)
+                    .child(rust_i18n::t!("app.state.nothing_to_show"))
+                    .id((panel_id, "empty"))
+                    .test_support(),
+            )
+        })
+    }
+
     /// The pane action row: `Copy` with copied-state feedback (text data
     /// only), `Export…` when the page registered it. Both are disabled while
     /// the panel is empty — the empty state itself names the reason.
@@ -248,7 +276,7 @@ mod tests {
     use super::*;
     use gpui_kit::component::v_flex;
     use gpui_kit::test::TestWindowExt as _;
-    use gpui_kit::{Context, Render, TestAppContext, VisualTestContext};
+    use gpui_kit::{AppContext as _, Context, Render, TestAppContext, VisualTestContext};
 
     struct PanelTestView {
         content: SharedString,
@@ -376,6 +404,64 @@ mod tests {
             assert!(window.try_find((ElementId::from("panel"), "copy")).is_none());
             assert!(window.try_find((ElementId::from("panel"), "empty")).is_none());
             assert!(window.try_find((ElementId::from("panel"), "export")).is_some());
+        });
+    }
+
+    #[gpui_kit::test]
+    fn stacked_flow_displays_content_and_stays_near_one_viewport(cx: &mut TestAppContext) {
+        cx.update(gpui_kit::init);
+        cx.update(|cx| {
+            crate::theme::apply(cx, crate::theme::ThemePreference::System, gpui_kit::WindowAppearance::Light)
+        });
+
+        // A narrow window: the page flows the panel under the form, so the
+        // panel must bound itself and still display the data (the collapse
+        // regression: the content area must not shrink to the header).
+        let bounds = gpui_kit::Bounds {
+            origin: gpui_kit::Point::default(),
+            size: gpui_kit::Size {
+                width: gpui_kit::px(700.),
+                height: gpui_kit::px(640.),
+            },
+        };
+        let (window, _content) = cx.update(|cx| {
+            gpui_kit::open_window(
+                gpui_kit::WindowOptions {
+                    window_bounds: Some(gpui_kit::WindowBounds::Windowed(bounds)),
+                    ..Default::default()
+                },
+                cx,
+                |_, cx| {
+                    cx.new(|_| PanelTestView {
+                        content: "line\n".repeat(500).into(),
+                        binary: false,
+                        loading: false,
+                        with_export: false,
+                    })
+                },
+            )
+            .expect("open test window")
+        });
+        let cx: &mut VisualTestContext = VisualTestContext::from_window(window, cx).into_mut();
+
+        cx.update(|window, cx| {
+            _ = window.draw(cx);
+            let panel = window.try_find("panel").expect("panel renders").bounds();
+            let content = window
+                .try_find((ElementId::from("panel"), "content"))
+                .expect("content renders")
+                .bounds();
+
+            // The content shows at a readable height (not collapsed to the
+            // header) and the panel stays within roughly one viewport.
+            assert!(
+                content.size.height > gpui_kit::px(48.),
+                "stacked content must render at a readable height: {content:?}"
+            );
+            assert!(
+                panel.size.height <= window.viewport_size().height,
+                "the stacked panel must stay near one viewport: {panel:?}"
+            );
         });
     }
 
