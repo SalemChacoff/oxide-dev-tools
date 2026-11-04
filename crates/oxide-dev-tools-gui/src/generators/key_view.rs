@@ -5,6 +5,7 @@
 //! messages surface inline where a field owns the error; everything else
 //! lands in the run-error alert.
 
+use gpui_kit::base::TestSupportExt as _;
 use gpui_kit::component::alert::Alert;
 use gpui_kit::component::button::{Button, ButtonVariants as _};
 use gpui_kit::component::checkbox::Checkbox;
@@ -12,10 +13,10 @@ use gpui_kit::component::input::{Input, InputState, NumberInput, Textarea, Texta
 use gpui_kit::component::searchable_list::SearchableVec;
 use gpui_kit::component::select::{Select, SelectEvent, SelectState};
 use gpui_kit::component::tab::{Tab, TabBar};
-use gpui_kit::component::{Disableable as _, v_flex};
+use gpui_kit::component::{ActiveTheme as _, Disableable as _, h_flex, v_flex};
 use gpui_kit::{
-    App, AppContext as _, Context, ElementId, Entity, IntoElement, ParentElement as _, Render, SharedString,
-    Styled as _, Subscription, Window, prelude::FluentBuilder as _,
+    App, AppContext as _, Context, ElementId, Entity, InteractiveElement as _, IntoElement, ParentElement as _, Render,
+    SharedString, Styled as _, Subscription, Window, div, prelude::FluentBuilder as _,
 };
 use oxide_dev_tools_core::{
     JwtOptions, KeyKind, PasswordOptions, TokenEncoding, TokenOptions, generate_jwt, generate_key, parse_exp,
@@ -413,24 +414,31 @@ impl Render for KeyView {
         let form = v_flex()
             .gap_4()
             .child(
-                TabBar::new("key-mode")
-                    .selected_index(self.mode.index())
-                    .children([
-                        Tab::new().label(rust_i18n::t!("app.generators.key.password")),
-                        Tab::new().label(rust_i18n::t!("app.generators.key.token")),
-                        Tab::new().label(rust_i18n::t!("app.generators.key.jwt")),
-                    ])
-                    .on_click(cx.listener(|this, index, window, cx| {
-                        let mode = KeyMode::from_index(*index);
-                        if mode != this.mode {
-                            this.mode = mode;
-                            let length = this.length.clone();
-                            length.update(cx, |input, cx| {
-                                input.set_value(mode.default_length(), window, cx);
-                            });
-                            cx.notify();
-                        }
-                    })),
+                h_flex().w_full().justify_center().child(
+                    div().id("key-mode-bar").test_support().child(
+                        TabBar::new("key-mode")
+                            .segmented()
+                            .selected_index(self.mode.index())
+                            .children([
+                                Tab::new().label(rust_i18n::t!("app.generators.key.password")),
+                                Tab::new().label(rust_i18n::t!("app.generators.key.token")),
+                                Tab::new().label(rust_i18n::t!("app.generators.key.jwt")),
+                            ])
+                            .on_click(cx.listener(|this, index, window, cx| {
+                                let mode = KeyMode::from_index(*index);
+                                if mode != this.mode {
+                                    this.mode = mode;
+                                    let length = this.length.clone();
+                                    length.update(cx, |input, cx| {
+                                        input.set_value(mode.default_length(), window, cx);
+                                    });
+                                    cx.notify();
+                                }
+                            }))
+                            .border_1()
+                            .border_color(cx.theme().border),
+                    ),
+                ),
             )
             .children(mode_fields)
             .child(self.render_actions(invalid, cx));
@@ -443,7 +451,7 @@ impl Render for KeyView {
 mod tests {
     use super::*;
     use gpui_kit::test::TestWindowExt as _;
-    use gpui_kit::{TestAppContext, VisualTestContext};
+    use gpui_kit::{TestAppContext, VisualTestContext, px};
 
     fn install(cx: &mut TestAppContext) {
         cx.update(gpui_kit::init);
@@ -546,6 +554,32 @@ mod tests {
             _ = window.draw(cx);
             assert!(window.try_find("key-encoding").is_some());
             assert!(window.try_find("key-special").is_none());
+        });
+    }
+
+    #[gpui_kit::test]
+    fn mode_bar_hugs_its_tabs_and_centers_on_the_form_spine(cx: &mut TestAppContext) {
+        install(cx);
+        let (_view, cx) = cx.add_window_view(KeyView::new);
+        let cx: &mut VisualTestContext = cx;
+
+        cx.update(|window, cx| {
+            _ = window.draw(cx);
+            let panes = window
+                .try_find((ElementId::from("tool-panes"), "side"))
+                .expect("side-by-side panes render")
+                .bounds();
+            let bar = window.try_find("key-mode-bar").expect("mode bar renders").bounds();
+
+            // The segmented bar hugs its three tabs instead of stretching
+            // across the 24rem form column (384px at the default base font).
+            assert!(bar.size.width < px(300.), "bar {width:?} should hug its tabs", width = bar.size.width);
+
+            // Centered on the column's spine: the gaps to the column edges
+            // (4px focus-ring inset) match within the pixel-snapping tolerance.
+            let left_gap = bar.left() - (panes.left() + px(4.));
+            let right_gap = (panes.left() + px(384.) - px(4.)) - bar.right();
+            assert!((left_gap - right_gap).abs() <= px(2.), "bar not centered: left {left_gap:?}, right {right_gap:?}");
         });
     }
 }

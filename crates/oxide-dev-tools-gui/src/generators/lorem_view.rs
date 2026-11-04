@@ -8,7 +8,7 @@ use gpui_kit::component::button::{Button, ButtonVariants as _};
 use gpui_kit::component::checkbox::Checkbox;
 use gpui_kit::component::input::{InputState, NumberInput};
 use gpui_kit::component::tab::{Tab, TabBar};
-use gpui_kit::component::{Disableable as _, v_flex};
+use gpui_kit::component::{ActiveTheme as _, Disableable as _, h_flex, v_flex};
 use gpui_kit::{
     App, AppContext as _, Context, ElementId, Entity, IntoElement, ParentElement as _, Render, SharedString,
     Styled as _, Subscription, Window, prelude::FluentBuilder as _,
@@ -332,24 +332,29 @@ impl Render for LoremView {
         let form = v_flex()
             .gap_4()
             .child(
-                TabBar::new("lorem-mode")
-                    .selected_index(self.mode.index())
-                    .children([
-                        Tab::new().label(rust_i18n::t!("app.generators.lorem.words")),
-                        Tab::new().label(rust_i18n::t!("app.generators.lorem.sentences")),
-                        Tab::new().label(rust_i18n::t!("app.generators.lorem.paragraphs")),
-                    ])
-                    .on_click(cx.listener(|this, index, window, cx| {
-                        let mode = LoremMode::from_index(*index);
-                        if mode != this.mode {
-                            this.mode = mode;
-                            let count = this.count.clone();
-                            count.update(cx, |input, cx| {
-                                input.set_value(mode.default_count(), window, cx);
-                            });
-                            cx.notify();
-                        }
-                    })),
+                h_flex().w_full().justify_center().child(
+                    TabBar::new("lorem-mode")
+                        .segmented()
+                        .selected_index(self.mode.index())
+                        .children([
+                            Tab::new().label(rust_i18n::t!("app.generators.lorem.words")),
+                            Tab::new().label(rust_i18n::t!("app.generators.lorem.sentences")),
+                            Tab::new().label(rust_i18n::t!("app.generators.lorem.paragraphs")),
+                        ])
+                        .on_click(cx.listener(|this, index, window, cx| {
+                            let mode = LoremMode::from_index(*index);
+                            if mode != this.mode {
+                                this.mode = mode;
+                                let count = this.count.clone();
+                                count.update(cx, |input, cx| {
+                                    input.set_value(mode.default_count(), window, cx);
+                                });
+                                cx.notify();
+                            }
+                        }))
+                        .border_1()
+                        .border_color(cx.theme().border),
+                ),
             )
             .child(count_field)
             .when(self.mode == LoremMode::Sentences, |this| this.child(min_field).child(max_field))

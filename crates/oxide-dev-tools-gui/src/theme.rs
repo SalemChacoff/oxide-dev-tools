@@ -392,7 +392,14 @@ fn assign_brand(dark: bool, colors: &mut ThemeConfigColors) {
     colors.progress_bar = Some(hex(palette::PRIMARY));
     colors.slider_thumb = Some(hex(palette::PRIMARY));
     colors.tab_active = Some(hex(palette::PRIMARY));
-    colors.tab_active_foreground = Some(hex(palette::ON_PRIMARY));
+    // The segmented tab bar paints its selected pill with the `background`
+    // token, so the active label must read the foreground hue — the
+    // `on-primary` white would disappear on the light theme's white pill.
+    colors.tab_active_foreground = Some(hex(if dark {
+        palette::FOREGROUND_DARK
+    } else {
+        palette::FOREGROUND_LIGHT
+    }));
 }
 
 /// Action variants and the two status hues. Destructive keeps the danger hue

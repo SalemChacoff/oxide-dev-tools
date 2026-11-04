@@ -134,6 +134,10 @@ graph TD
   - **Pattern C — Compare/Validate** (diff, validators): comparators = two
     inputs + diff output below; validators = input + inline verdict
     (`Badge`/`Tag`) + details list.
+  - **Mode selectors**: a `TabBar` with the `segmented()` variant, centered
+    on the form's spine (`h_flex` + `justify_center`) so the bar hugs its
+    labels instead of stretching across the pane, with a hairline border
+    (`border` token) around the container.
 - **Placement and resizing**: tool content is **top-centered**. Patterns A/B
   are capped at ~1060px and stretch to fill the remaining window height (panes
   scroll internally); Pattern C is a centered column capped at 560px. The
@@ -165,7 +169,7 @@ graph TD
 | Actions | `Button` (primary = run commit), `DropdownButton` (secondary), `Clipboard` (copy), `Kbd` (shortcuts) |
 | Output | `TextView` (mono), `Scrollable`; `Resizable` for pane split |
 | Feedback | `Badge`/`Tag` (verdicts), `Alert` (errors near input), `Notification` (async done), `Progress`/`Spinner` (long ops), `Dialog`/`AlertDialog` (export overwrite), `Tooltip` (shortcut or ambiguous scope only) |
-| Shell-level | `GroupBox` (related options), `Tabs` (modes), `Empty` (no tool selected) |
+| Shell-level | `GroupBox` (related options), `Tabs` (modes; `segmented()` variant, centered, hairline border), `Empty` (no tool selected) |
 
 Only `tool_card` and `tool_field` get wrapped as app components (they carry
 domain policy); everything else is composed as-is (components-and-composition
@@ -190,11 +194,14 @@ Implementation shape (gpui-kit 0.6.6, Phase 7.2):
   `ThemeConfig`s on the gpui-kit theme global and flips the mode via
   `Theme::change` — the only code path allowed to mutate the theme.
 - Design tokens map onto `ThemeConfigColors` slots by role: `surface` fills
-  containers (`sidebar`, `popover`, `tab_bar`, `title_bar`, …), `surface-2`
-  fills hover/stripe slots, `border` draws every hairline, `primary`-family
-  feeds buttons, active nav, rings, and selection. Slots with no design token
-  yet (`info`, `warning`, charts) keep the library fallbacks until the design
-  review gives them values.
+  containers (`sidebar`, `popover`, `tab_bar`, `tab_bar_segmented`,
+  `title_bar`, …), `surface-2` fills hover/stripe slots, `border` draws every
+  hairline, `primary`-family feeds buttons, active nav, rings, and selection.
+  The segmented tab bar's selected pill is painted with the `background`
+  token, so `tab_active_foreground` takes `foreground` — never `on-primary`,
+  whose white would vanish on the light theme's white pill. Slots with no
+  design token yet (`info`, `warning`, charts) keep the library fallbacks
+  until the design review gives them values.
 - gpui-kit's `muted` slot is the `surface-2` fill; muted text is
   `colors.muted_foreground`. The design token `muted` therefore maps to
   `muted_foreground`, never to `colors.muted`.

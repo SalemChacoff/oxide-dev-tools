@@ -14,7 +14,7 @@ use gpui_kit::component::notification::Notification;
 use gpui_kit::component::searchable_list::SearchableVec;
 use gpui_kit::component::select::{Select, SelectEvent, SelectState};
 use gpui_kit::component::tab::{Tab, TabBar};
-use gpui_kit::component::{Disableable as _, WindowExt as _, v_flex};
+use gpui_kit::component::{ActiveTheme as _, Disableable as _, WindowExt as _, h_flex, v_flex};
 use gpui_kit::{
     AnyWindowHandle, App, AppContext as _, Context, ElementId, Entity, IntoElement, ParentElement as _, Render,
     SharedString, Styled as _, Subscription, Window, prelude::FluentBuilder as _,
@@ -498,20 +498,25 @@ impl Render for SampleView {
         let form = v_flex()
             .gap_4()
             .child(
-                TabBar::new("sample-mode")
-                    .selected_index(self.mode.index())
-                    .children([
-                        Tab::new().label(rust_i18n::t!("app.generators.sample.pdf")),
-                        Tab::new().label(rust_i18n::t!("app.generators.sample.png")),
-                        Tab::new().label(rust_i18n::t!("app.generators.sample.jpg")),
-                    ])
-                    .on_click(cx.listener(|this, index, _, cx| {
-                        let mode = SampleMode::from_index(*index);
-                        if mode != this.mode {
-                            this.mode = mode;
-                            cx.notify();
-                        }
-                    })),
+                h_flex().w_full().justify_center().child(
+                    TabBar::new("sample-mode")
+                        .segmented()
+                        .selected_index(self.mode.index())
+                        .children([
+                            Tab::new().label(rust_i18n::t!("app.generators.sample.pdf")),
+                            Tab::new().label(rust_i18n::t!("app.generators.sample.png")),
+                            Tab::new().label(rust_i18n::t!("app.generators.sample.jpg")),
+                        ])
+                        .on_click(cx.listener(|this, index, _, cx| {
+                            let mode = SampleMode::from_index(*index);
+                            if mode != this.mode {
+                                this.mode = mode;
+                                cx.notify();
+                            }
+                        }))
+                        .border_1()
+                        .border_color(cx.theme().border),
+                ),
             )
             .child(
                 ToolField::new(
