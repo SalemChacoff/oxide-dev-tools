@@ -24,11 +24,15 @@ use gpui_kit::{
 /// at the minimum size.
 pub const STACK_BREAKPOINT: Pixels = px(960.);
 
-/// Fixed vertical chrome the stacked result cap reserves: the title row,
-/// `pt_4`, `pb_6`, and slack. The result may grow to the viewport height
-/// minus this before it scrolls internally; anything further out scrolls
-/// with the page.
-const STACKED_RESULT_CHROME_H: Pixels = px(96.);
+/// Fixed vertical chrome the stacked result cap reserves, measured from the
+/// window top to the panel's data area: the shell title bar (gpui-kit's
+/// `TITLE_BAR_HEIGHT`, 34px), the global search row (60px), the tool title
+/// row (28px), the stacked pane's `pt_4` (16px), the panel header (37px), the
+/// `gap_4` between form and result (16px), and a 48px sliver that keeps the
+/// run action on screen. At the 640px window minimum this leaves ~400px for
+/// the data area; a taller result scrolls internally, and anything past that
+/// scrolls with the page.
+const STACKED_RESULT_CHROME_H: Pixels = px(239.);
 
 /// The pattern cap from the design spec (§4): tool content is top-centered.
 const CONTENT_MAX_W: Pixels = px(1060.);
@@ -166,9 +170,10 @@ impl RenderOnce for ToolPage {
 /// The result pane's height cap for narrow windows: `Some` when the panes
 /// stack, `None` in side-by-side mode. The stacked page flows the result
 /// under the form, so the output panel must bound itself — its content area
-/// grows with the data up to one viewport minus the fixed page chrome, then
-/// scrolls internally. `OutputPanel` reads this seam; page code must not
-/// re-wrap the panel in a height-unbounded flex child.
+/// grows with the data up to one viewport minus the shell and page chrome
+/// ([`STACKED_RESULT_CHROME_H`]), then scrolls internally. `OutputPanel`
+/// reads this seam; page code must not re-wrap the panel in a
+/// height-unbounded flex child.
 pub(crate) fn stacked_result_cap(window: &Window) -> Option<Pixels> {
     (window.viewport_size().width < STACK_BREAKPOINT)
         .then(|| (window.viewport_size().height - STACKED_RESULT_CHROME_H).max(px(0.)))
@@ -180,7 +185,8 @@ mod tests {
     use crate::shared::OutputPanel;
     use gpui_kit::test::TestWindowExt as _;
     use gpui_kit::{
-        AppContext as _, Bounds, Point, Render, Size, TestAppContext, VisualTestContext, WindowBounds, WindowOptions,
+        AppContext as _, Bounds, Point, Render, ScrollDelta, ScrollWheelEvent, Size, TestAppContext, VisualTestContext,
+        WindowBounds, WindowOptions, point,
     };
 
     struct ChromeTestView;
@@ -402,5 +408,101 @@ mod tests {
                 "the oversized content must overflow the panel and scroll: content {content:?}, panel {panel:?}"
             );
         });
+    }
+
+    #[gpui_kit::test]
+    fn stacked_page_scrolls_and_the_capped_result_scrolls_on_its_own(cx: &mut TestAppContext) {
+        cx.update(gpui_kit::init);
+        cx.update(|cx| {
+            crate::theme::apply(cx, crate::theme::ThemePreference::System, gpui_kit::WindowAppearance::Light)
+        });
+        let cx = open_view(TallChromeTestView, 800., 640., cx);
+
+        cx.update(|window, cx| {
+            _ = window.draw(cx);
+        });
+
+        let content_id = ElementId::from("tall-output");
+        let last_form_before = cx.update(|window, _| {
+            window
+                .try_find("form-row-last")
+                .expect("last form row renders")
+                .bounds()
+        });
+        let content_before = cx.update(|window, _| {
+            window
+                .try_find((content_id.clone(), "content"))
+                .expect("result content renders")
+                .bounds()
+        });
+
+        // Phase 1: a wheel over the form region scrolls the page, revealing
+        // the result that starts below the fold.
+        cx.simulate_event(ScrollWheelEvent {
+            position: point(px(400.), px(100.)),
+            delta: ScrollDelta::Pixels(point(px(0.), px(-3000.))),
+            ..Default::default()
+        });
+        cx.update(|window, cx| {
+            _ = window.draw(cx);
+        });
+
+        let (last_form_after, content_after) = cx.update(|window, _| {
+            (
+                window
+                    .try_find("form-row-last")
+                    .expect("last form row renders")
+                    .bounds(),
+                window
+                    .try_find((content_id.clone(), "content"))
+                    .expect("result content renders")
+                    .bounds(),
+            )
+        });
+        assert!(
+            last_form_after.origin.y < last_form_before.origin.y,
+            "the page scroll must move the form: before {last_form_before:?}, after {last_form_after:?}"
+        );
+        assert!(
+            content_after.origin.y < content_before.origin.y,
+            "the page scroll must move the result: before {content_before:?}, after {content_after:?}"
+        );
+        assert!(
+            content_after.origin.y < px(640.),
+            "the result must be visible after the page scroll: {content_after:?}"
+        );
+
+        // Phase 2: a wheel over the visible result scrolls the panel's own
+        // data area while the page stays pinned at its bottom.
+        let wheel_at = point(content_after.origin.x + px(40.), content_after.origin.y + px(40.));
+        cx.simulate_event(ScrollWheelEvent {
+            position: wheel_at,
+            delta: ScrollDelta::Pixels(point(px(0.), px(-50.))),
+            ..Default::default()
+        });
+        cx.update(|window, cx| {
+            _ = window.draw(cx);
+        });
+
+        let (last_form_final, content_final) = cx.update(|window, _| {
+            (
+                window
+                    .try_find("form-row-last")
+                    .expect("last form row renders")
+                    .bounds(),
+                window
+                    .try_find((content_id, "content"))
+                    .expect("result content renders")
+                    .bounds(),
+            )
+        });
+        assert!(
+            content_final.origin.y < content_after.origin.y,
+            "the capped result must scroll on its own: before {content_after:?}, after {content_final:?}"
+        );
+        assert_eq!(
+            last_form_final.origin.y, last_form_after.origin.y,
+            "the page must stay put while the result scrolls: {last_form_after:?} vs {last_form_final:?}"
+        );
     }
 }

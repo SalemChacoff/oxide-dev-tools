@@ -105,15 +105,28 @@ impl RenderOnce for OutputPanel {
         let is_binary = self.is_binary();
 
         // Stacked flow: the page flows the panel under the form, so the panel
-        // bounds itself — the content area caps near the viewport height and
-        // scrolls internally. Side-by-side: the host gives the panel a
-        // definite height and `h_full` fills it.
+        // bounds itself. The outer column takes `max_h(cap)` and the inner
+        // `overflow_hidden` wrapper is the scroll host, the gpui-kit recipe
+        // for a max-height pane (`MaxHeightParentTest` in `gpui-component`'s
+        // scrollable tests): `max_h` → `flex_1().overflow_hidden()` →
+        // `size_full().overflow_y_scrollbar()`. Putting `max_h` on the
+        // scrollable element itself copies the cap onto the scroll wrapper,
+        // so the data area never gets a definite host height and the page
+        // scroll swallows every wheel event. Side-by-side: the host gives the
+        // panel a definite height and `h_full` fills it.
         let content_cap = crate::shared::tool_page::stacked_result_cap(window);
 
         let content_area = match content_cap {
-            Some(cap) => self
-                .content_states(div().w_full().min_w_0().max_h(cap), cx)
-                .overflow_y_scrollbar()
+            Some(cap) => v_flex()
+                .w_full()
+                .min_w_0()
+                .max_h(cap)
+                .child(
+                    div()
+                        .flex_1()
+                        .overflow_hidden()
+                        .child(self.content_states(v_flex().size_full(), cx).overflow_y_scrollbar()),
+                )
                 .into_any_element(),
             None => self
                 .content_states(div().flex_1().w_full().min_w_0().min_h_0(), cx)
@@ -276,7 +289,9 @@ mod tests {
     use super::*;
     use gpui_kit::component::v_flex;
     use gpui_kit::test::TestWindowExt as _;
-    use gpui_kit::{AppContext as _, Context, Render, TestAppContext, VisualTestContext};
+    use gpui_kit::{
+        AppContext as _, Context, Render, ScrollDelta, ScrollWheelEvent, TestAppContext, VisualTestContext, point, px,
+    };
 
     struct PanelTestView {
         content: SharedString,
@@ -463,6 +478,76 @@ mod tests {
                 "the stacked panel must stay near one viewport: {panel:?}"
             );
         });
+    }
+
+    #[gpui_kit::test]
+    fn stacked_content_scrolls_internally_when_it_reaches_the_cap(cx: &mut TestAppContext) {
+        cx.update(gpui_kit::init);
+        cx.update(|cx| {
+            crate::theme::apply(cx, crate::theme::ThemePreference::System, gpui_kit::WindowAppearance::Light)
+        });
+
+        // A narrow window with oversized data: the capped content area must
+        // own the wheel event instead of staying pinned while the page scroll
+        // moves the whole panel.
+        let bounds = gpui_kit::Bounds {
+            origin: gpui_kit::Point::default(),
+            size: gpui_kit::Size {
+                width: px(700.),
+                height: px(640.),
+            },
+        };
+        let (window, _content) = cx.update(|cx| {
+            gpui_kit::open_window(
+                gpui_kit::WindowOptions {
+                    window_bounds: Some(gpui_kit::WindowBounds::Windowed(bounds)),
+                    ..Default::default()
+                },
+                cx,
+                |_, cx| {
+                    cx.new(|_| PanelTestView {
+                        content: "line\n".repeat(500).into(),
+                        binary: false,
+                        loading: false,
+                        with_export: false,
+                    })
+                },
+            )
+            .expect("open test window")
+        });
+        let cx: &mut VisualTestContext = VisualTestContext::from_window(window, cx).into_mut();
+
+        cx.update(|window, cx| {
+            _ = window.draw(cx);
+        });
+        let before = cx.update(|window, _| {
+            window
+                .try_find((ElementId::from("panel"), "content"))
+                .expect("content renders")
+                .bounds()
+                .origin
+                .y
+        });
+
+        // Wheel inside the panel's data area.
+        cx.simulate_event(ScrollWheelEvent {
+            position: point(px(350.), px(200.)),
+            delta: ScrollDelta::Pixels(point(px(0.), px(-50.))),
+            ..Default::default()
+        });
+        cx.update(|window, cx| {
+            _ = window.draw(cx);
+        });
+        let after = cx.update(|window, _| {
+            window
+                .try_find((ElementId::from("panel"), "content"))
+                .expect("content renders")
+                .bounds()
+                .origin
+                .y
+        });
+
+        assert!(after < before, "the capped result must scroll internally: before {before:?}, after {after:?}");
     }
 
     #[test]
