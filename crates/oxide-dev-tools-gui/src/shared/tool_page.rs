@@ -33,15 +33,13 @@ const STACKED_RESULT_CHROME_H: Pixels = px(96.);
 /// The pattern cap from the design spec (§4): tool content is top-centered.
 const CONTENT_MAX_W: Pixels = px(1060.);
 
-/// Room the side-by-side form column keeps around its content for the focus
-/// ring.
+/// Room each form pane keeps around its content for the focus ring.
 ///
 /// gpui-kit paints a focused control's ring as a 3px band just outside its
-/// 1px border, so the ring reaches 4px past the control's box. The column is
-/// a scroll container, whose mask covers both axes; without this padding the
-/// ring's left and right edges are cut off at the pane (the design contract
-/// is "focus ring, never clipped by overflow"). The stacked form is not a
-/// scroll container, so it needs no clearance.
+/// 1px border, so the ring reaches 4px past the control's box. Both form
+/// panes are scroll containers, whose mask covers both axes; without this
+/// padding the ring's left and right edges are cut off at the pane (the
+/// design contract is "focus ring, never clipped by overflow").
 const FOCUS_RING_CLEARANCE: Pixels = px(4.);
 
 /// The shared tool-page chrome. `form` is the option controls (labels,
@@ -93,6 +91,7 @@ impl ToolPage {
                     .w_full()
                     .id(form_id)
                     .test_support()
+                    .p(FOCUS_RING_CLEARANCE)
                     .overflow_y_scroll()
                     .child(
                         v_flex()
@@ -293,6 +292,26 @@ mod tests {
             // on both sides or the scroll mask cuts it.
             assert!(control.left() - panes.left() >= FOCUS_RING_CLEARANCE);
             assert!(panes.left() + px(384.) - control.right() >= FOCUS_RING_CLEARANCE);
+        });
+    }
+
+    #[gpui_kit::test]
+    fn stacked_panes_reserve_room_for_the_focus_ring(cx: &mut TestAppContext) {
+        cx.update(gpui_kit::init);
+        let cx = open_view(ChromeTestView, 800., 640., cx);
+
+        cx.update(|window, cx| {
+            _ = window.draw(cx);
+            let form = window
+                .try_find("test-form")
+                .expect("stacked page scroll renders")
+                .bounds();
+            let control = window.try_find("test-control").expect("form control renders").bounds();
+            // The stacked page scroll masks both axes and the controls sit
+            // flush with its edges, so the outward ring band needs
+            // FOCUS_RING_CLEARANCE on the left and right or the mask cuts it.
+            assert!(control.left() - form.left() >= FOCUS_RING_CLEARANCE);
+            assert!(form.right() - control.right() >= FOCUS_RING_CLEARANCE);
         });
     }
 
