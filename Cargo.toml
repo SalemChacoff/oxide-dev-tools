@@ -34,18 +34,18 @@ chrono = "0.4"
 chrono-tz = "0.10"
 base64 = "0.23.1"
 hex = "0.4.3"
-hmac = "0.12.1"
-quick-xml = "0.41.0"
+hmac = "0.13.0"
+quick-xml = "0.42.0"
 serde_json = "1.0"
 serde_yaml_ng = "0.10.0"
-sha2 = "0.10.9"
+sha2 = "0.11.0"
 url = "2.5.8"
 zxcvbn = "3.1.1"
 # Pinned per the 7-day supply-chain rule (security-audit skill): 0.7.1
 # published 2026-10-05, eligible since 2026-10-12 (0.7.2 is yanked; 0.7.3
 # eligible 2026-10-19). Exact pin: a bare "0.7.1" is caret-semantics and
 # would float to newer 0.7.x. Re-audit before upgrading.
-gpui-kit = "=0.7.1"
+gpui-kit = "=0.9.0"
 # English-default i18n for the GUI (gpui-kit-i18n skill). 4.2.4 is the version
 # already unified in Cargo.lock via gpui-component (^4.2.0) — no duplicate
 # version. MIT, published 2026-09-29 (7-day rule satisfied).
