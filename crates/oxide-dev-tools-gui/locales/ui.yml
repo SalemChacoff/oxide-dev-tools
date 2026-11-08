@@ -1,0 +1,509 @@
+_version: 2
+
+# Application locale file for oxide-dev-tools-gui (the gpui-kit-i18n contract).
+#
+# English is the default language: every key MUST define `en`, which is also
+# the fallback for any locale rust-i18n does not know. Other languages are
+# added as sibling entries under the same message key and may define only the
+# keys they override.
+#
+# `app.*` holds the application's own strings; tool pages add their keys under
+# `app.<category>.<tool>.*` (Phase 7.5-7.10). `gpui_component.*` overrides
+# GPUI Component's built-in strings — copy key names exactly from the gpui-kit
+# tree (crates/component/locales/ui.yml); Calendar's `month.January` is one
+# nested key, for example:
+#
+# gpui_component:
+#   Calendar:
+#     month.January:
+#       fr: Janvier
+
+app:
+  common:
+    copy:
+      en: Copy
+    export:
+      en: Export…
+    generate:
+      en: Generate
+    validate:
+      en: Validate
+    convert:
+      en: Convert
+    compare:
+      en: Compare
+    cancel:
+      en: Cancel
+    delete:
+      en: Delete
+    language:
+      en: Language
+    clear:
+      en: Clear
+    search:
+      en: Search tools…
+    clear_search:
+      en: Clear search
+  categories:
+    generators:
+      en: Generators
+    codecs:
+      en: Codecs
+    text:
+      en: Text
+    converters:
+      en: Converters
+    validators:
+      en: Validators
+    comparators:
+      en: Comparators
+  state:
+    pick_tool:
+      en: Pick a tool from the sidebar or search
+    no_matches:
+      en: No tools match “%{query}”
+    running:
+      en: Running…
+    ready:
+      en: Ready
+    done:
+      en: Done
+    invalid:
+      en: Invalid
+    nothing_to_show:
+      en: Nothing to show
+  shell:
+    brand:
+      en: oxide
+    palette_placeholder:
+      en: Search tools…
+    placeholder_title:
+      en: Not available yet
+    placeholder_description:
+      en: This tool’s page ships in an upcoming phase. Search and navigation are already wired.
+  tools:
+    generators:
+      id:
+        title:
+          en: UUID
+        description:
+          en: Generate UUIDs (v1–v8), ULIDs, and NanoIDs.
+      key:
+        title:
+          en: Password
+        description:
+          en: Passwords, tokens, and JWTs (HS256).
+      lorem:
+        title:
+          en: Lorem ipsum
+        description:
+          en: Words, sentences, and paragraphs.
+      fake:
+        title:
+          en: Fake data
+        description:
+          en: Personas, names, emails, phones, addresses, companies.
+      sample:
+        title:
+          en: Sample files
+        description:
+          en: PDF, PNG, and JPG fixtures.
+    codecs:
+      base64:
+        title:
+          en: Base64
+        description:
+          en: Encode and decode, standard and URL-safe.
+      hex:
+        title:
+          en: Hex
+        description:
+          en: Encode and decode hexadecimal.
+      url-codec:
+        title:
+          en: URL
+        description:
+          en: Encode and decode URL components.
+    text:
+      case:
+        title:
+          en: Case
+        description:
+          en: Convert between case conventions.
+      codec:
+        title:
+          en: String codec
+        description:
+          en: HTML entities and Unicode escapes.
+      count:
+        title:
+          en: Text statistics
+        description:
+          en: Characters, words, and lines.
+      scan:
+        title:
+          en: Character scan
+        description:
+          en: Whitespace, hidden, and non-ASCII characters.
+      truncate:
+        title:
+          en: Truncate
+        description:
+          en: Clip and pad text to a length.
+    converters:
+      doc:
+        title:
+          en: Document
+        description:
+          en: JSON, YAML, and XML documents.
+      timestamp:
+        title:
+          en: Timestamp
+        description:
+          en: Unix ↔ human-readable dates.
+      unit:
+        title:
+          en: Unit
+        description:
+          en: Length, mass, rate, storage, and time.
+    validators:
+      card:
+        title:
+          en: Credit card
+        description:
+          en: Check credit card numbers.
+      email:
+        title:
+          en: Email
+        description:
+          en: Check email address syntax.
+      file:
+        title:
+          en: File type
+        description:
+          en: Detect file types from content.
+      ip:
+        title:
+          en: IP
+        description:
+          en: Check IPv4 and IPv6 addresses.
+      json-validator:
+        title:
+          en: JSON
+        description:
+          en: Check JSON syntax.
+      password:
+        title:
+          en: Password strength
+        description:
+          en: Rate password strength.
+      url-validator:
+        title:
+          en: URL
+        description:
+          en: Check URL syntax.
+      uuid:
+        title:
+          en: UUID
+        description:
+          en: Check UUID formats.
+      xml:
+        title:
+          en: XML
+        description:
+          en: Check XML syntax.
+      yaml:
+        title:
+          en: YAML
+        description:
+          en: Check YAML syntax.
+    comparators:
+      dir:
+        title:
+          en: Directory
+        description:
+          en: Compare two directories.
+      json-diff:
+        title:
+          en: JSON
+        description:
+          en: Deep-compare two JSON documents.
+      semver:
+        title:
+          en: SemVer
+        description:
+          en: Order and compare semantic versions.
+      text:
+        title:
+          en: Text diff
+        description:
+          en: Side-by-side and inline text diffs.
+  generators:
+    id:
+      kind:
+        en: Kind
+      kind_help:
+        en: The identifier format to generate.
+      date:
+        en: Date
+      date_help:
+        en: Optional YYYY-MM-DD date for time-based UUIDs; empty means now.
+      date_placeholder:
+        en: "2026-05-12"
+      namespace:
+        en: Namespace
+      namespace_help:
+        en: The RFC 4122 namespace used to hash the name.
+      name:
+        en: Name
+      name_help:
+        en: The name to hash into the UUID; empty keeps the default.
+      name_placeholder:
+        en: example.com
+      name_validation:
+        en: Namespace and name must be provided together.
+      custom_namespace:
+        en: Custom namespace UUID
+      mode_uuid_v1:
+        en: UUID v1
+      mode_uuid_v3:
+        en: UUID v3
+      mode_uuid_v4:
+        en: UUID v4
+      mode_uuid_v5:
+        en: UUID v5
+      mode_uuid_v6:
+        en: UUID v6
+      mode_uuid_v7:
+        en: UUID v7
+      mode_uuid_v8:
+        en: UUID v8
+      mode_ulid:
+        en: ULID
+      mode_nanoid:
+        en: NanoID
+      namespace_default:
+        en: Default (DNS)
+      namespace_dns:
+        en: DNS
+      namespace_url:
+        en: URL
+      namespace_oid:
+        en: OID
+      namespace_x500:
+        en: X.500
+      namespace_custom:
+        en: Custom UUID…
+    key:
+      password:
+        en: Password
+      token:
+        en: Token
+      jwt:
+        en: JWT
+      length:
+        en: Length
+      length_placeholder:
+        en: "16"
+      length_help_password:
+        en: Characters in the password.
+      length_help_token:
+        en: Random bytes (hex output is 2× this length).
+      lowercase:
+        en: Lowercase (a–z)
+      uppercase:
+        en: Uppercase (A–Z)
+      digits:
+        en: Digits (0–9)
+      special:
+        en: Symbols (!@#$%^&*)
+      encoding:
+        en: Encoding
+      encoding_hex:
+        en: Hex
+      encoding_base64:
+        en: Base64
+      payload:
+        en: Payload
+      payload_help:
+        en: JSON object with a non-empty "sub" claim.
+      secret:
+        en: Secret
+      secret_help:
+        en: HMAC-SHA256 signing key.
+      secret_validation:
+        en: Secret must not be empty.
+      expiry:
+        en: Expiry
+      expiry_placeholder:
+        en: 1h
+      expiry_help:
+        en: Duration (1h, 30m), seconds from now (3600), or an absolute Unix timestamp.
+      validation_number:
+        en: Enter a whole number.
+    lorem:
+      words:
+        en: Words
+      sentences:
+        en: Sentences
+      paragraphs:
+        en: Paragraphs
+      count:
+        en: Count
+      count_placeholder:
+        en: "50"
+      count_help_words:
+        en: Number of words to generate.
+      count_help_sentences:
+        en: Number of sentences to generate.
+      count_help_paragraphs:
+        en: Number of paragraphs to generate.
+      min_words:
+        en: Minimum words per sentence
+      min_words_placeholder:
+        en: "5"
+      max_words:
+        en: Maximum words per sentence
+      max_words_placeholder:
+        en: "15"
+      sentences_per_paragraph:
+        en: Sentences per paragraph
+      sentences_placeholder:
+        en: "4"
+      start:
+        en: Start with "Lorem ipsum dolor sit amet"
+      validation_count:
+        en: Count must be at least 1.
+      validation_range:
+        en: Min_words must not exceed max_words.
+    fake:
+      kind:
+        en: Type
+      count:
+        en: Count
+      count_placeholder:
+        en: "1"
+      count_help:
+        en: Number of values to generate.
+      validation_count:
+        en: Count must be at least 1.
+      mode_person:
+        en: Persona
+      mode_name:
+        en: Given name
+      mode_surname:
+        en: Family name
+      mode_full_name:
+        en: Full name
+      mode_email:
+        en: Email
+      mode_phone:
+        en: Phone
+      mode_address:
+        en: Address
+      mode_city:
+        en: City
+      mode_country:
+        en: Country
+      mode_company:
+        en: Company
+      mode_job_title:
+        en: Job title
+      mode_username:
+        en: Username
+    sample:
+      pdf:
+        en: PDF
+      png:
+        en: PNG
+      jpg:
+        en: JPG
+      tamper:
+        en: Tamper
+      tamper_help:
+        en: Corrupt the output to test parsing robustness.
+      tamper_none:
+        en: None
+      tamper_magic:
+        en: Magic bytes
+      tamper_truncate:
+        en: Truncate
+      tamper_zero:
+        en: Zero fill
+      tamper_text:
+        en: Text fill
+      size:
+        en: Size (bytes)
+      size_placeholder:
+        en: "1024"
+      size_help:
+        en: Exact byte count; empty means the smallest valid file.
+      pages:
+        en: Pages
+      text:
+        en: Text
+      text_help:
+        en: Text drawn on every page; empty means a placeholder.
+      width:
+        en: Width (px)
+      height:
+        en: Height (px)
+      color:
+        en: Color
+      color_help:
+        en: RRGGBB hex or a named color; empty means gray.
+      validation_number:
+        en: Enter a whole number.
+      saved:
+        en: Saved "%{path}"
+      save_failed:
+        en: "Couldn't save \"%{path}\": %{error}"
+  settings:
+    title:
+      en: Settings
+    appearance:
+      en: Appearance
+    theme:
+      en: Theme
+    system:
+      en: System
+    light:
+      en: Light
+    dark:
+      en: Dark
+    defaults:
+      en: Defaults
+    theme_help:
+      en: Follows your system appearance
+    reset_defaults:
+      en: Reset defaults
+    defaults_help:
+      en: Restore the default options for every tool
+  result:
+    title:
+      en: Result
+    copy_hint:
+      en: Copy result
+  recent:
+    title:
+      en: Recent runs
+    empty:
+      en: Nothing here yet. Run a tool and it will appear here.
+    clear_history:
+      en: Clear history
+    clear_title:
+      en: Clear recent runs?
+    clear_body:
+      en: This cannot be undone.
+    clear_action:
+      en: Clear
+    just_now:
+      en: just now
+    minutes_ago:
+      en: "%{n}m ago"
+    hours_ago:
+      en: "%{n}h ago"
+    days_ago:
+      en: "%{n}d ago"
+    weeks_ago:
+      en: "%{n}w ago"

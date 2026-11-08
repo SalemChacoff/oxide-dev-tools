@@ -169,10 +169,10 @@ pub enum TimestampKind {
 /// Convert a timestamp according to `kind`.
 pub fn convert_timestamp(kind: TimestampKind) -> Result<String, TimestampError> {
     let TimestampKind::Convert(options) = kind;
-    if let Some(digits) = options.precision {
-        if digits > 9 {
-            return Err(TimestampError::InvalidPrecision(format!("precision {digits} is out of range (0..=9)")));
-        }
+    if let Some(digits) = options.precision
+        && digits > 9
+    {
+        return Err(TimestampError::InvalidPrecision(format!("precision {digits} is out of range (0..=9)")));
     }
     let input = options.input.trim();
     if input.is_empty() {
@@ -702,12 +702,12 @@ where
 /// fractional-digit control and no floating point.
 fn format_unix(instant: &DateTime<Utc>, unit: TimestampUnit, precision: Option<u8>) -> Result<String, TimestampError> {
     let capacity = unit.fraction_digits();
-    if let Some(digits) = precision {
-        if u32::from(digits) > capacity {
-            return Err(TimestampError::InvalidPrecision(format!(
-                "precision {digits} exceeds the {capacity} fractional digits available with {unit:?} units"
-            )));
-        }
+    if let Some(digits) = precision
+        && u32::from(digits) > capacity
+    {
+        return Err(TimestampError::InvalidPrecision(format!(
+            "precision {digits} exceeds the {capacity} fractional digits available with {unit:?} units"
+        )));
     }
     let total_nanos = i128::from(instant.timestamp()) * NANOS_PER_SECOND + i128::from(instant.timestamp_subsec_nanos());
     let magnitude = total_nanos.abs();

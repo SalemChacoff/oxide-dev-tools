@@ -26,8 +26,10 @@ pub use converters::timestamp_converter::{
 };
 pub use converters::unit_converter::{UnitCategory, UnitError, UnitKind, UnitOptions, convert_unit, unit_catalog};
 pub use generators::fake_generator::{FakeError, FakeKind, FakeOptions, generate_fake};
-pub use generators::id_generator::{IdError, IdKind, generate_id};
-pub use generators::jwt_generator::{JwtError, JwtOptions, generate_jwt};
+pub use generators::id_generator::{
+    IdError, IdKind, STANDARD_UUID_NAMESPACES, generate_id, parse_date, parse_namespace_uuid,
+};
+pub use generators::jwt_generator::{JwtError, JwtOptions, generate_jwt, parse_exp};
 pub use generators::key_generator::{KeyError, KeyKind, PasswordOptions, TokenEncoding, TokenOptions, generate_key};
 pub use generators::lorem_generator::{
     LoremError, LoremKind, ParagraphOptions, SentenceOptions, WordOptions, generate_lorem,

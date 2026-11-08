@@ -1,5 +1,5 @@
 use std::fmt;
-use std::time::SystemTime;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use uuid::{Uuid, timestamp::Timestamp};
 
 /// Errors that can occur when generating an ID.
@@ -7,12 +7,18 @@ use uuid::{Uuid, timestamp::Timestamp};
 pub enum IdError {
     /// The requested ID kind is not yet implemented.
     Unsupported(String),
+    /// The optional date argument could not be parsed.
+    InvalidDate(String),
+    /// The custom namespace argument is not a valid UUID.
+    InvalidNamespace(String),
 }
 
 impl fmt::Display for IdError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             IdError::Unsupported(kind) => write!(f, "unsupported ID kind: {kind}"),
+            IdError::InvalidDate(value) => write!(f, "invalid date \"{value}\", expected YYYY-MM-DD"),
+            IdError::InvalidNamespace(value) => write!(f, "invalid namespace UUID \"{value}\""),
         }
     }
 }
@@ -61,6 +67,38 @@ pub fn generate_id(kind: IdKind) -> Result<String, IdError> {
         IdKind::Ulid => Ok(gen_ulid()),
         IdKind::NanoId => Ok(gen_nanoid()),
     }
+}
+
+/// The four standard namespace UUIDs (RFC 4122) usable for v3/v5 name
+/// hashing, in display order.
+pub const STANDARD_UUID_NAMESPACES: [(&str, Uuid); 4] = [
+    ("dns", Uuid::NAMESPACE_DNS),
+    ("url", Uuid::NAMESPACE_URL),
+    ("oid", Uuid::NAMESPACE_OID),
+    ("x500", Uuid::NAMESPACE_X500),
+];
+
+/// Parse an ISO 8601 date string (`YYYY-MM-DD`) into a [`SystemTime`].
+///
+/// Returns `None` when no date is given — callers generating v1/v6/v7 IDs
+/// then use the current time as their default.
+pub fn parse_date(date: Option<String>) -> Result<Option<SystemTime>, IdError> {
+    match date {
+        Some(value) => {
+            let naive = value
+                .parse::<chrono::NaiveDate>()
+                .map_err(|_| IdError::InvalidDate(value.clone()))?;
+            let epoch = chrono::NaiveDate::from_ymd_opt(1970, 1, 1).expect("epoch date is valid");
+            let secs = naive.signed_duration_since(epoch).num_seconds();
+            Ok(Some(UNIX_EPOCH + Duration::from_secs(secs.max(0) as u64)))
+        }
+        None => Ok(None),
+    }
+}
+
+/// Parse a custom namespace UUID for v3/v5 name hashing.
+pub fn parse_namespace_uuid(text: &str) -> Result<Uuid, IdError> {
+    Uuid::parse_str(text).map_err(|_| IdError::InvalidNamespace(text.to_string()))
 }
 
 // -------- UUID v1 (timestamp + MAC/node) --------
@@ -148,6 +186,52 @@ mod tests {
 
     fn known_time() -> SystemTime {
         UNIX_EPOCH + Duration::from_secs(1_234_567_890)
+    }
+
+    #[test]
+    fn parse_date_none_returns_none() {
+        assert!(parse_date(None).unwrap().is_none());
+    }
+
+    #[test]
+    fn parse_date_valid_date() {
+        let t = parse_date(Some("2026-06-01".into())).unwrap().unwrap();
+        let dur = t.duration_since(UNIX_EPOCH).unwrap();
+        assert!(dur.as_secs() > 1_700_000_000, "unexpected timestamp: {}", dur.as_secs());
+        assert!(dur.as_secs() < 2_000_000_000, "unexpected timestamp: {}", dur.as_secs());
+    }
+
+    #[test]
+    fn parse_date_invalid_format_errors() {
+        let err = parse_date(Some("not-a-date".into())).unwrap_err().to_string();
+        assert!(err.contains("invalid date"));
+    }
+
+    #[test]
+    fn parse_date_wrong_order_errors() {
+        let err = parse_date(Some("01-06-2026".into())).unwrap_err().to_string();
+        assert!(err.contains("invalid date"));
+    }
+
+    #[test]
+    fn parse_date_unix_epoch() {
+        let t = parse_date(Some("1970-01-01".into())).unwrap().unwrap();
+        let dur = t.duration_since(UNIX_EPOCH).unwrap();
+        assert_eq!(dur.as_secs(), 0);
+    }
+
+    #[test]
+    fn parse_namespace_uuid_accepts_standard_namespaces() {
+        for (_, namespace) in STANDARD_UUID_NAMESPACES {
+            let parsed = parse_namespace_uuid(&namespace.to_string()).unwrap();
+            assert_eq!(parsed, namespace);
+        }
+    }
+
+    #[test]
+    fn parse_namespace_uuid_rejects_garbage() {
+        let err = parse_namespace_uuid("not-a-uuid").unwrap_err().to_string();
+        assert!(err.contains("invalid namespace UUID"));
     }
 
     #[test]

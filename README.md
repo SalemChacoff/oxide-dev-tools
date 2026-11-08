@@ -684,20 +684,108 @@ The project follows a two-crate architecture:
 - [x] Semantic version comparison
 - [x] Directory structure comparison
 
-### Phase 7 — File Generators & Scaffolding
+### Phase 7 — UI
+
+Desktop GUI for the oxide toolkit built with GPUI Kit. Covers all six tool
+categories, each with its sub-tools mirroring the core/CLI structure. All UI
+work goes through the installed agent skills (`ui-workflow` orchestrator:
+`gpui-kit-design-guides` → `gpui-kit` → `component-test-rules` →
+`security-audit`).
+
+#### Phase 7.1 — Foundations & skills
+- [x] Create the `ui-workflow` orchestrator skill (mirrors `new-tool-workflow`; routes design → coding → test rules → security gates for every UI step)
+- [x] Create the `ui-base-design` skill — owns the base design every new tool follows (shell, tokens, density, form field and output panel patterns, lexicon, theme rules) so the style stays consistent
+- [x] Create the `add-tool-ui` skill — recipe for adding one tool page to an existing category (e.g. `codecs` → base64): form built from the core `Options`, category wiring, tests
+- [x] Security gate: `security-audit` on `gpui-kit` passed — pinned `0.6.6` (7-day rule; `0.7.0` eligible 2026-10-05), no vulnerabilities, 5 informational advisories ignored by ID, licenses recorded in `deny.toml`
+- [x] Toolchain check: the gpui-kit tree needs Rust ≥ 1.92 — workspace `rust-version` bumped 1.85 → 1.92; `rust-toolchain.toml` (1.97.1) unchanged
+- [x] Add `crates/oxide-dev-tools-gui` (bin `oxide-gui`) to the workspace with its crate-level `AGENTS.md`; it depends on `oxide-dev-tools-core` + `gpui-kit` (+ `rust-i18n` since the i18n wiring) — core never knows about the GUI
+- [x] Create the `gpui-kit-i18n` skill — English-default i18n contract for every UI tool implementation (rust-i18n + gpui-kit `extend!` recipe from the GPUI Kit docs)
+- [x] I18n wired in the GUI crate: `rust-i18n 4.2.4` (MIT, 7-day rule, already unified in `Cargo.lock` via gpui-component), `locales/ui.yml` with `en` fallback, `src/i18n.rs` (`extend!` before `gpui_kit::init` at bootstrap)
+
+#### Phase 7.2 — Design system
+- [x] Write `docs/design/phase7-ui.md`: primary task, stable objects, sidebar-workspace shell, screen map, keyboard path
+- [x] Static HTML/CSS mock in `docs/design/mock/` (home grid, tool pages A/B/C, settings, component states) for eyes-on design review
+- [x] Visual language: semantic tokens via `cx.theme()`, medium density, rem-based sizes — no raw values (theme module in `crates/oxide-dev-tools-gui/src/theme.rs`; raw values live only there)
+- [x] Theme: light and dark modes, system-following default with manual override in Settings (`ThemePreference`, resolved via `ThemeMode::from(WindowAppearance)`)
+- [x] Component mapping table (screen region → gpui-kit component) — verified against the gpui-kit 0.6.6 catalog
+- [x] Interface lexicon (noun destinations, verb commands), interaction states, empty/loading/error copy (§7, §7.1)
+- [x] Run the Design review checklist and Accessibility checklist against the design (§12)
+
+#### Phase 7.3 — App components
+- [x] Every component string via `t!` with English keys in `locales/ui.yml` (the `gpui-kit-i18n` contract)
+- [x] `tool_field` (label + help + validation beside the field)
+- [x] `output_panel` (result view + Copy + Export…)
+- [x] `category_item` / sidebar tool entries (built on the tool registry: `ToolMeta`, six categories, search index)
+- [x] `tool_card` (home-grid card — the design spec's other app component; ships early for the 7.4 home view)
+- [x] `recent_runs` list (capped history, ULID row identity, named clear confirmation)
+- [x] `settings_panel` (theme System/Light/Dark via `RadioGroup`, defaults reset)
+- [x] Builder + complex-logic tests per `component-test-rules.md` (24 GUI tests; reference corpora re-vendored — see `ui-workflow` DoD)
+
+#### Phase 7.4 — Core shell
+- [x] Window bootstrap: `gpui_kit::init`, `Root` at window top, TitleBar
+- [x] Sidebar menu with the six categories and their sub-tools
+- [x] Command palette search (⌘K / Ctrl+K) over all tools
+- [x] Detail-pane switching, keybindings, focus management (Escape, focus return)
+- [x] Notifications, empty/loading/error states, minimum window size, resizable sidebar
+
+#### Phase 7.5 — Generators UI
+- [x] `id` — UUID v1–v8, ULID, NanoID
+- [x] `key` — passwords, tokens, JWTs (HS256)
+- [x] `lorem` — words, sentences, paragraphs
+- [x] `fake` — personas, names, emails, phones, addresses, companies
+- [x] `sample` — PDF, PNG, JPG
+
+#### Phase 7.6 — Codecs UI
+- [ ] Base64 encode/decode (standard, URL-safe)
+- [ ] Hex encode/decode
+- [ ] URL encode/decode
+- [ ] PEM/PFX parsing and ZIP compression (once the core tools land)
+
+#### Phase 7.7 — Text Utilities UI
+- [ ] Case conversion
+- [ ] Text statistics
+- [ ] Truncate / ellipsis
+- [ ] String encode/decode (HTML entities, unicode escapes)
+- [ ] Character scanning (whitespace, hidden, non-ASCII)
+
+#### Phase 7.8 — Converters UI
+- [ ] Timestamp converter
+- [ ] Unit converter
+- [ ] JSON ↔ YAML ↔ XML document conversion
+
+#### Phase 7.9 — Validators UI
+- [ ] Email, URL/URI, IP
+- [ ] UUID, credit card
+- [ ] Password strength
+- [ ] JSON/YAML/XML syntax
+- [ ] File type detection
+
+#### Phase 7.10 — Comparators UI
+- [ ] Text diff
+- [ ] JSON deep compare
+- [ ] SemVer comparison
+- [ ] Directory comparison
+
+#### Phase 7.11 — Quality, CI & docs
+- [ ] UI integration tests per `gpui/test.md` (headless windows, `TestAppContext`, real events)
+- [ ] Workspace gates green: fmt, clippy `-D warnings`, nextest `--all-features`, `cargo deny check`, coverage ≥ 50%
+- [ ] README updates: Features table, Project Structure, Usage (`cargo run -p oxide-dev-tools-gui`)
+- [ ] Packaging (installers, DMG/MSI) stays deferred to Phase 10
+
+### Phase 8 — File Generators & Scaffolding
 - [ ] `.gitignore` generator
 - [ ] License file generator
 - [ ] Dockerfile generator
 - [ ] CI config generator (GitHub Actions, GitLab CI)
 - [ ] Boilerplate scaffolding for common project types
 
-### Phase 8 — Structural Analyzers
+### Phase 9 — Structural Analyzers
 - [ ] JSON/YAML schema inference
 - [ ] Directory tree visualizer
 - [ ] Dependency graph analyzer (for Cargo.toml, package.json, etc.)
 - [ ] Duplicate file finder
 
-### Phase 9 — Polish & Distribution
+### Phase 10 — Polish & Distribution
 - [ ] Shell completions (bash, zsh, fish, PowerShell)
 - [ ] Man page generation
 - [ ] Pre-built binaries for Linux, macOS, Windows

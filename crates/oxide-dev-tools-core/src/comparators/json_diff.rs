@@ -257,12 +257,12 @@ fn validate(options: &JsonDiffOptions) -> Result<(), JsonDiffError> {
             limit: options.max_chars,
         });
     }
-    if let Some(tolerance) = options.relative_tolerance {
-        if !(0.0..=1.0).contains(&tolerance) {
-            return Err(JsonDiffError::InvalidTolerance {
-                message: format!("relative tolerance must be between 0.0 and 1.0, got {tolerance}"),
-            });
-        }
+    if let Some(tolerance) = options.relative_tolerance
+        && !(0.0..=1.0).contains(&tolerance)
+    {
+        return Err(JsonDiffError::InvalidTolerance {
+            message: format!("relative tolerance must be between 0.0 and 1.0, got {tolerance}"),
+        });
     }
     Ok(())
 }

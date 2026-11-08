@@ -839,10 +839,10 @@ fn check_dns_label(
             );
             return;
         }
-        if let Some(a_label) = idn_a_label(label) {
-            if a_label.len() > 63 {
-                push_mode(opts, issues, warnings, format!("domain label '{label}' exceeds 63 octets in punycode form"));
-            }
+        if let Some(a_label) = idn_a_label(label)
+            && a_label.len() > 63
+        {
+            push_mode(opts, issues, warnings, format!("domain label '{label}' exceeds 63 octets in punycode form"));
         }
     } else {
         if label.len() > 63 {

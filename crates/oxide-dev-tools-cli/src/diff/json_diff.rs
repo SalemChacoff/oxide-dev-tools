@@ -65,10 +65,10 @@ pub enum JsonFormatCli {
 pub fn exec(args: JsonDiffArgs) -> Result<(), DiffError> {
     let (left, _) = super::resolve_diff_input(&args.left, args.files, "LEFT", "left")?;
     let (right, _) = super::resolve_diff_input(&args.right, args.files, "RIGHT", "right")?;
-    if let Some(percent) = args.tolerance {
-        if !(0.0..=100.0).contains(&percent) {
-            return Err(GenericError::Argument(format!("--tolerance must be between 0 and 100, got {percent}")).into());
-        }
+    if let Some(percent) = args.tolerance
+        && !(0.0..=100.0).contains(&percent)
+    {
+        return Err(GenericError::Argument(format!("--tolerance must be between 0 and 100, got {percent}")).into());
     }
     let options = JsonDiffOptions {
         left,

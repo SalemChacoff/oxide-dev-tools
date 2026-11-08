@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>oxide — ID</title>
+  <link rel="stylesheet" href="design.css">
+</head>
+<body>
+  <div class="app">
+    <header class="titlebar">
+      <div class="brand"><span class="brand-dot"></span>oxide</div>
+      <div class="spacer"></div>
+      <select class="theme-select input" aria-label="Theme">
+        <option value="system">System</option>
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+      </select>
+      <div class="win-controls"><span class="win">−</span><span class="win">□</span><span class="win">×</span></div>
+    </header>
+
+    <nav class="sidebar">
+      <details class="side-group" open>
+        <summary class="side-title">Generators <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="side-items">
+          <a class="side-item active" href="uuid.html">ID</a>
+          <a class="side-item" href="#">Key</a>
+          <a class="side-item" href="#">Lorem ipsum</a>
+          <a class="side-item" href="#">Fake data</a>
+          <a class="side-item" href="#">Sample files</a>
+        </div>
+      </details>
+      <details class="side-group" open>
+        <summary class="side-title">Codecs <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="side-items">
+          <a class="side-item" href="base64.html">Base64</a>
+          <a class="side-item" href="#">Hex</a>
+          <a class="side-item" href="#">URL</a>
+        </div>
+      </details>
+      <details class="side-group" open>
+        <summary class="side-title">Text <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="side-items">
+          <a class="side-item" href="#">Case</a>
+          <a class="side-item" href="#">Statistics</a>
+          <a class="side-item" href="#">Truncate</a>
+          <a class="side-item" href="#">Encode / decode</a>
+          <a class="side-item" href="#">Scan characters</a>
+        </div>
+      </details>
+      <details class="side-group" open>
+        <summary class="side-title">Converters <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="side-items">
+          <a class="side-item" href="#">Timestamp</a>
+          <a class="side-item" href="#">Units</a>
+          <a class="side-item" href="#">Documents</a>
+        </div>
+      </details>
+      <details class="side-group" open>
+        <summary class="side-title">Validators <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="side-items">
+          <a class="side-item" href="email.html">Email</a>
+          <a class="side-item" href="#">URL / URI</a>
+          <a class="side-item" href="#">IP address</a>
+          <a class="side-item" href="#">UUID</a>
+          <a class="side-item" href="#">Credit card</a>
+          <a class="side-item" href="#">Password</a>
+          <a class="side-item" href="#">Syntax</a>
+          <a class="side-item" href="#">File type</a>
+        </div>
+      </details>
+      <details class="side-group" open>
+        <summary class="side-title">Comparators <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="side-items">
+          <a class="side-item" href="#">Diff</a>
+          <a class="side-item" href="#">JSON compare</a>
+          <a class="side-item" href="#">SemVer</a>
+          <a class="side-item" href="#">Directories</a>
+        </div>
+      </details>
+      <details class="side-group" open>
+        <summary class="side-title">App <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="side-items">
+          <a class="side-item" href="settings.html">Settings</a>
+          <a class="side-item" href="components.html">Components</a>
+        </div>
+      </details>
+    </nav>
+
+    <main class="content fill">
+      <div class="search">
+        <span class="search-icon">
+          <svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        </span>
+        <input type="text" placeholder="Search tools…" aria-label="Search tools">
+        <kbd>Ctrl K</kbd>
+      </div>
+
+      <div class="page-head center">
+        <h1>ID</h1>
+        <p>Generate UUIDs (v1–v8), ULIDs, and NanoIDs in the format you need.</p>
+      </div>
+
+      <div class="tool-wrap">
+      <div class="panes">
+        <section class="pane">
+          <div class="pane-head"><span class="pane-title">Options</span></div>
+          <div class="pane-body">
+            <div class="field">
+              <label for="kind">Kind</label>
+              <select id="kind" class="input">
+                <option>UUID v4 — random</option>
+                <option>UUID v7 — time-ordered</option>
+                <option>UUID v1 — timestamp + node</option>
+                <option>ULID</option>
+                <option>NanoID</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="format">Format</label>
+              <select id="format" class="input">
+                <option>Hyphenated</option>
+                <option>Simple</option>
+                <option>Braced</option>
+                <option>URN</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="count">Count</label>
+              <input id="count" class="input" type="number" value="10" min="1" max="1000" style="max-width:140px">
+              <div class="help">Between 1 and 1,000 values per run.</div>
+            </div>
+            <label class="check"><input type="checkbox"> Uppercase output</label>
+          </div>
+          <div class="pane-footer">
+            <button class="btn btn-primary">
+              <svg class="ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg>
+              Generate
+            </button>
+            <button class="btn btn-ghost">
+              <svg class="ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+              Copy
+            </button>
+          </div>
+        </section>
+
+        <section class="pane">
+          <div class="pane-head">
+            <span class="pane-title">Result</span>
+            <div class="pane-actions">
+              <button class="btn btn-outline btn-sm">Copy</button>
+              <button class="btn btn-outline btn-sm">Export…</button>
+            </div>
+          </div>
+          <div class="pane-body">
+            <div class="output">9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d
+16fd2706-8baf-433b-82eb-8c7fada847da
+f47ac10b-58cc-4372-a567-0e02b2c3d479
+7c9e6679-7425-40de-944b-e07fc1f90ae7
+550e8400-e29b-41d4-a716-446655440000
+3f2504e0-4f89-41d3-9a0c-0305e82c3301
+e4da3b7f-bbce-4345-972c-246221485f04
+c2f7c389-e7c9-4ea0-8c4d-9e3f07a2a81a
+6d6dd2a5-3b6a-4d1b-9c7f-1a2b3c4d5e6f
+d9428888-122b-11e1-b85c-61cd3cbb3210</div>
+          </div>
+        </section>
+      </div>
+      </div>
+    </main>
+  </div>
+  <script src="mock.js"></script>
+</body>
+</html>

@@ -209,14 +209,14 @@ pub fn exec(args: FileArgs) -> Result<(), ValidError> {
         expected: args.expected.map(Into::into),
     };
     let report = detect_file_type(&options);
-    if !args.no_extension_check {
-        if let Some(false) = report.extension_matches {
-            let message = extension_mismatch_message(&report);
-            if args.strict {
-                return Err(ValidError::File(message));
-            }
-            eprintln!("warning: {message}");
+    if !args.no_extension_check
+        && let Some(false) = report.extension_matches
+    {
+        let message = extension_mismatch_message(&report);
+        if args.strict {
+            return Err(ValidError::File(message));
         }
+        eprintln!("warning: {message}");
     }
     if args.verbose {
         print_report(&report);
@@ -230,10 +230,10 @@ pub fn exec(args: FileArgs) -> Result<(), ValidError> {
             Err(ValidError::File(message))
         }
         kind => {
-            if let Some(expected) = options.expected {
-                if expected != kind {
-                    return Err(ValidError::File(format!("expected {} but detected {}", expected.name(), kind.name())));
-                }
+            if let Some(expected) = options.expected
+                && expected != kind
+            {
+                return Err(ValidError::File(format!("expected {} but detected {}", expected.name(), kind.name())));
             }
             if !args.verbose {
                 println!("{}", kind.name());

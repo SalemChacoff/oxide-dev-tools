@@ -1,0 +1,27 @@
+[package]
+name = "oxide-dev-tools-gui"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Desktop GUI for oxide-dev-tools (GPUI Kit)"
+
+[[bin]]
+name = "oxide-gui"
+path = "src/main.rs"
+
+[dependencies]
+oxide-dev-tools-core = { path = "../oxide-dev-tools-core", version = "0.1.0" }
+gpui-kit = { workspace = true }
+rust-i18n = { workspace = true }
+# Timestamps for the recent-runs history. Already unified in Cargo.lock via
+# oxide-dev-tools-core — no new crate, no security gate needed.
+chrono = { workspace = true }
+# Native save dialog for the tool-page export command; vetted per the
+# ui-workflow security gate (see the root workspace deps comment).
+rfd = { workspace = true }
+
+[dev-dependencies]
+# `test-support` enables #[gpui_kit::test] and TestAppContext for headless UI
+# tests; it stays out of ordinary builds (gpui-kit docs/test.md).
+gpui-kit = { workspace = true, features = ["test-support"] }

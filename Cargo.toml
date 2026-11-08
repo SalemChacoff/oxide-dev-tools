@@ -2,13 +2,14 @@
 members = [
     "crates/oxide-dev-tools-core",
     "crates/oxide-dev-tools-cli",
+    "crates/oxide-dev-tools-gui",
 ]
 resolver = "2"
 
 [workspace.package]
 version = "0.1.0"
 edition = "2024"
-rust-version = "1.85"
+rust-version = "1.92"
 license = "MIT"
 repository = "https://github.com/SalemChacoff/oxide-dev-tools"
 
@@ -40,6 +41,21 @@ serde_yaml_ng = "0.10.0"
 sha2 = "0.10.9"
 url = "2.5.8"
 zxcvbn = "3.1.1"
+# Pinned per the 7-day supply-chain rule (security-audit skill): 0.7.1
+# published 2026-10-05, eligible since 2026-10-12 (0.7.2 is yanked; 0.7.3
+# eligible 2026-10-19). Exact pin: a bare "0.7.1" is caret-semantics and
+# would float to newer 0.7.x. Re-audit before upgrading.
+gpui-kit = "=0.7.1"
+# English-default i18n for the GUI (gpui-kit-i18n skill). 4.2.4 is the version
+# already unified in Cargo.lock via gpui-component (^4.2.0) — no duplicate
+# version. MIT, published 2026-09-29 (7-day rule satisfied).
+rust-i18n = "4.2.4"
+# Native OS save dialogs for the GUI export command (security gate per the
+# ui-workflow skill): MIT (license allowlist), published 2026-09-12 (7-day
+# supply-chain rule satisfied). Default features (xdg-portal + wayland on
+# Linux) need no GTK build deps; every transitive dependency already unifies
+# with the gpui-kit tree in Cargo.lock. Re-audit before upgrading.
+rfd = "0.17.2"
 
 [profile.release]
 lto = "thin"
