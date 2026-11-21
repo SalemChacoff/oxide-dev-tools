@@ -50,6 +50,16 @@ ignore = [
     "RUSTSEC-2026-0370", # zvariant
     "RUSTSEC-2026-0371", # zbus_names
     "RUSTSEC-2026-0372", # zvariant_derive
+    # chrono / chrono-tz: maintenance notice published 2026-11 (all versions,
+    # "No safe upgrade is available"). Informational, not a vulnerability.
+    # chrono is reachable transitively through gpui-kit 0.7.1 (gpui-base,
+    # gpui-component, gpui-pre) and zxcvbn, and used directly by core/CLI/GUI,
+    # so it cannot be dropped until the gpui stack migrates. chrono-tz is only
+    # used directly by core's timestamp converter and can be migrated to
+    # `jiff`/`time` independently. Re-check on gpui-kit upgrades and on any
+    # timezone rework; `unmaintained` stays deny for everything else.
+    "RUSTSEC-2026-0543", # chrono
+    "RUSTSEC-2026-0555", # chrono-tz
 ]
 
 [bans]
