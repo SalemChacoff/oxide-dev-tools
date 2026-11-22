@@ -20,6 +20,19 @@ pub fn palette_key_binding() -> KeyBinding {
     KeyBinding::new(keystroke, TogglePalette, None)
 }
 
+/// The human-readable shortcut label used in the palette trigger's
+/// accessible name and tooltip. Mirrors [`palette_key_binding`] exactly.
+pub fn palette_shortcut_label() -> &'static str {
+    #[cfg(target_os = "macos")]
+    {
+        "Command+K"
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        "Ctrl+K"
+    }
+}
+
 /// The keystroke the search header's chip displays (`Kbd` formats it per
 /// platform). Mirrors [`palette_key_binding`] exactly.
 pub fn palette_keystroke() -> Keystroke {
@@ -59,5 +72,17 @@ mod tests {
         // Constructing the binding proves the keystroke literal parses on
         // this platform (KeyBinding::new panics on an invalid literal).
         let _binding = palette_key_binding();
+    }
+
+    #[test]
+    fn palette_shortcut_label_matches_the_platform_binding() {
+        let label = palette_shortcut_label();
+
+        #[cfg(target_os = "macos")]
+        assert_eq!(label, "Command+K");
+        #[cfg(not(target_os = "macos"))]
+        assert_eq!(label, "Ctrl+K");
+
+        assert!(label.ends_with('K'));
     }
 }

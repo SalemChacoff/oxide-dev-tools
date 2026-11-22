@@ -350,12 +350,32 @@ cannot be verified without a real window stay open for Phase 7.4.
   retained model for `ToolCard`, `RecentRuns`, `ToolField`, `OutputPanel`,
   `SettingsPanel`, and `ToolPage`; Enter/Space activation, focus traversal,
   dialog focus return, and disabled export are covered.
-- `SidebarMenuItem` exposes its `TreeItem` node on an unobserved child in
-  gpui-component 0.7.1; the shared item name is set explicitly and the built-in
-  activation path is tested, while the semantic snapshot remains upstream.
+- gpui-kit 0.7.1 `SidebarMenuItem` still exposes its `TreeItem` node on an
+  unobserved child and provides no focus handle; the shell replaced it with
+  app-owned focusable rows (see the shell pass below).
 - Real-window keyboard/assistive-technology checks (Narrator/Accessibility
   Insights, VoiceOver, Orca) have not yet been performed for the shared
   components. Record OS, AT, build, and result before closing the Phase 7 a11y
   gate.
 - `NumberInput` remains unnamed; `ToolField` provides a named group, not a
   control name.
+
+**Shell a11y pass (2026-11-21)**
+
+- Shell-owned semantics are covered by headless `TestWindowExt` tests: brand,
+  theme trigger, global search input, palette trigger (including the platform
+  shortcut in its name), named Navigation/Main landmarks, category/recent/page
+  headings, no-match and palette-empty `Status` nodes, the palette `Dialog`, and
+  the placeholder tool `Region`.
+- The sidebar now uses app-owned focusable rows (`SidebarNavItem`,
+  `SidebarNavGroup`) instead of gpui-kit 0.7.1 `SidebarMenuItem`: Button role,
+  stable domain ID, accessible name, selected/expanded state, Tab stop, visible
+  focus ring, Enter/Space activation, and a caller-owned disclosure model are
+  asserted. This closes the pointer-only sidebar-row gap.
+- Remaining upstream gaps: `Command` search/listbox/option naming and active
+  descendant; visual-only `Button` selected/open state; unnamed hover-only
+  notification close; pointer-only resizable handle; unnamed `NumberInput`.
+  The shell records these in `crates/oxide-dev-tools-gui/AGENTS.md`.
+- Real-window keyboard and assistive-technology checks for the shell (Windows
+  Narrator/Accessibility Insights, VoiceOver, Orca) are still unverified; record
+  OS, AT, build, and result before closing the Phase 7 a11y gate.

@@ -21,7 +21,7 @@ use gpui_kit::{
 };
 
 use crate::shared::ClickHandler;
-use crate::shell::actions::palette_keystroke;
+use crate::shell::actions::{palette_keystroke, palette_shortcut_label};
 use crate::theme::OxideTheme;
 
 /// The global search box; `on_open_palette` fires from the `Ctrl K` chip.
@@ -49,6 +49,8 @@ impl RenderOnce for SearchHeader {
         let on_open_palette = self.on_open_palette;
         let focus_handle = self.state.read(cx).focus_handle(cx);
         let tokens = OxideTheme::tokens(cx);
+        let palette_label =
+            rust_i18n::t!("app.shell.open_palette_shortcut", shortcut = palette_shortcut_label()).into_owned();
 
         h_flex()
             .id("global-search")
@@ -75,11 +77,19 @@ impl RenderOnce for SearchHeader {
                             .text_color(cx.theme().muted_foreground),
                     ),
             )
-            .child(Input::new(&self.state).appearance(false).flex_1())
+            .child(
+                Input::new(&self.state)
+                    .id("global-search-input")
+                    .aria_label(rust_i18n::t!("app.shell.search_label"))
+                    .appearance(false)
+                    .flex_1(),
+            )
             .child(
                 Button::new("palette-trigger")
                     .ghost()
                     .xsmall()
+                    .accessibility_label(palette_label.clone())
+                    .tooltip(palette_label)
                     .child(Kbd::new(palette_keystroke()))
                     .on_click(move |event, window, cx| on_open_palette(event, window, cx)),
             )

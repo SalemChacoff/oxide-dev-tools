@@ -20,8 +20,10 @@ pub fn push(window: &mut Window, cx: &mut App, message: impl Into<SharedString>)
 mod tests {
     use super::*;
     use gpui_kit::component::Root;
+    use gpui_kit::test::TestWindowExt as _;
     use gpui_kit::{
-        AppContext as _, Context, IntoElement, Render, Styled as _, TestAppContext, VisualTestContext, Window, div,
+        AppContext as _, Context, IntoElement, Render, Role, Styled as _, TestAppContext, VisualTestContext, Window,
+        div,
     };
 
     struct NotificationHost;
@@ -47,6 +49,11 @@ mod tests {
             assert_eq!(window.notifications(cx).len(), 0);
             push(window, cx, "Done");
             assert_eq!(window.notifications(cx).len(), 1);
+
+            _ = window.draw(cx);
+            let alert = window.try_find("notification").expect("the toast is painted");
+            assert_eq!(alert.role(), Some(Role::Alert));
+            assert!(alert.bounds().size.width > gpui_kit::px(0.));
         });
     }
 }
