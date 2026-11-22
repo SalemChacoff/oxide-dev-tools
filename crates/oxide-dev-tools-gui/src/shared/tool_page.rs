@@ -11,7 +11,7 @@ use gpui_kit::base::TestSupportExt as _;
 use gpui_kit::component::scroll::ScrollableElement as _;
 use gpui_kit::component::{StyledExt as _, h_flex, v_flex};
 use gpui_kit::{
-    AnyElement, App, ElementId, InteractiveElement as _, IntoElement, ParentElement as _, Pixels, RenderOnce,
+    AnyElement, App, ElementId, InteractiveElement as _, IntoElement, ParentElement as _, Pixels, RenderOnce, Role,
     SharedString, StatefulInteractiveElement as _, Styled as _, Window, div, px,
 };
 
@@ -145,6 +145,7 @@ impl RenderOnce for ToolPage {
             form_id,
         } = self;
         let stacked = window.viewport_size().width < STACK_BREAKPOINT;
+        let heading = title.clone();
 
         v_flex()
             .id("tool-page")
@@ -155,9 +156,17 @@ impl RenderOnce for ToolPage {
             .px_6()
             .pb_6()
             .child(
-                h_flex()
-                    .justify_center()
-                    .child(div().text_lg().font_semibold().child(title)),
+                h_flex().justify_center().child(
+                    div()
+                        .id((ElementId::from("tool-page"), "title"))
+                        .role(Role::Heading)
+                        .aria_label(heading.clone())
+                        .aria_level(1)
+                        .text_lg()
+                        .font_semibold()
+                        .child(heading)
+                        .test_support(),
+                ),
             )
             .child(if stacked {
                 ToolPage::stacked_panes(form, result, form_id).into_any_element()
@@ -267,6 +276,21 @@ mod tests {
             .expect("open test window")
         });
         VisualTestContext::from_window(window, cx).into_mut()
+    }
+
+    #[gpui_kit::test]
+    fn page_title_is_a_named_heading(cx: &mut TestAppContext) {
+        cx.update(gpui_kit::init);
+        let cx = open_view(ChromeTestView, 1200., 800., cx);
+
+        cx.update(|window, cx| {
+            _ = window.draw(cx);
+            let title = window
+                .try_find((ElementId::from("tool-page"), "title"))
+                .expect("the page title is rendered");
+            assert_eq!(title.role(), Some(Role::Heading));
+            assert_eq!(title.label(), Some("Test tool"));
+        });
     }
 
     #[gpui_kit::test]

@@ -374,8 +374,14 @@ impl Render for IdView {
         let name_validation = self.name_validation(cx);
         let invalid = date_validation.is_some() || custom_validation.is_some() || name_validation.is_some();
 
-        let date_field = ToolField::new("id-date", rust_i18n::t!("app.generators.id.date"), Input::new(&self.date))
-            .help(rust_i18n::t!("app.generators.id.date_help"));
+        let date_field = ToolField::new(
+            "id-date",
+            rust_i18n::t!("app.generators.id.date"),
+            Input::new(&self.date)
+                .id("id-date-input")
+                .aria_label(rust_i18n::t!("app.generators.id.date")),
+        )
+        .help(rust_i18n::t!("app.generators.id.date_help"));
         let date_field = match date_validation {
             Some(message) => date_field.validation(message),
             None => date_field,
@@ -384,15 +390,23 @@ impl Render for IdView {
         let namespace_uuid_field = ToolField::new(
             "id-namespace-uuid",
             rust_i18n::t!("app.generators.id.custom_namespace"),
-            Input::new(&self.custom_namespace),
+            Input::new(&self.custom_namespace)
+                .id("id-namespace-uuid-input")
+                .aria_label(rust_i18n::t!("app.generators.id.custom_namespace")),
         );
         let namespace_uuid_field = match custom_validation {
             Some(message) => namespace_uuid_field.validation(message),
             None => namespace_uuid_field,
         };
 
-        let name_field = ToolField::new("id-name", rust_i18n::t!("app.generators.id.name"), Input::new(&self.name))
-            .help(rust_i18n::t!("app.generators.id.name_help"));
+        let name_field = ToolField::new(
+            "id-name",
+            rust_i18n::t!("app.generators.id.name"),
+            Input::new(&self.name)
+                .id("id-name-input")
+                .aria_label(rust_i18n::t!("app.generators.id.name")),
+        )
+        .help(rust_i18n::t!("app.generators.id.name_help"));
         let name_field = match name_validation {
             Some(message) => name_field.validation(message),
             None => name_field,
@@ -404,7 +418,10 @@ impl Render for IdView {
                 ToolField::new(
                     "id-mode",
                     rust_i18n::t!("app.generators.id.kind"),
-                    Select::new(&self.mode_select).id("id-mode-select").w_full(),
+                    Select::new(&self.mode_select)
+                        .id("id-mode-select")
+                        .accessibility_label(rust_i18n::t!("app.generators.id.kind"))
+                        .w_full(),
                 )
                 .help(rust_i18n::t!("app.generators.id.kind_help")),
             )
@@ -414,7 +431,10 @@ impl Render for IdView {
                     ToolField::new(
                         "id-namespace",
                         rust_i18n::t!("app.generators.id.namespace"),
-                        Select::new(&self.namespace_select).id("id-namespace-select").w_full(),
+                        Select::new(&self.namespace_select)
+                            .id("id-namespace-select")
+                            .accessibility_label(rust_i18n::t!("app.generators.id.namespace"))
+                            .w_full(),
                     )
                     .help(rust_i18n::t!("app.generators.id.namespace_help")),
                 )
@@ -431,7 +451,7 @@ impl Render for IdView {
 mod tests {
     use super::*;
     use gpui_kit::test::TestWindowExt as _;
-    use gpui_kit::{TestAppContext, VisualTestContext};
+    use gpui_kit::{Role, TestAppContext, VisualTestContext};
 
     fn install(cx: &mut TestAppContext) {
         cx.update(gpui_kit::init);
@@ -444,7 +464,7 @@ mod tests {
     #[gpui_kit::test]
     fn renders_the_form_and_generates_an_id(cx: &mut TestAppContext) {
         install(cx);
-        let (_view, cx) = cx.add_window_view(IdView::new);
+        let (view, cx) = cx.add_window_view(IdView::new);
         let cx: &mut VisualTestContext = cx;
 
         cx.update(|window, cx| {
@@ -453,12 +473,34 @@ mod tests {
             assert!(window.try_find("id-date").is_some(), "v1 shows the date field");
             assert!(window.try_find((ElementId::from("id-output"), "empty")).is_some());
 
+            // The run button names itself through its visible label.
+            let run = window
+                .try_find((ElementId::from("id"), "generate"))
+                .expect("run button is rendered");
+            assert_eq!(run.role(), Some(Role::Button));
+            assert_eq!(run.label(), Some(rust_i18n::t!("app.common.generate").as_ref()));
+
+            // The mode select and the date input carry the field's name.
+            let mode = window.try_find("id-mode-select").expect("mode select is rendered");
+            assert_eq!(mode.role(), Some(Role::ComboBox));
+            assert_eq!(mode.label(), Some(rust_i18n::t!("app.generators.id.kind").as_ref()));
+            let date = window.try_find("id-date-input").expect("date input is rendered");
+            assert_eq!(date.role(), Some(Role::TextInput));
+            assert_eq!(date.label(), Some(rust_i18n::t!("app.generators.id.date").as_ref()));
+
             window.click((ElementId::from("id"), "generate"), cx);
         });
         cx.update(|window, cx| {
             _ = window.draw(cx);
             assert!(window.try_find((ElementId::from("id-output"), "content")).is_some());
             assert!(window.try_find((ElementId::from("id-output"), "empty")).is_none());
+
+            // The result node is a Status labelled with the generated value.
+            let content = window
+                .try_find((ElementId::from("id-output"), "content"))
+                .expect("output content is rendered");
+            assert_eq!(content.role(), Some(Role::Status));
+            assert_eq!(content.label(), Some(view.read(cx).result.as_ref()));
         });
     }
 

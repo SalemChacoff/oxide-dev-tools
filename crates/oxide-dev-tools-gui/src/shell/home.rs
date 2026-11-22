@@ -11,7 +11,7 @@ use gpui_kit::component::button::Button;
 use gpui_kit::component::empty::{Empty, EmptyContent, EmptyHeader, EmptyTitle};
 use gpui_kit::component::{Sizable as _, StyledExt as _, h_flex, v_flex};
 use gpui_kit::{
-    AnyElement, Context, Focusable as _, InteractiveElement as _, IntoElement, ParentElement as _,
+    AnyElement, Context, ElementId, Focusable as _, InteractiveElement as _, IntoElement, ParentElement as _, Role,
     StatefulInteractiveElement as _, Styled as _, div, prelude::FluentBuilder as _,
 };
 
@@ -40,10 +40,22 @@ impl ShellView {
 
     /// The recent-runs history, rendered only when it has entries.
     fn render_recent_section(&self) -> impl IntoElement {
+        let title = rust_i18n::t!("app.recent.title").into_owned();
+
         v_flex()
             .gap_3()
             .pb_6()
-            .child(div().text_sm().font_semibold().child(rust_i18n::t!("app.recent.title")))
+            .child(
+                div()
+                    .id("home-recent-title")
+                    .role(Role::Heading)
+                    .aria_label(title.clone())
+                    .aria_level(2)
+                    .text_sm()
+                    .font_semibold()
+                    .child(title)
+                    .test_support(),
+            )
             .child(self.recent_runs.clone())
     }
 
@@ -93,9 +105,21 @@ impl ShellView {
         category: Category,
         tools: Vec<ToolMeta>,
     ) -> impl IntoElement + 'static {
+        let title = category.title();
+
         v_flex()
             .gap_3()
-            .child(div().text_sm().font_semibold().child(category.title()))
+            .child(
+                div()
+                    .id((ElementId::from("home-category"), category.id()))
+                    .role(Role::Heading)
+                    .aria_label(title.clone())
+                    .aria_level(2)
+                    .text_sm()
+                    .font_semibold()
+                    .child(title)
+                    .test_support(),
+            )
             .child(h_flex().flex_wrap().gap_2().children(tools.iter().map(|meta| {
                 let id = meta.id().clone();
                 div().w_56().child(ToolCard::new(
@@ -117,12 +141,20 @@ impl ShellView {
     fn render_no_matches(&self, query: &str, cx: &mut Context<Self>) -> impl IntoElement {
         let search = self.search.clone();
         let shell = cx.entity();
+        let message = rust_i18n::t!("app.state.no_matches", query = query).into_owned();
 
         div().id("home-empty").test_support().mx_auto().w_128().pt_10().child(
             Empty::new()
                 .header(
                     EmptyHeader::new().title(
-                        EmptyTitle::new().child(rust_i18n::t!("app.state.no_matches", query = query).into_owned()),
+                        EmptyTitle::new().child(
+                            div()
+                                .id((ElementId::from("home-empty"), "status"))
+                                .role(Role::Status)
+                                .aria_label(message.clone())
+                                .test_support()
+                                .child(message),
+                        ),
                     ),
                 )
                 .content(

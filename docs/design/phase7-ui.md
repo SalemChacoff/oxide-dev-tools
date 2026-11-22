@@ -269,14 +269,16 @@ Implementation shape (gpui-kit 0.6.6, Phase 7.2):
 | `gpui-kit` | Coding rules, component catalog, GPUI mechanics |
 | `security-audit` | Mandatory gate before `gpui-kit` enters `[workspace.dependencies]` |
 | `gpui-kit-i18n` | English-default i18n contract for every tool page (rust-i18n + gpui-kit recipe) |
+| `gpui-kit-accessibility` | AccessKit role/name/state/action, keyboard and focus contract, snapshot tests |
 
 Component tests follow
 `.agents/skills/gpui-kit/references/component-test-rules.md`.
 
 ## 10. Gates & checklists
 
-- Design review checklist + accessibility checklist (design-guides) run against
-  this document at design completion, and against every shipped screen.
+- Design review checklist + accessibility checklist (design-guides) and the
+  `gpui-kit-accessibility` acceptance pass run against this document at design
+  completion, and against every shipped screen.
 - Workspace gates: `cargo fmt --all --check`, clippy `-D warnings`, nextest
   `--all-features --locked`, `cargo deny check`, coverage ≥ 50%.
 - Packaging stays deferred to Phase 10.
@@ -294,6 +296,10 @@ Component tests follow
   they keep their rest hue; the mock darkens primary buttons on hover).
 
 ## 12. Checklist results (Phase 7.2)
+
+The detailed a11y contract, failure table, and acceptance pass live in
+`.agents/skills/gpui-kit-accessibility/SKILL.md`; this section is the Phase 7.2
+record.
 
 Run against this document and the mock (`docs/design/mock/`). Items that
 cannot be verified without a real window stay open for Phase 7.4.
@@ -337,3 +343,39 @@ cannot be verified without a real window stay open for Phase 7.4.
 - Longer translations and larger text — open: zoom testing needs real windows;
   the design uses rem-based sizing via the theme (§6).
 - Pointer targets comfortable at density — medium density default (§3.2).
+
+**Shared module a11y pass (2026-11-21)**
+
+- Headless `TestWindowExt` coverage now asserts role, name, state, and the
+  retained model for `ToolCard`, `RecentRuns`, `ToolField`, `OutputPanel`,
+  `SettingsPanel`, and `ToolPage`; Enter/Space activation, focus traversal,
+  dialog focus return, and disabled export are covered.
+- gpui-kit 0.7.1 `SidebarMenuItem` still exposes its `TreeItem` node on an
+  unobserved child and provides no focus handle; the shell replaced it with
+  app-owned focusable rows (see the shell pass below).
+- Real-window keyboard/assistive-technology checks (Narrator/Accessibility
+  Insights, VoiceOver, Orca) have not yet been performed for the shared
+  components. Record OS, AT, build, and result before closing the Phase 7 a11y
+  gate.
+- `NumberInput` remains unnamed; `ToolField` provides a named group, not a
+  control name.
+
+**Shell a11y pass (2026-11-21)**
+
+- Shell-owned semantics are covered by headless `TestWindowExt` tests: brand,
+  theme trigger, global search input, palette trigger (including the platform
+  shortcut in its name), named Navigation/Main landmarks, category/recent/page
+  headings, no-match and palette-empty `Status` nodes, the palette `Dialog`, and
+  the placeholder tool `Region`.
+- The sidebar now uses app-owned focusable rows (`SidebarNavItem`,
+  `SidebarNavGroup`) instead of gpui-kit 0.7.1 `SidebarMenuItem`: Button role,
+  stable domain ID, accessible name, selected/expanded state, Tab stop, visible
+  focus ring, Enter/Space activation, and a caller-owned disclosure model are
+  asserted. This closes the pointer-only sidebar-row gap.
+- Remaining upstream gaps: `Command` search/listbox/option naming and active
+  descendant; visual-only `Button` selected/open state; unnamed hover-only
+  notification close; pointer-only resizable handle; unnamed `NumberInput`.
+  The shell records these in `crates/oxide-dev-tools-gui/AGENTS.md`.
+- Real-window keyboard and assistive-technology checks for the shell (Windows
+  Narrator/Accessibility Insights, VoiceOver, Orca) are still unverified; record
+  OS, AT, build, and result before closing the Phase 7 a11y gate.

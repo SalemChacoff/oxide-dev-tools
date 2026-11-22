@@ -242,7 +242,10 @@ impl Render for FakeView {
             .child(ToolField::new(
                 "fake-mode",
                 rust_i18n::t!("app.generators.fake.kind"),
-                Select::new(&self.mode_select).id("fake-mode-select").w_full(),
+                Select::new(&self.mode_select)
+                    .id("fake-mode-select")
+                    .accessibility_label(rust_i18n::t!("app.generators.fake.kind"))
+                    .w_full(),
             ))
             .child(count_field)
             .child(self.render_actions(count_invalid, cx));
@@ -255,7 +258,7 @@ impl Render for FakeView {
 mod tests {
     use super::*;
     use gpui_kit::test::TestWindowExt as _;
-    use gpui_kit::{TestAppContext, VisualTestContext};
+    use gpui_kit::{Role, TestAppContext, VisualTestContext};
 
     fn install(cx: &mut TestAppContext) {
         cx.update(gpui_kit::init);
@@ -268,7 +271,7 @@ mod tests {
     #[gpui_kit::test]
     fn renders_the_form_and_generates_a_persona(cx: &mut TestAppContext) {
         install(cx);
-        let (_view, cx) = cx.add_window_view(FakeView::new);
+        let (view, cx) = cx.add_window_view(FakeView::new);
         let cx: &mut VisualTestContext = cx;
 
         cx.update(|window, cx| {
@@ -276,11 +279,37 @@ mod tests {
             assert!(window.try_find("fake-mode").is_some());
             assert!(window.try_find("fake-count").is_some());
 
+            // The run button names itself through its visible label.
+            let run = window
+                .try_find((ElementId::from("fake"), "generate"))
+                .expect("run button is rendered");
+            assert_eq!(run.role(), Some(Role::Button));
+            assert_eq!(run.label(), Some(rust_i18n::t!("app.common.generate").as_ref()));
+
+            // The mode select carries the field's name.
+            let mode = window.try_find("fake-mode-select").expect("mode select is rendered");
+            assert_eq!(mode.role(), Some(Role::ComboBox));
+            assert_eq!(mode.label(), Some(rust_i18n::t!("app.generators.fake.kind").as_ref()));
+
+            // The count spinbutton registers under its state entity id.
+            let count = view.read(cx).count.clone();
+            let spin = window
+                .try_find(("number-input", count.entity_id()))
+                .expect("the count spinbutton is rendered");
+            assert_eq!(spin.role(), Some(Role::SpinButton));
+
             window.click((ElementId::from("fake"), "generate"), cx);
         });
         cx.update(|window, cx| {
             _ = window.draw(cx);
             assert!(window.try_find((ElementId::from("fake-output"), "content")).is_some());
+
+            // The result node is a Status labelled with the generated value.
+            let content = window
+                .try_find((ElementId::from("fake-output"), "content"))
+                .expect("output content is rendered");
+            assert_eq!(content.role(), Some(Role::Status));
+            assert_eq!(content.label(), Some(view.read(cx).result.as_ref()));
         });
     }
 

@@ -33,6 +33,8 @@ impl ShellView {
             .ghost()
             .small()
             .cursor_default()
+            .accessibility_label(rust_i18n::t!("app.shell.brand"))
+            .tooltip(rust_i18n::t!("app.shell.brand_home"))
             .child(
                 h_flex()
                     .gap_2()
@@ -48,11 +50,13 @@ impl ShellView {
     /// The System / Light / Dark dropdown, backed by the shared settings state.
     fn render_theme_control(&self, preference: ThemePreference) -> impl IntoElement {
         let label = preference_label(preference);
+        let accessible = rust_i18n::t!("app.shell.theme_trigger", theme = label.as_str()).into_owned();
 
         Button::new("titlebar-theme")
             .ghost()
             .small()
             .label(label)
+            .accessibility_label(accessible)
             .icon(Icon::new(IconName::ChevronDown).size_3p5())
             .dropdown_menu_with_anchor(Anchor::BottomRight, move |menu, _, _| {
                 menu.menu_with_check(

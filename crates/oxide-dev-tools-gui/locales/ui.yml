@@ -75,8 +75,22 @@ app:
   shell:
     brand:
       en: oxide
+    brand_home:
+      en: Go to home
+    home:
+      en: Home
+    navigation:
+      en: Tool navigation
+    open_palette_shortcut:
+      en: "Open command palette (%{shortcut})"
     palette_placeholder:
       en: Search tools…
+    palette_title:
+      en: Command palette
+    search_label:
+      en: Search tools
+    theme_trigger:
+      en: "Theme: %{theme}"
     placeholder_title:
       en: Not available yet
     placeholder_description:
@@ -487,6 +501,8 @@ app:
   recent:
     title:
       en: Recent runs
+    row_label:
+      en: "Open %{tool}: %{summary} (%{time})"
     empty:
       en: Nothing here yet. Run a tool and it will appear here.
     clear_history:

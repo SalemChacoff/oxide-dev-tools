@@ -13,21 +13,23 @@
 //! regardless of where focus sits; every entry point dispatches the same
 //! command instead of copying mutations.
 
+use std::collections::HashSet;
+
 use gpui_kit::base::FocusTrapElement as _;
 use gpui_kit::base::{ResizableState, TestSupportExt as _, h_resizable, resizable_panel};
 use gpui_kit::component::command::{Command, CommandState};
 use gpui_kit::component::empty::{Empty, EmptyDescription, EmptyHeader, EmptyTitle};
 use gpui_kit::component::input::{InputEvent, InputState};
-use gpui_kit::component::{StyledExt as _, h_flex, v_flex};
+use gpui_kit::component::{ActiveTheme as _, StyledExt as _, h_flex, v_flex};
 use gpui_kit::{
     AnyElement, App, AppContext as _, Context, Entity, Focusable as _, InteractiveElement as _, IntoElement,
-    ParentElement as _, Render, SharedString, StatefulInteractiveElement as _, Styled as _, Subscription, Window, div,
-    prelude::FluentBuilder as _, px,
+    ParentElement as _, Render, Role, SharedString, StatefulInteractiveElement as _, Styled as _, Subscription, Window,
+    div, prelude::FluentBuilder as _, px,
 };
 
 use crate::generators::{FakeView, IdView, KeyView, LoremView, RunReporter, SampleView};
 use crate::shared::recent_runs::{RecentRuns, RecentRunsState};
-use crate::shared::registry::registry;
+use crate::shared::registry::{Category, registry};
 use crate::shared::settings_panel::{SettingsPanel, SettingsState};
 use crate::shell::actions::{SetDarkTheme, SetLightTheme, SetSystemTheme, TogglePalette, palette_key_binding};
 use crate::shell::navigation::Destination;
@@ -46,6 +48,7 @@ pub struct ShellView {
     pub(crate) recent_runs: Entity<RecentRuns>,
     pub(crate) resizable: Entity<ResizableState>,
     pub(crate) palette_open: bool,
+    expanded_categories: HashSet<Category>,
     id_page: Entity<IdView>,
     key_page: Entity<KeyView>,
     lorem_page: Entity<LoremView>,
@@ -136,6 +139,7 @@ impl ShellView {
             recent_runs,
             resizable,
             palette_open: false,
+            expanded_categories: Category::ALL.into_iter().collect(),
             id_page,
             key_page,
             lorem_page,
@@ -160,6 +164,19 @@ impl ShellView {
         self.destination = Destination::Tool(id.into());
         if self.palette_open {
             self.close_palette(window, cx);
+        }
+        cx.notify();
+    }
+
+    /// Whether a sidebar category currently discloses its tool rows.
+    pub(crate) fn is_category_expanded(&self, category: Category) -> bool {
+        self.expanded_categories.contains(&category)
+    }
+
+    /// Toggles one sidebar category and repaints the disclosure state.
+    pub(crate) fn toggle_category(&mut self, category: Category, cx: &mut Context<Self>) {
+        if !self.expanded_categories.remove(&category) {
+            self.expanded_categories.insert(category);
         }
         cx.notify();
     }
@@ -252,12 +269,26 @@ impl ShellView {
         }
     }
 
+    /// The accessible name of the current detail page.
+    fn destination_label(&self, cx: &App) -> String {
+        match &self.destination {
+            Destination::Home => rust_i18n::t!("app.shell.home").into_owned(),
+            Destination::Settings => rust_i18n::t!("app.settings.title").into_owned(),
+            Destination::Tool(id) => registry(cx)
+                .find(id)
+                .map_or_else(|| id.to_string(), |meta| meta.title()),
+        }
+    }
+
     /// The detail area: the global search above the current page.
     fn render_detail(&self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let shell = cx.entity();
+        let label = self.destination_label(cx);
 
         v_flex()
             .id("detail")
+            .role(Role::Main)
+            .aria_label(label)
             .test_support()
             .flex_1()
             .min_w_0()
@@ -294,6 +325,8 @@ impl ShellView {
                     .find(&id)
                     .map_or_else(|| id.to_string(), |meta| meta.title());
 
+                let heading = title;
+
                 v_flex()
                     .id("tool-page")
                     .test_support()
@@ -304,13 +337,24 @@ impl ShellView {
                     .px_6()
                     .pb_6()
                     .child(
-                        h_flex()
-                            .justify_center()
-                            .child(div().text_lg().font_semibold().child(title)),
+                        h_flex().justify_center().child(
+                            div()
+                                .id("tool-page-title")
+                                .role(Role::Heading)
+                                .aria_label(heading.clone())
+                                .aria_level(1)
+                                .text_lg()
+                                .font_semibold()
+                                .child(heading)
+                                .test_support(),
+                        ),
                     )
                     .child(
                         div()
                             .id("tool-placeholder")
+                            .role(Role::Region)
+                            .aria_label(rust_i18n::t!("app.shell.placeholder_title"))
+                            .aria_description(rust_i18n::t!("app.shell.placeholder_description"))
                             .test_support()
                             .mx_auto()
                             .w_128()
@@ -336,6 +380,8 @@ impl ShellView {
 
     /// The settings page: the Phase 7.3 panel over the shared state.
     fn render_settings_page(&self) -> impl IntoElement {
+        let title = rust_i18n::t!("app.settings.title").into_owned();
+
         v_flex()
             .id("settings-page")
             .test_support()
@@ -348,9 +394,14 @@ impl ShellView {
             .child(
                 h_flex().justify_center().child(
                     div()
+                        .id("settings-page-title")
+                        .role(Role::Heading)
+                        .aria_label(title.clone())
+                        .aria_level(1)
                         .text_lg()
                         .font_semibold()
-                        .child(rust_i18n::t!("app.settings.title")),
+                        .child(title)
+                        .test_support(),
                 ),
             )
             .child(div().mx_auto().w_128().pt_4().child(self.settings_panel.clone()))
@@ -367,6 +418,21 @@ impl ShellView {
             .into_iter()
             .fold(Command::new(&self.command), |command, group| command.group(group))
             .placeholder(rust_i18n::t!("app.shell.palette_placeholder").into_owned())
+            .empty(|state, _, cx| {
+                let query = state.query(cx);
+                let message = rust_i18n::t!("app.state.no_matches", query = query.as_ref()).into_owned();
+                div()
+                    .id("palette-empty")
+                    .role(Role::Status)
+                    .aria_label(message.clone())
+                    .test_support()
+                    .py_6()
+                    .w_full()
+                    .text_center()
+                    .text_sm()
+                    .text_color(cx.theme().muted_foreground)
+                    .child(message)
+            })
             .on_confirm({
                 let shell = cx.weak_entity();
                 move |path, window, cx| {
@@ -392,11 +458,19 @@ impl ShellView {
             });
 
         // The palette is the shell's last child, so tree order paints it
-        // above the title bar and the body without an explicit z-index.
+        // above the title bar and the body without an explicit z-index. The
+        // centered frame carries the dialog role and name; the focus trap
+        // stays inside it so focus cycles within the palette.
         div().absolute().top_6().inset_0().child(
-            h_flex()
-                .justify_center()
-                .child(div().w_112().child(command).focus_trap("shell-palette", &focus_handle)),
+            h_flex().justify_center().child(
+                div()
+                    .id("shell-palette-dialog")
+                    .role(Role::Dialog)
+                    .aria_label(rust_i18n::t!("app.shell.palette_title"))
+                    .test_support()
+                    .w_112()
+                    .child(div().child(command).focus_trap("shell-palette", &focus_handle)),
+            ),
         )
     }
 }
@@ -458,9 +532,11 @@ fn register_global_action<A, F>(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use gpui_kit::component::IndexPath;
     use gpui_kit::test::TestWindowExt as _;
-    use gpui_kit::{Keystroke, TestAppContext, VisualTestContext};
+    use gpui_kit::{ElementId, Keystroke, Role, TestAppContext, VisualTestContext};
 
+    use crate::shell::actions::palette_shortcut_label;
     use crate::shell::bootstrap;
 
     fn install(cx: &mut TestAppContext) {
@@ -477,12 +553,61 @@ mod tests {
 
         cx.update(|window, cx| {
             _ = window.draw(cx);
+            _ = window.draw(cx);
             assert!(window.try_find("home-page").is_some());
             assert!(window.try_find("tool-card-id").is_some());
             assert!(window.try_find("tool-page").is_none());
 
-            // Generators' first tool row (submenu item "0-0") is the id tool.
-            window.click("0-0", cx);
+            let detail = window.try_find("detail").expect("the detail area renders");
+            assert_eq!(detail.role(), Some(Role::Main));
+            assert_eq!(detail.label(), Some(rust_i18n::t!("app.shell.home").as_ref()));
+
+            let navigation = window
+                .try_find("shell-navigation")
+                .expect("the navigation landmark renders");
+            assert_eq!(navigation.role(), Some(Role::Navigation));
+            assert_eq!(navigation.label(), Some(rust_i18n::t!("app.shell.navigation").as_ref()));
+            // The landmark wrapper must not change the resizable pane's width.
+            assert_eq!(navigation.bounds().size.width, px(240.));
+
+            let heading = window
+                .try_find((ElementId::from("home-category"), "generators"))
+                .expect("the generators heading renders");
+            assert_eq!(heading.role(), Some(Role::Heading));
+            assert_eq!(heading.label(), Some(rust_i18n::t!("app.categories.generators").as_ref()));
+
+            let card = window.try_find("tool-card-id").expect("the id card renders");
+            assert_eq!(card.role(), Some(Role::Button));
+            assert_eq!(card.label(), Some(rust_i18n::t!("app.tools.generators.id.title").as_ref()));
+
+            let group = window
+                .try_find((ElementId::from("sidebar-group"), "generators"))
+                .expect("the generators group renders");
+            assert_eq!(group.role(), Some(Role::Button));
+            assert_eq!(group.label(), Some(rust_i18n::t!("app.categories.generators").as_ref()));
+            assert_eq!(group.expanded(), Some(true));
+
+            let tool = window
+                .try_find((ElementId::from("sidebar-tool"), "id"))
+                .expect("the id tool row renders");
+            assert_eq!(tool.role(), Some(Role::Button));
+            assert_eq!(tool.selected(), Some(false));
+
+            let search = window
+                .try_find("global-search-input")
+                .expect("the global search input renders");
+            assert_eq!(search.role(), Some(Role::TextInput));
+            assert_eq!(search.label(), Some(rust_i18n::t!("app.shell.search_label").as_ref()));
+
+            let palette_trigger = window.try_find("palette-trigger").expect("the palette trigger renders");
+            assert_eq!(palette_trigger.role(), Some(Role::Button));
+            assert_eq!(
+                palette_trigger.label(),
+                Some(rust_i18n::t!("app.shell.open_palette_shortcut", shortcut = palette_shortcut_label()).as_ref())
+            );
+
+            // Generators' first tool row is the id tool.
+            window.click((ElementId::from("sidebar-tool"), "id"), cx);
         });
         cx.update(|window, cx| {
             _ = window.draw(cx);
@@ -491,6 +616,86 @@ mod tests {
             assert!(window.try_find("id-mode").is_some());
             assert!(window.try_find("tool-placeholder").is_none());
             assert!(window.try_find("home-page").is_none());
+
+            let detail = window.try_find("detail").expect("the detail area renders");
+            assert_eq!(detail.label(), Some(rust_i18n::t!("app.tools.generators.id.title").as_ref()));
+
+            let heading = window
+                .try_find((ElementId::from("tool-page"), "title"))
+                .expect("the tool page title renders");
+            assert_eq!(heading.role(), Some(Role::Heading));
+            assert_eq!(heading.label(), Some(rust_i18n::t!("app.tools.generators.id.title").as_ref()));
+
+            let tool = window
+                .try_find((ElementId::from("sidebar-tool"), "id"))
+                .expect("the id tool row renders");
+            assert_eq!(tool.selected(), Some(true));
+        });
+    }
+
+    #[gpui_kit::test]
+    fn sidebar_group_disclosure_is_model_backed(cx: &mut TestAppContext) {
+        install(cx);
+        let (view, cx) = cx.add_window_view(ShellView::new);
+        let cx: &mut VisualTestContext = cx;
+
+        cx.update(|window, cx| {
+            _ = window.draw(cx);
+            assert!(view.read(cx).is_category_expanded(Category::Generators));
+            let group = window
+                .try_find((ElementId::from("sidebar-group"), "generators"))
+                .expect("the generators group renders");
+            assert_eq!(group.expanded(), Some(true));
+            assert!(window.try_find((ElementId::from("sidebar-tool"), "id")).is_some());
+
+            window.click((ElementId::from("sidebar-group"), "generators"), cx);
+        });
+        cx.update(|window, cx| {
+            _ = window.draw(cx);
+            assert!(!view.read(cx).is_category_expanded(Category::Generators));
+            let group = window
+                .try_find((ElementId::from("sidebar-group"), "generators"))
+                .expect("the generators group renders");
+            assert_eq!(group.expanded(), Some(false));
+            assert!(window.try_find((ElementId::from("sidebar-tool"), "id")).is_none());
+
+            window.click((ElementId::from("sidebar-group"), "generators"), cx);
+        });
+        cx.update(|window, cx| {
+            _ = window.draw(cx);
+            assert!(view.read(cx).is_category_expanded(Category::Generators));
+            assert!(window.try_find((ElementId::from("sidebar-tool"), "id")).is_some());
+        });
+    }
+
+    #[gpui_kit::test]
+    fn unshipped_tool_page_states_its_title_and_placeholder(cx: &mut TestAppContext) {
+        install(cx);
+        let (_view, cx) = cx.add_window_view(ShellView::new);
+        let cx: &mut VisualTestContext = cx;
+
+        cx.update(|window, cx| {
+            _ = window.draw(cx);
+            window.click("tool-card-base64", cx);
+        });
+        cx.update(|window, cx| {
+            _ = window.draw(cx);
+            assert!(window.try_find("tool-page").is_some());
+
+            let title = window
+                .try_find("tool-page-title")
+                .expect("the placeholder title renders");
+            assert_eq!(title.role(), Some(Role::Heading));
+            assert_eq!(title.label(), Some(rust_i18n::t!("app.tools.codecs.base64.title").as_ref()));
+
+            let placeholder = window
+                .try_find("tool-placeholder")
+                .expect("the placeholder state renders");
+            assert_eq!(placeholder.role(), Some(Role::Region));
+            assert_eq!(placeholder.label(), Some(rust_i18n::t!("app.shell.placeholder_title").as_ref()));
+
+            let detail = window.try_find("detail").expect("the detail area renders");
+            assert_eq!(detail.label(), Some(rust_i18n::t!("app.tools.codecs.base64.title").as_ref()));
         });
     }
 
@@ -502,6 +707,26 @@ mod tests {
 
         cx.update(|window, cx| {
             _ = window.draw(cx);
+
+            let brand = window.try_find("brand").expect("the brand renders");
+            assert_eq!(brand.role(), Some(Role::Button));
+            assert_eq!(brand.label(), Some(rust_i18n::t!("app.shell.brand").as_ref()));
+
+            let theme = window.try_find("titlebar-theme").expect("the theme control renders");
+            assert_eq!(theme.role(), Some(Role::Button));
+            assert_eq!(
+                theme.label(),
+                Some(
+                    rust_i18n::t!("app.shell.theme_trigger", theme = rust_i18n::t!("app.settings.system").as_ref())
+                        .as_ref()
+                )
+            );
+
+            let settings = window.try_find("sidebar-settings").expect("the settings row renders");
+            assert_eq!(settings.role(), Some(Role::Button));
+            assert_eq!(settings.label(), Some(rust_i18n::t!("app.settings.title").as_ref()));
+            assert_eq!(settings.selected(), Some(false));
+
             window.click("sidebar-settings", cx);
         });
         cx.update(|window, cx| {
@@ -509,12 +734,29 @@ mod tests {
             assert!(window.try_find("settings-page").is_some());
             assert!(window.try_find("settings-panel").is_some());
 
+            let title = window
+                .try_find("settings-page-title")
+                .expect("the settings page title renders");
+            assert_eq!(title.role(), Some(Role::Heading));
+            assert_eq!(title.label(), Some(rust_i18n::t!("app.settings.title").as_ref()));
+
+            let detail = window.try_find("detail").expect("the detail area renders");
+            assert_eq!(detail.label(), Some(rust_i18n::t!("app.settings.title").as_ref()));
+
+            let settings = window.try_find("sidebar-settings").expect("the settings row renders");
+            assert_eq!(settings.selected(), Some(true));
+
             window.click("brand", cx);
         });
         cx.update(|window, cx| {
             _ = window.draw(cx);
             assert!(window.try_find("home-page").is_some());
             assert!(window.try_find("settings-page").is_none());
+
+            let detail = window.try_find("detail").expect("the detail area renders");
+            assert_eq!(detail.label(), Some(rust_i18n::t!("app.shell.home").as_ref()));
+            let settings = window.try_find("sidebar-settings").expect("the settings row renders");
+            assert_eq!(settings.selected(), Some(false));
         });
     }
 
@@ -537,6 +779,16 @@ mod tests {
             assert!(window.try_find("tool-card-base64").is_some());
             assert!(window.try_find("tool-card-id").is_none());
             assert!(window.try_find("tool-card-timestamp").is_none());
+            assert!(
+                window
+                    .try_find((ElementId::from("home-category"), "codecs"))
+                    .is_some_and(|heading| heading.role() == Some(Role::Heading))
+            );
+            assert!(
+                window
+                    .try_find((ElementId::from("home-category"), "generators"))
+                    .is_none()
+            );
         });
 
         // A query matching nothing shows the no-match state with Clear search.
@@ -548,7 +800,16 @@ mod tests {
         cx.update(|window, cx| {
             _ = window.draw(cx);
             assert!(window.try_find("home-empty").is_some());
-            assert!(window.try_find("clear-search").is_some());
+
+            let status = window
+                .try_find((ElementId::from("home-empty"), "status"))
+                .expect("the no-match status renders");
+            assert_eq!(status.role(), Some(Role::Status));
+            assert_eq!(status.label(), Some(rust_i18n::t!("app.state.no_matches", query = "zzzz").as_ref()));
+
+            let clear = window.try_find("clear-search").expect("the clear action renders");
+            assert_eq!(clear.role(), Some(Role::Button));
+            assert_eq!(clear.label(), Some(rust_i18n::t!("app.common.clear_search").as_ref()));
 
             window.click("clear-search", cx);
         });
@@ -557,6 +818,13 @@ mod tests {
             assert!(window.try_find("home-empty").is_none());
             assert!(window.try_find("tool-card-id").is_some());
             assert_eq!(view.read(cx).search.read(cx).value(), SharedString::default());
+            assert!(
+                view.read(cx)
+                    .search
+                    .read(cx)
+                    .focus_handle(cx)
+                    .contains_focused(window, cx)
+            );
         });
     }
 
@@ -597,13 +865,31 @@ mod tests {
             _ = window.draw(cx);
             assert!(window.try_find("command").is_some());
 
-            // Empty query: the first match is the first generator (id).
+            let dialog = window
+                .try_find("shell-palette-dialog")
+                .expect("the palette dialog renders");
+            assert_eq!(dialog.role(), Some(Role::Dialog));
+            assert_eq!(dialog.label(), Some(rust_i18n::t!("app.shell.palette_title").as_ref()));
+
+            // The first row is the first generator (id); its role and selected
+            // state are exposed by the Command component. The library does not
+            // put an explicit aria_label on the option node, so the row's
+            // visible label remains a child text node (recorded upstream gap).
+            let first = window
+                .try_find(IndexPath::new(0).section(0))
+                .expect("the first palette row renders");
+            assert_eq!(first.role(), Some(Role::ListBoxOption));
+            assert_eq!(first.selected(), Some(true));
+
+            // Empty query: Enter confirms the first match.
             window.dispatch_keystroke(Keystroke::parse("enter").unwrap(), cx);
         });
         cx.update(|window, cx| {
             _ = window.draw(cx);
             assert!(window.try_find("command").is_none());
             assert!(window.try_find("tool-page").is_some());
+            let detail = window.try_find("detail").expect("the detail area renders");
+            assert_eq!(detail.label(), Some(rust_i18n::t!("app.tools.generators.id.title").as_ref()));
         });
     }
 
@@ -620,15 +906,47 @@ mod tests {
         cx.update(|window, cx| {
             _ = window.draw(cx);
             assert!(window.try_find("command").is_some());
+            assert!(
+                window
+                    .try_find("shell-palette-dialog")
+                    .is_some_and(|dialog| dialog.role() == Some(Role::Dialog))
+            );
 
             window.dispatch_keystroke(Keystroke::parse("escape").unwrap(), cx);
         });
         cx.update(|window, cx| {
             _ = window.draw(cx);
             assert!(window.try_find("command").is_none());
+            assert!(window.try_find("shell-palette-dialog").is_none());
 
             let search = view.read(cx).search.clone();
             assert!(search.read(cx).focus_handle(cx).contains_focused(window, cx));
+        });
+    }
+
+    #[gpui_kit::test]
+    fn palette_empty_state_is_a_named_status(cx: &mut TestAppContext) {
+        install(cx);
+        let (view, cx) = cx.add_window_view(ShellView::new);
+        let cx: &mut VisualTestContext = cx;
+
+        cx.update(|window, cx| {
+            _ = window.draw(cx);
+            window.click("palette-trigger", cx);
+        });
+        cx.update(|window, cx| {
+            _ = window.draw(cx);
+            let command = view.read(cx).command.clone();
+            command.update(cx, |state, cx| state.set_query("zzzz", window, cx));
+            view.update(cx, |_, cx| cx.notify());
+        });
+        cx.update(|window, cx| {
+            _ = window.draw(cx);
+            let empty = window
+                .try_find("palette-empty")
+                .expect("the empty palette status renders");
+            assert_eq!(empty.role(), Some(Role::Status));
+            assert_eq!(empty.label(), Some(rust_i18n::t!("app.state.no_matches", query = "zzzz").as_ref()));
         });
     }
 
@@ -649,6 +967,14 @@ mod tests {
             _ = window.draw(cx);
             assert_eq!(view.read(cx).settings.read(cx).preference(), ThemePreference::Dark);
             assert_eq!(theme::OxideTheme::tokens(cx).background, theme::OxideTokens::dark().background);
+            let theme = window.try_find("titlebar-theme").expect("the theme control renders");
+            assert_eq!(
+                theme.label(),
+                Some(
+                    rust_i18n::t!("app.shell.theme_trigger", theme = rust_i18n::t!("app.settings.dark").as_ref())
+                        .as_ref()
+                )
+            );
         });
     }
 
@@ -668,6 +994,14 @@ mod tests {
             _ = window.draw(cx);
             assert_eq!(view.read(cx).settings.read(cx).preference(), ThemePreference::Light);
             assert_eq!(theme::OxideTheme::tokens(cx).background, theme::OxideTokens::light().background);
+            let theme = window.try_find("titlebar-theme").expect("the theme control renders");
+            assert_eq!(
+                theme.label(),
+                Some(
+                    rust_i18n::t!("app.shell.theme_trigger", theme = rust_i18n::t!("app.settings.light").as_ref())
+                        .as_ref()
+                )
+            );
         });
     }
 

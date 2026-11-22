@@ -1,9 +1,10 @@
 //! Cross-category app components (README Phase 7.3): the reusable UI
 //! substrate every tool page and the shell compose.
 //!
-//! Per the design contract, only `tool_field` and `tool_card` are wrapped app
-//! components (they carry domain policy); the rest are compositions with a
-//! real contract — the registry, the output pane, sidebar entries, history,
+//! Per the design contract, `tool_field`, `tool_card`, and the sidebar
+//! entries are wrapped app components (they carry domain policy or replace a
+//! library control whose interaction contract is incomplete); the rest are
+//! compositions with a real contract — the registry, the output pane, history,
 //! and settings — composed from gpui-kit components as-is, never
 //! rename-wrapped.
 
@@ -27,7 +28,7 @@ pub mod tool_card;
 pub mod tool_field;
 pub mod tool_page;
 
-pub use category_item::{sidebar_category_group, sidebar_tool_item};
+pub use category_item::{SidebarNavGroup, SidebarNavItem};
 pub use output_panel::OutputPanel;
 pub use recent_runs::{RECENT_RUNS_CAP, RecentRun, RecentRuns, RecentRunsState, relative_time};
 pub use registry::{Category, RegistryError, ToolMeta, ToolRegistry, ToolRegistryGlobal, registry};
