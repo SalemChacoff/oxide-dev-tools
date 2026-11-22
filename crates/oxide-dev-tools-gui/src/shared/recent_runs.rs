@@ -18,7 +18,7 @@ use gpui_kit::component::dialog::DialogButtonProps;
 use gpui_kit::component::{ActiveTheme as _, Icon, Sizable as _, StyledExt as _, WindowExt as _, h_flex, v_flex};
 use gpui_kit::{
     App, AppContext as _, Context, ElementId, Entity, InteractiveElement as _, IntoElement, ParentElement as _, Render,
-    SharedString, Styled as _, Window, div, prelude::FluentBuilder as _,
+    Role, SharedString, StatefulInteractiveElement as _, Styled as _, Window, div, prelude::FluentBuilder as _,
 };
 use oxide_dev_tools_core::{IdKind, generate_id};
 
@@ -212,12 +212,15 @@ impl Render for RecentRuns {
                     }),
             )
             .when(!has_runs, |this| {
+                let empty = rust_i18n::t!("app.recent.empty").into_owned();
                 this.child(
                     div()
                         .text_sm()
                         .text_color(cx.theme().muted_foreground)
-                        .child(rust_i18n::t!("app.recent.empty"))
+                        .child(empty.clone())
                         .id((ElementId::from("recent-runs"), "empty"))
+                        .role(Role::Status)
+                        .aria_label(empty)
                         .test_support(),
                 )
             })
@@ -232,6 +235,8 @@ impl Render for RecentRuns {
                 )
             })
             .id("recent-runs")
+            .role(Role::Group)
+            .aria_label(rust_i18n::t!("app.recent.title"))
             .test_support()
     }
 }
@@ -247,46 +252,66 @@ fn render_run_row(run: &RecentRun, view: &RecentRuns, cx: &mut Context<RecentRun
         .unwrap_or_else(|| run.tool_id().to_string());
     let icon = meta.map(|meta| meta.icon()).unwrap_or(IconName::Clock);
     let time = relative_time(run.at(), Utc::now());
+    let label = rust_i18n::t!(
+        "app.recent.row_label",
+        tool = title.as_str(),
+        summary = run.summary().as_ref(),
+        time = time.as_str()
+    )
+    .into_owned();
     let open_handler = view.open_handler();
+    let interactive = open_handler.is_some();
     let tool_id = run.tool_id().clone();
     let row_id: ElementId = (ElementId::from("recent-run"), run.id().clone()).into();
 
+    let row = h_flex()
+        .w_full()
+        .p_2()
+        .gap_2()
+        .items_center()
+        .rounded(cx.theme().radius)
+        .when(interactive, |this| this.hover(|style| style.bg(tokens.surface_2)))
+        .child(Icon::new(icon).size_4().text_color(cx.theme().muted_foreground))
+        .child(
+            v_flex()
+                .flex_1()
+                .min_w_0()
+                .items_start()
+                .child(div().text_sm().text_color(cx.theme().foreground).child(title))
+                .child(
+                    div()
+                        .w_full()
+                        .text_xs()
+                        .text_color(cx.theme().muted_foreground)
+                        .whitespace_nowrap()
+                        .text_ellipsis()
+                        .child(run.summary().clone()),
+                ),
+        )
+        .child(div().text_xs().text_color(cx.theme().muted_foreground).child(time));
+
     // The `Button` (Text variant) keeps focus, keyboard, and a11y; the row
     // surface lives on the inner flex because Button already owns its variant
-    // hover style — a second `hover` refinement would panic.
-    Button::new(row_id)
-        .text()
-        .cursor_default()
-        .w_full()
-        .rounded(cx.theme().radius)
-        .when_some(open_handler, |this, handler| this.on_click(move |_, window, cx| handler(&tool_id, window, cx)))
-        .child(
-            h_flex()
-                .w_full()
-                .p_2()
-                .gap_2()
-                .items_center()
-                .rounded(cx.theme().radius)
-                .hover(|style| style.bg(tokens.surface_2))
-                .child(Icon::new(icon).size_4().text_color(cx.theme().muted_foreground))
-                .child(
-                    v_flex()
-                        .flex_1()
-                        .min_w_0()
-                        .items_start()
-                        .child(div().text_sm().text_color(cx.theme().foreground).child(title))
-                        .child(
-                            div()
-                                .w_full()
-                                .text_xs()
-                                .text_color(cx.theme().muted_foreground)
-                                .whitespace_nowrap()
-                                .text_ellipsis()
-                                .child(run.summary().clone()),
-                        ),
-                )
-                .child(div().text_xs().text_color(cx.theme().muted_foreground).child(time)),
-        )
+    // hover style — a second `hover` refinement would panic. Without a
+    // handler, the row is a named group instead of a button with no action.
+    match open_handler {
+        Some(handler) => Button::new(row_id)
+            .text()
+            .cursor_default()
+            .w_full()
+            .rounded(cx.theme().radius)
+            .accessibility_label(label)
+            .on_click(move |_, window, cx| handler(&tool_id, window, cx))
+            .child(row)
+            .into_any_element(),
+        None => div()
+            .id(row_id)
+            .role(Role::Group)
+            .aria_label(label)
+            .child(row)
+            .test_support()
+            .into_any_element(),
+    }
 }
 
 /// Formats a wall-clock age in whole messages: `just now`, `3m ago`, `2h ago`,
@@ -382,10 +407,18 @@ mod tests {
         });
         let cx: &mut VisualTestContext = cx;
 
-        // Empty: muted empty state, no clear command, no rows.
+        // Empty: a named section and a named status, no clear command, no rows.
         cx.update(|window, cx| {
             _ = window.draw(cx);
-            assert!(window.try_find((ElementId::from("recent-runs"), "empty")).is_some());
+            let section = window.try_find("recent-runs").expect("the section renders");
+            assert_eq!(section.role(), Some(Role::Group));
+            assert_eq!(section.label(), Some(rust_i18n::t!("app.recent.title").as_ref()));
+
+            let empty = window
+                .try_find((ElementId::from("recent-runs"), "empty"))
+                .expect("the empty state renders");
+            assert_eq!(empty.role(), Some(Role::Status));
+            assert_eq!(empty.label(), Some(rust_i18n::t!("app.recent.empty").as_ref()));
             assert!(window.try_find((ElementId::from("recent-runs"), "clear")).is_none());
         });
 
@@ -398,18 +431,81 @@ mod tests {
             assert!(window.try_find((ElementId::from("recent-runs"), "empty")).is_none());
             assert!(window.try_find((ElementId::from("recent-runs"), "clear")).is_some());
 
-            let run_id = state.read(cx).runs()[0].id().clone();
+            let run = state.read(cx).runs()[0].clone();
+            let run_id = run.id().clone();
+            let row = window
+                .try_find((ElementId::from("recent-run"), run_id.clone()))
+                .expect("the run row renders");
+            assert_eq!(row.role(), Some(Role::Button));
+            let expected = rust_i18n::t!(
+                "app.recent.row_label",
+                tool = "uuid",
+                summary = run.summary().as_ref(),
+                time = relative_time(run.at(), Utc::now()).as_str()
+            );
+            assert_eq!(row.label(), Some(expected.as_ref()));
+
             window.click((ElementId::from("recent-run"), run_id), cx);
             assert_eq!(opened.borrow().as_deref(), Some("uuid"));
         });
 
         // The clear command opens the named dialog; Escape dismisses without
-        // clearing (focus return and confirmation are the dialog's contract).
+        // clearing and returns focus to the trigger.
         cx.update(|window, cx| {
+            window.focus_next(cx);
+            _ = window.draw(cx);
+            let clear = window
+                .try_find((ElementId::from("recent-runs"), "clear"))
+                .expect("the clear trigger renders");
+            assert_eq!(clear.focused(), Some(true), "the clear trigger is a tab stop");
+
             window.click((ElementId::from("recent-runs"), "clear"), cx);
             assert!(window.has_active_dialog(cx));
             window.press("escape", cx);
             assert!(!state.read(cx).is_empty());
+
+            _ = window.draw(cx);
+            let clear = window
+                .try_find((ElementId::from("recent-runs"), "clear"))
+                .expect("the clear trigger renders");
+            assert_eq!(clear.focused(), Some(true), "Escape returns focus to the clear trigger");
+        });
+    }
+
+    struct InertHistoryTestView {
+        recent: Entity<RecentRuns>,
+    }
+
+    impl Render for InertHistoryTestView {
+        fn render(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
+            v_flex().p_4().child(self.recent.clone())
+        }
+    }
+
+    #[gpui_kit::test]
+    fn rows_without_a_handler_are_named_groups_not_dead_buttons(cx: &mut TestAppContext) {
+        cx.update(gpui_kit::init);
+        cx.update(|cx| {
+            crate::theme::apply(cx, crate::theme::ThemePreference::System, gpui_kit::WindowAppearance::Light);
+            cx.set_global(ToolRegistryGlobal::new(ToolRegistry::new()));
+        });
+        let state = cx.update(|cx| cx.new(|_| RecentRunsState::new()));
+        cx.update(|cx| state.update(cx, |state, cx| state.record("uuid", "10 IDs", cx)));
+
+        let (_view, cx) = cx.add_window_view(|window, cx| {
+            let recent = cx.new(|cx| RecentRuns::with_history(state.clone(), window, cx));
+            InertHistoryTestView { recent }
+        });
+        let cx: &mut VisualTestContext = cx;
+
+        cx.update(|window, cx| {
+            _ = window.draw(cx);
+            let run_id = state.read(cx).runs()[0].id().clone();
+            let row = window
+                .try_find((ElementId::from("recent-run"), run_id))
+                .expect("the inert row renders");
+            assert_eq!(row.role(), Some(Role::Group));
+            assert!(row.label().is_some());
         });
     }
 }

@@ -63,6 +63,7 @@ impl RenderOnce for ToolCard {
             .text()
             .cursor_default()
             .rounded_lg()
+            .accessibility_label(self.title.clone())
             .on_click(move |event, window, cx| on_open(event, window, cx))
             .child(
                 v_flex()
@@ -100,7 +101,7 @@ impl RenderOnce for ToolCard {
 mod tests {
     use super::*;
     use gpui_kit::test::TestWindowExt as _;
-    use gpui_kit::{Context, Render, TestAppContext, VisualTestContext};
+    use gpui_kit::{Context, Render, Role, TestAppContext, VisualTestContext};
     use std::cell::Cell;
 
     struct CardTestView {
@@ -133,10 +134,36 @@ mod tests {
 
         cx.update(|window, cx| {
             _ = window.draw(cx);
-            assert!(window.try_find("card-uuid").is_some());
+            let card = window.try_find("card-uuid").expect("card is rendered");
+            assert_eq!(card.role(), Some(Role::Button));
+            assert_eq!(card.label(), Some("UUID"));
             assert!(!opened.get());
 
             window.click("card-uuid", cx);
+            assert!(opened.get());
+        });
+    }
+
+    #[gpui_kit::test]
+    fn card_is_reachable_and_activated_from_the_keyboard(cx: &mut TestAppContext) {
+        cx.update(gpui_kit::init);
+        cx.update(|cx| {
+            crate::theme::apply(cx, crate::theme::ThemePreference::System, gpui_kit::WindowAppearance::Light)
+        });
+
+        let opened = Rc::new(Cell::new(false));
+        let (_, cx) = cx.add_window_view(|_, _| CardTestView { opened: opened.clone() });
+        let cx: &mut VisualTestContext = cx;
+
+        cx.update(|window, cx| {
+            _ = window.draw(cx);
+            window.focus_next(cx);
+            _ = window.draw(cx);
+
+            let card = window.try_find("card-uuid").expect("card is rendered");
+            assert_eq!(card.focused(), Some(true), "the card is a tab stop");
+
+            window.press("enter", cx);
             assert!(opened.get());
         });
     }

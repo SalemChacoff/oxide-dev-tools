@@ -487,6 +487,8 @@ app:
   recent:
     title:
       en: Recent runs
+    row_label:
+      en: "Open %{tool}: %{summary} (%{time})"
     empty:
       en: Nothing here yet. Run a tool and it will appear here.
     clear_history:

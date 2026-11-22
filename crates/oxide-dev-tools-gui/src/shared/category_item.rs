@@ -20,7 +20,9 @@ pub fn sidebar_tool_item(
     active: bool,
     on_open: impl Fn(&ClickEvent, &mut Window, &mut App) + 'static,
 ) -> SidebarMenuItem {
-    SidebarMenuItem::new(meta.title())
+    let title = meta.title();
+    SidebarMenuItem::new(title.clone())
+        .accessibility_label(title)
         .icon(meta.icon())
         .active(active)
         .on_click(on_open)
@@ -97,7 +99,8 @@ mod tests {
         cx.update(|window, cx| {
             _ = window.draw(cx);
             // SidebarMenu derives item ids from the menu id; the first item
-            // is `menu-0`.
+            // is `menu-0`. Its semantic TreeItem lives on an unobserved child
+            // in gpui-component 0.7.1, so activation is the snapshot contract.
             assert!(window.try_find("menu-0").is_some());
             assert!(!opened.get());
 

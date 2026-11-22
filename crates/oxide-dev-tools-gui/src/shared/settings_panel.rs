@@ -16,7 +16,7 @@ use gpui_kit::component::radio::{Radio, RadioGroup};
 use gpui_kit::component::{ActiveTheme as _, Sizable as _, StyledExt as _, h_flex, v_flex};
 use gpui_kit::{
     App, AppContext as _, ClickEvent, Context, Entity, InteractiveElement as _, IntoElement, ParentElement as _,
-    Render, Styled as _, Window, div,
+    Render, Role, StatefulInteractiveElement as _, Styled as _, Window, div,
 };
 
 use crate::shared::ClickHandler;
@@ -99,6 +99,8 @@ impl Render for SettingsPanel {
             ThemePreference::Light => Some(1),
             ThemePreference::Dark => Some(2),
         };
+        let appearance = rust_i18n::t!("app.settings.appearance").into_owned();
+        let defaults = rust_i18n::t!("app.settings.defaults").into_owned();
 
         v_flex()
             .w_full()
@@ -109,9 +111,14 @@ impl Render for SettingsPanel {
                     .gap_2()
                     .child(
                         div()
+                            .id("settings-appearance-heading")
+                            .role(Role::Heading)
+                            .aria_label(appearance.clone())
+                            .aria_level(2)
                             .text_sm()
                             .font_semibold()
-                            .child(rust_i18n::t!("app.settings.appearance")),
+                            .child(appearance)
+                            .test_support(),
                     )
                     .child(
                         h_flex()
@@ -143,9 +150,14 @@ impl Render for SettingsPanel {
                     .gap_2()
                     .child(
                         div()
+                            .id("settings-defaults-heading")
+                            .role(Role::Heading)
+                            .aria_label(defaults.clone())
+                            .aria_level(2)
                             .text_sm()
                             .font_semibold()
-                            .child(rust_i18n::t!("app.settings.defaults")),
+                            .child(defaults)
+                            .test_support(),
                     )
                     .child(
                         h_flex()
@@ -162,6 +174,8 @@ impl Render for SettingsPanel {
                     ),
             )
             .id("settings-panel")
+            .role(Role::Region)
+            .aria_label(rust_i18n::t!("app.settings.title"))
             .test_support()
     }
 }
@@ -172,19 +186,27 @@ impl SettingsPanel {
     /// never touches focus or input state.
     fn render_theme_radios(&self, selected_index: Option<usize>, _window: &mut Window) -> impl IntoElement {
         let state = self.state.clone();
-        RadioGroup::horizontal("settings-theme")
-            .flex_none()
-            .selected_index(selected_index)
-            .children([
-                Radio::new("theme-system").label(rust_i18n::t!("app.settings.system").into_owned()),
-                Radio::new("theme-light").label(rust_i18n::t!("app.settings.light").into_owned()),
-                Radio::new("theme-dark").label(rust_i18n::t!("app.settings.dark").into_owned()),
-            ])
-            .on_change(move |ix, window, cx| {
-                let preference = SettingsState::preference_from_index(*ix);
-                state.update(cx, |state, cx| state.set_preference(preference, cx));
-                theme::apply(cx, preference, window.appearance());
-            })
+        div()
+            .id("settings-theme-group")
+            .role(Role::Group)
+            .aria_label(rust_i18n::t!("app.settings.theme"))
+            .aria_description(rust_i18n::t!("app.settings.theme_help"))
+            .test_support()
+            .child(
+                RadioGroup::horizontal("settings-theme")
+                    .flex_none()
+                    .selected_index(selected_index)
+                    .children([
+                        Radio::new("theme-system").label(rust_i18n::t!("app.settings.system").into_owned()),
+                        Radio::new("theme-light").label(rust_i18n::t!("app.settings.light").into_owned()),
+                        Radio::new("theme-dark").label(rust_i18n::t!("app.settings.dark").into_owned()),
+                    ])
+                    .on_change(move |ix, window, cx| {
+                        let preference = SettingsState::preference_from_index(*ix);
+                        state.update(cx, |state, cx| state.set_preference(preference, cx));
+                        theme::apply(cx, preference, window.appearance());
+                    }),
+            )
     }
 
     /// Reset defaults: restores the System preference and notifies tool pages.
@@ -255,22 +277,71 @@ mod tests {
 
         cx.update(|window, cx| {
             _ = window.draw(cx);
-            assert!(window.try_find("settings-panel").is_some());
+            let panel = window.try_find("settings-panel").expect("the settings panel renders");
+            assert_eq!(panel.role(), Some(Role::Region));
+            assert_eq!(panel.label(), Some(rust_i18n::t!("app.settings.title").as_ref()));
+
+            let appearance = window
+                .try_find("settings-appearance-heading")
+                .expect("the appearance heading renders");
+            assert_eq!(appearance.role(), Some(Role::Heading));
+            assert_eq!(appearance.label(), Some(rust_i18n::t!("app.settings.appearance").as_ref()));
+            let defaults = window
+                .try_find("settings-defaults-heading")
+                .expect("the defaults heading renders");
+            assert_eq!(defaults.role(), Some(Role::Heading));
+            assert_eq!(defaults.label(), Some(rust_i18n::t!("app.settings.defaults").as_ref()));
+
+            let theme = window
+                .try_find("settings-theme-group")
+                .expect("the theme group renders");
+            assert_eq!(theme.role(), Some(Role::Group));
+            assert_eq!(theme.label(), Some(rust_i18n::t!("app.settings.theme").as_ref()));
+
+            // RadioGroup scopes its children and rewrites their ids to indices.
+            let system = window.within("settings-theme").find(0usize);
+            assert_eq!(system.role(), Some(Role::RadioButton));
+            assert_eq!(system.label(), Some(rust_i18n::t!("app.settings.system").as_ref()));
+            assert_eq!(system.checked(), Some(true));
+            let dark = window.within("settings-theme").find(2usize);
+            assert_eq!(dark.label(), Some(rust_i18n::t!("app.settings.dark").as_ref()));
+            assert_eq!(dark.checked(), Some(false));
+
             assert_eq!(state.read(cx).preference(), ThemePreference::System);
         });
 
-        // The dark radio is the third index inside the radio group.
+        // Move keyboard focus to the dark radio (third tab stop in the group)
+        // and activate it with Space.
         cx.update(|window, cx| {
-            let mut scope = window.within("settings-theme");
-            scope.click(2usize, cx);
+            window.focus_next(cx);
+            window.focus_next(cx);
+            window.focus_next(cx);
+            _ = window.draw(cx);
+
+            let dark = window.within("settings-theme").find(2usize);
+            assert_eq!(dark.focused(), Some(true), "focus reaches the dark radio");
+            window.press("space", cx);
+            assert_eq!(state.read(cx).preference(), ThemePreference::Dark);
         });
         cx.update(|window, cx| {
             _ = window.draw(cx);
             assert_eq!(state.read(cx).preference(), ThemePreference::Dark);
+
+            let system = window.within("settings-theme").find(0usize);
+            assert_eq!(system.checked(), Some(false));
+            let dark = window.within("settings-theme").find(2usize);
+            assert_eq!(dark.checked(), Some(true));
+            assert_eq!(dark.focused(), Some(true), "the selected radio keeps focus after the rerender");
         });
 
         // Reset returns to System and notifies tool-page listeners.
         cx.update(|window, cx| {
+            let reset = window
+                .try_find("settings-reset-defaults")
+                .expect("the reset command renders");
+            assert_eq!(reset.role(), Some(Role::Button));
+            assert_eq!(reset.label(), Some(rust_i18n::t!("app.settings.reset_defaults").as_ref()));
+
             window.click("settings-reset-defaults", cx);
             assert_eq!(state.read(cx).preference(), ThemePreference::System);
             assert_eq!(resets.get(), 1);

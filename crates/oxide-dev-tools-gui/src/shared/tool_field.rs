@@ -62,6 +62,7 @@ impl RenderOnce for ToolField {
     fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
         let invalid = self.validation.is_some();
         let message = self.validation.or(self.help);
+        let label = self.label.clone();
 
         v_flex()
             .w_full()
@@ -93,6 +94,8 @@ impl RenderOnce for ToolField {
                 })
             })
             .id(self.id)
+            .role(Role::Group)
+            .aria_label(label)
             .test_support()
     }
 }
@@ -121,13 +124,21 @@ mod tests {
             v_flex()
                 .p_4()
                 .child(
-                    ToolField::new("field-count", "Count", Input::new(&self.input))
-                        .help("Between 1 and 1,000 values per run."),
+                    ToolField::new(
+                        "field-count",
+                        "Count",
+                        Input::new(&self.input).id("field-count-input").aria_label("Count"),
+                    )
+                    .help("Between 1 and 1,000 values per run."),
                 )
                 .child(
-                    ToolField::new("field-email", "Email", Input::new(&self.input))
-                        .help("Used for the notification address.")
-                        .validation("Enter a valid email address"),
+                    ToolField::new(
+                        "field-email",
+                        "Email",
+                        Input::new(&self.input).id("field-email-input").aria_label("Email"),
+                    )
+                    .help("Used for the notification address.")
+                    .validation("Enter a valid email address"),
                 )
         }
     }
@@ -140,9 +151,15 @@ mod tests {
 
         cx.update(|window, cx| {
             _ = window.draw(cx);
-            // Both fields render their wrapper and child control.
-            assert!(window.try_find("field-count").is_some());
+            // Both fields render their wrapper and child control; the wrapper
+            // is a named group and the child keeps its own accessible name.
+            let count = window.try_find("field-count").expect("the count field renders");
+            assert_eq!(count.role(), Some(Role::Group));
+            assert_eq!(count.label(), Some("Count"));
             assert!(window.try_find("field-email").is_some());
+            let input = window.try_find("field-count-input").expect("the child control renders");
+            assert_eq!(input.role(), Some(Role::TextInput));
+            assert_eq!(input.label(), Some("Count"));
             // The valid field shows the help slot, never the validation slot.
             assert!(window.try_find((ElementId::from("field-count"), "help")).is_some());
             assert!(

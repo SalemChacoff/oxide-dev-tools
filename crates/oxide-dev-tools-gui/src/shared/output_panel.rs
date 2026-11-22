@@ -161,6 +161,8 @@ impl RenderOnce for OutputPanel {
             )
             .child(content_area)
             .id(self.id)
+            .role(Role::Region)
+            .aria_label(rust_i18n::t!("app.result.title"))
             .test_support()
     }
 }
@@ -275,7 +277,7 @@ impl OutputPanel {
                         .ghost()
                         .icon(IconName::Copy)
                         .tooltip(rust_i18n::t!("app.result.copy_hint"))
-                        .accessibility_label(rust_i18n::t!("app.common.copy"))
+                        .accessibility_label(rust_i18n::t!("app.result.copy_hint"))
                         .disabled(true)
                         .small()
                         .into_any_element(),
@@ -300,8 +302,11 @@ mod tests {
     use gpui_kit::component::v_flex;
     use gpui_kit::test::TestWindowExt as _;
     use gpui_kit::{
-        AppContext as _, Context, Render, ScrollDelta, ScrollWheelEvent, TestAppContext, VisualTestContext, point, px,
+        AppContext as _, Context, Render, Role, ScrollDelta, ScrollWheelEvent, TestAppContext, VisualTestContext,
+        point, px,
     };
+    use std::cell::Cell;
+    use std::rc::Rc;
 
     struct PanelTestView {
         content: SharedString,
@@ -322,6 +327,19 @@ mod tests {
                 panel = panel.on_export(|_, _, _| {});
             }
             v_flex().p_4().child(panel)
+        }
+    }
+
+    struct ExportProbeView {
+        called: Rc<Cell<bool>>,
+    }
+
+    impl Render for ExportProbeView {
+        fn render(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
+            let called = self.called.clone();
+            v_flex()
+                .p_4()
+                .child(OutputPanel::new("panel").on_export(move |_, _, _| called.set(true)))
         }
     }
 
@@ -354,18 +372,28 @@ mod tests {
             assert!(window.try_find((ElementId::from("panel"), "copy")).is_some());
             assert!(window.try_find((ElementId::from("panel"), "export")).is_some());
 
-            // The content node is a Status labelled with the data itself.
+            // The panel is a named region, and the content node is a Status
+            // labelled with the data itself.
+            let panel = window.try_find("panel").expect("the panel is rendered");
+            assert_eq!(panel.role(), Some(Role::Region));
+            assert_eq!(panel.label(), Some(rust_i18n::t!("app.result.title").as_ref()));
             let content = window
                 .try_find((ElementId::from("panel"), "content"))
                 .expect("the content node is rendered");
             assert_eq!(content.role(), Some(Role::Status));
             assert_eq!(content.label(), Some("9b1deb4d"));
 
-            // The copy action names itself beyond its icon.
+            // The copy and export actions name themselves.
             let copy = window
                 .try_find((ElementId::from("panel"), "copy"))
                 .expect("the copy action is rendered");
+            assert_eq!(copy.role(), Some(Role::Button));
             assert_eq!(copy.label(), Some(rust_i18n::t!("app.result.copy_hint").as_ref()));
+            let export = window
+                .try_find((ElementId::from("panel"), "export"))
+                .expect("the export action is rendered");
+            assert_eq!(export.role(), Some(Role::Button));
+            assert_eq!(export.label(), Some(rust_i18n::t!("app.common.export").as_ref()));
         });
     }
 
@@ -402,7 +430,31 @@ mod tests {
             let copy = window
                 .try_find((ElementId::from("panel"), "copy"))
                 .expect("the disabled copy action is rendered");
-            assert_eq!(copy.label(), Some(rust_i18n::t!("app.common.copy").as_ref()));
+            assert_eq!(copy.label(), Some(rust_i18n::t!("app.result.copy_hint").as_ref()));
+        });
+    }
+
+    #[gpui_kit::test]
+    fn disabled_export_does_not_run(cx: &mut TestAppContext) {
+        cx.update(gpui_kit::init);
+        cx.update(|cx| {
+            crate::theme::apply(cx, crate::theme::ThemePreference::System, gpui_kit::WindowAppearance::Light)
+        });
+
+        let called = Rc::new(Cell::new(false));
+        let (_, cx) = cx.add_window_view(|_, _| ExportProbeView { called: called.clone() });
+        let cx: &mut VisualTestContext = cx;
+
+        cx.update(|window, cx| {
+            _ = window.draw(cx);
+            let export = window
+                .try_find((ElementId::from("panel"), "export"))
+                .expect("the export action is rendered");
+            assert_eq!(export.role(), Some(Role::Button));
+
+            // Disabled commands must not execute, whatever flag the node exposes.
+            window.click((ElementId::from("panel"), "export"), cx);
+            assert!(!called.get(), "disabled export must not open the save dialog");
         });
     }
 

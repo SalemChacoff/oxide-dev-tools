@@ -343,3 +343,19 @@ cannot be verified without a real window stay open for Phase 7.4.
 - Longer translations and larger text — open: zoom testing needs real windows;
   the design uses rem-based sizing via the theme (§6).
 - Pointer targets comfortable at density — medium density default (§3.2).
+
+**Shared module a11y pass (2026-11-21)**
+
+- Headless `TestWindowExt` coverage now asserts role, name, state, and the
+  retained model for `ToolCard`, `RecentRuns`, `ToolField`, `OutputPanel`,
+  `SettingsPanel`, and `ToolPage`; Enter/Space activation, focus traversal,
+  dialog focus return, and disabled export are covered.
+- `SidebarMenuItem` exposes its `TreeItem` node on an unobserved child in
+  gpui-component 0.7.1; the shared item name is set explicitly and the built-in
+  activation path is tested, while the semantic snapshot remains upstream.
+- Real-window keyboard/assistive-technology checks (Narrator/Accessibility
+  Insights, VoiceOver, Orca) have not yet been performed for the shared
+  components. Record OS, AT, build, and result before closing the Phase 7 a11y
+  gate.
+- `NumberInput` remains unnamed; `ToolField` provides a named group, not a
+  control name.
