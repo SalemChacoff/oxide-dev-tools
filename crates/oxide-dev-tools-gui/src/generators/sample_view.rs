@@ -522,15 +522,24 @@ impl Render for SampleView {
                 ToolField::new(
                     "sample-tamper",
                     rust_i18n::t!("app.generators.sample.tamper"),
-                    Select::new(&self.tamper_select).id("sample-tamper-select").w_full(),
+                    Select::new(&self.tamper_select)
+                        .id("sample-tamper-select")
+                        .accessibility_label(rust_i18n::t!("app.generators.sample.tamper"))
+                        .w_full(),
                 )
                 .help(rust_i18n::t!("app.generators.sample.tamper_help")),
             )
             .child(size_field)
             .when(self.mode == SampleMode::Pdf, |this| {
                 this.child(pages_field).child(
-                    ToolField::new("sample-text", rust_i18n::t!("app.generators.sample.text"), Input::new(&self.text))
-                        .help(rust_i18n::t!("app.generators.sample.text_help")),
+                    ToolField::new(
+                        "sample-text",
+                        rust_i18n::t!("app.generators.sample.text"),
+                        Input::new(&self.text)
+                            .id("sample-text-input")
+                            .aria_label(rust_i18n::t!("app.generators.sample.text")),
+                    )
+                    .help(rust_i18n::t!("app.generators.sample.text_help")),
                 )
             })
             .when(self.mode == SampleMode::Png, |this| {
@@ -538,7 +547,9 @@ impl Render for SampleView {
                     ToolField::new(
                         "sample-color",
                         rust_i18n::t!("app.generators.sample.color"),
-                        Input::new(&self.color),
+                        Input::new(&self.color)
+                            .id("sample-color-input")
+                            .aria_label(rust_i18n::t!("app.generators.sample.color")),
                     )
                     .help(rust_i18n::t!("app.generators.sample.color_help")),
                 )
@@ -554,7 +565,7 @@ mod tests {
     use super::*;
     use gpui_kit::component::Root;
     use gpui_kit::test::TestWindowExt as _;
-    use gpui_kit::{TestAppContext, VisualTestContext};
+    use gpui_kit::{Role, TestAppContext, VisualTestContext};
     use std::future::Future;
     use std::path::PathBuf;
 
@@ -600,6 +611,20 @@ mod tests {
             assert!(window.try_find("sample-pages").is_some());
             assert!(window.try_find("sample-width").is_none());
 
+            // The run button names itself through its visible label.
+            let run = window
+                .try_find((ElementId::from("sample"), "generate"))
+                .expect("run button is rendered");
+            assert_eq!(run.role(), Some(Role::Button));
+            assert_eq!(run.label(), Some(rust_i18n::t!("app.common.generate").as_ref()));
+
+            // The tamper select carries the field's name.
+            let tamper = window
+                .try_find("sample-tamper-select")
+                .expect("tamper select is rendered");
+            assert_eq!(tamper.role(), Some(Role::ComboBox));
+            assert_eq!(tamper.label(), Some(rust_i18n::t!("app.generators.sample.tamper").as_ref()));
+
             window.click((ElementId::from("sample"), "generate"), cx);
         });
         cx.run_until_parked();
@@ -608,6 +633,13 @@ mod tests {
             assert!(window.try_find((ElementId::from("sample-output"), "size")).is_some());
             assert!(window.try_find((ElementId::from("sample-output"), "export")).is_some());
             assert!(window.try_find((ElementId::from("sample-output"), "copy")).is_none());
+
+            // The binary summary is a Status labelled with the size.
+            let size = window
+                .try_find((ElementId::from("sample-output"), "size"))
+                .expect("the size node is rendered");
+            assert_eq!(size.role(), Some(Role::Status));
+            assert!(size.label().is_some_and(|label| label.ends_with("bytes")));
         });
     }
 
@@ -627,6 +659,13 @@ mod tests {
             assert!(window.try_find("sample-height").is_some());
             assert!(window.try_find("sample-color").is_some());
             assert!(window.try_find("sample-pages").is_none());
+            assert_eq!(
+                window
+                    .try_find("sample-color-input")
+                    .expect("the color input is rendered")
+                    .label(),
+                Some(rust_i18n::t!("app.generators.sample.color").as_ref())
+            );
         });
     }
 

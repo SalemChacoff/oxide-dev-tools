@@ -11,8 +11,8 @@ use gpui_kit::base::TestSupportExt as _;
 use gpui_kit::component::label::Label;
 use gpui_kit::component::{ActiveTheme as _, Icon, h_flex, v_flex};
 use gpui_kit::{
-    App, ElementId, InteractiveElement as _, IntoElement, ParentElement as _, RenderOnce, SharedString, Styled as _,
-    Window, div, prelude::FluentBuilder as _,
+    App, ElementId, InteractiveElement as _, IntoElement, ParentElement as _, RenderOnce, Role, SharedString,
+    StatefulInteractiveElement as _, Styled as _, Window, div, prelude::FluentBuilder as _,
 };
 
 /// Wraps one option control with its label and inline help/validation.
@@ -69,6 +69,7 @@ impl RenderOnce for ToolField {
             .child(Label::new(self.label))
             .child(self.child)
             .when_some(message, |this, message| {
+                let text = message.clone();
                 let message = div().text_xs().child(message);
                 this.child(if invalid {
                     h_flex()
@@ -81,6 +82,8 @@ impl RenderOnce for ToolField {
                         )
                         .child(message.text_color(cx.theme().danger))
                         .id((self.id.clone(), "alert-icon"))
+                        .role(Role::Alert)
+                        .aria_label(text)
                         .test_support()
                 } else {
                     message
@@ -154,6 +157,12 @@ mod tests {
                     .is_some()
             );
             assert!(window.try_find((ElementId::from("field-email"), "help")).is_none());
+            // Validation is discoverable: an Alert node named by the message.
+            let alert = window
+                .try_find((ElementId::from("field-email"), "alert-icon"))
+                .expect("the validation row is rendered");
+            assert_eq!(alert.role(), Some(Role::Alert));
+            assert_eq!(alert.label(), Some("Enter a valid email address"));
         });
     }
 

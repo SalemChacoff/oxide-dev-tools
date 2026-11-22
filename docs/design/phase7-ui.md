@@ -269,14 +269,16 @@ Implementation shape (gpui-kit 0.6.6, Phase 7.2):
 | `gpui-kit` | Coding rules, component catalog, GPUI mechanics |
 | `security-audit` | Mandatory gate before `gpui-kit` enters `[workspace.dependencies]` |
 | `gpui-kit-i18n` | English-default i18n contract for every tool page (rust-i18n + gpui-kit recipe) |
+| `gpui-kit-accessibility` | AccessKit role/name/state/action, keyboard and focus contract, snapshot tests |
 
 Component tests follow
 `.agents/skills/gpui-kit/references/component-test-rules.md`.
 
 ## 10. Gates & checklists
 
-- Design review checklist + accessibility checklist (design-guides) run against
-  this document at design completion, and against every shipped screen.
+- Design review checklist + accessibility checklist (design-guides) and the
+  `gpui-kit-accessibility` acceptance pass run against this document at design
+  completion, and against every shipped screen.
 - Workspace gates: `cargo fmt --all --check`, clippy `-D warnings`, nextest
   `--all-features --locked`, `cargo deny check`, coverage ≥ 50%.
 - Packaging stays deferred to Phase 10.
@@ -294,6 +296,10 @@ Component tests follow
   they keep their rest hue; the mock darkens primary buttons on hover).
 
 ## 12. Checklist results (Phase 7.2)
+
+The detailed a11y contract, failure table, and acceptance pass live in
+`.agents/skills/gpui-kit-accessibility/SKILL.md`; this section is the Phase 7.2
+record.
 
 Run against this document and the mock (`docs/design/mock/`). Items that
 cannot be verified without a real window stay open for Phase 7.4.

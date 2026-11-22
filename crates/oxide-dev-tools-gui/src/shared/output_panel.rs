@@ -32,8 +32,8 @@ use gpui_kit::component::scroll::ScrollableElement as _;
 use gpui_kit::component::spinner::Spinner;
 use gpui_kit::component::{ActiveTheme as _, Disableable as _, Sizable as _, Size, StyledExt as _, h_flex, v_flex};
 use gpui_kit::{
-    App, ClickEvent, Div, ElementId, InteractiveElement as _, IntoElement, ParentElement as _, RenderOnce,
-    SharedString, Styled as _, Window, div, prelude::FluentBuilder as _,
+    App, ClickEvent, Div, ElementId, InteractiveElement as _, IntoElement, ParentElement as _, RenderOnce, Role,
+    SharedString, StatefulInteractiveElement as _, Styled as _, Window, div, prelude::FluentBuilder as _,
 };
 
 use crate::shared::ClickHandler;
@@ -203,6 +203,8 @@ impl OutputPanel {
                             .child(rust_i18n::t!("app.state.running")),
                     )
                     .id((panel_id.clone(), "loading"))
+                    .role(Role::Status)
+                    .aria_label(rust_i18n::t!("app.state.running"))
                     .test_support(),
             )
         })
@@ -213,8 +215,10 @@ impl OutputPanel {
                     .p_3()
                     .font_family(mono_family.clone())
                     .text_sm()
-                    .child(size)
+                    .child(size.clone())
                     .id((panel_id.clone(), "size"))
+                    .role(Role::Status)
+                    .aria_label(size)
                     .test_support(),
             )
         })
@@ -228,6 +232,8 @@ impl OutputPanel {
                     .whitespace_normal()
                     .child(self.content.clone())
                     .id((panel_id.clone(), "content"))
+                    .role(Role::Status)
+                    .aria_label(self.content.clone())
                     .test_support(),
             )
         })
@@ -239,6 +245,8 @@ impl OutputPanel {
                     .text_color(muted_fg)
                     .child(rust_i18n::t!("app.state.nothing_to_show"))
                     .id((panel_id, "empty"))
+                    .role(Role::Status)
+                    .aria_label(rust_i18n::t!("app.state.nothing_to_show"))
                     .test_support(),
             )
         })
@@ -256,6 +264,7 @@ impl OutputPanel {
                     Clipboard::new((self.id.clone(), "copy"))
                         .value(self.content.clone())
                         .tooltip(rust_i18n::t!("app.result.copy_hint"))
+                        .accessibility_label(rust_i18n::t!("app.result.copy_hint"))
                         .with_size(Size::Small)
                         .into_any_element(),
                 )
@@ -266,6 +275,7 @@ impl OutputPanel {
                         .ghost()
                         .icon(IconName::Copy)
                         .tooltip(rust_i18n::t!("app.result.copy_hint"))
+                        .accessibility_label(rust_i18n::t!("app.common.copy"))
                         .disabled(true)
                         .small()
                         .into_any_element(),
@@ -343,6 +353,19 @@ mod tests {
             assert!(window.try_find((ElementId::from("panel"), "empty")).is_none());
             assert!(window.try_find((ElementId::from("panel"), "copy")).is_some());
             assert!(window.try_find((ElementId::from("panel"), "export")).is_some());
+
+            // The content node is a Status labelled with the data itself.
+            let content = window
+                .try_find((ElementId::from("panel"), "content"))
+                .expect("the content node is rendered");
+            assert_eq!(content.role(), Some(Role::Status));
+            assert_eq!(content.label(), Some("9b1deb4d"));
+
+            // The copy action names itself beyond its icon.
+            let copy = window
+                .try_find((ElementId::from("panel"), "copy"))
+                .expect("the copy action is rendered");
+            assert_eq!(copy.label(), Some(rust_i18n::t!("app.result.copy_hint").as_ref()));
         });
     }
 
@@ -368,6 +391,18 @@ mod tests {
             assert!(window.try_find((ElementId::from("panel"), "empty")).is_some());
             assert!(window.try_find((ElementId::from("panel"), "content")).is_none());
             assert!(window.try_find((ElementId::from("panel"), "export")).is_none());
+
+            // The empty state is a Status named with the empty copy; the
+            // disabled copy button still carries a name.
+            let empty = window
+                .try_find((ElementId::from("panel"), "empty"))
+                .expect("the empty node is rendered");
+            assert_eq!(empty.role(), Some(Role::Status));
+            assert_eq!(empty.label(), Some(rust_i18n::t!("app.state.nothing_to_show").as_ref()));
+            let copy = window
+                .try_find((ElementId::from("panel"), "copy"))
+                .expect("the disabled copy action is rendered");
+            assert_eq!(copy.label(), Some(rust_i18n::t!("app.common.copy").as_ref()));
         });
     }
 
@@ -392,6 +427,12 @@ mod tests {
             // Loading keeps the previous result and adds the progress row.
             assert!(window.try_find((ElementId::from("panel"), "loading")).is_some());
             assert!(window.try_find((ElementId::from("panel"), "content")).is_some());
+
+            let loading = window
+                .try_find((ElementId::from("panel"), "loading"))
+                .expect("the loading node is rendered");
+            assert_eq!(loading.role(), Some(Role::Status));
+            assert_eq!(loading.label(), Some(rust_i18n::t!("app.state.running").as_ref()));
         });
     }
 
@@ -415,6 +456,11 @@ mod tests {
             _ = window.draw(cx);
             // Binary data renders the size summary, never a text run or copy.
             assert!(window.try_find((ElementId::from("panel"), "size")).is_some());
+            let size = window
+                .try_find((ElementId::from("panel"), "size"))
+                .expect("the size node is rendered");
+            assert_eq!(size.role(), Some(Role::Status));
+            assert_eq!(size.label(), Some("2,048 bytes"));
             assert!(window.try_find((ElementId::from("panel"), "content")).is_none());
             assert!(window.try_find((ElementId::from("panel"), "copy")).is_none());
             assert!(window.try_find((ElementId::from("panel"), "empty")).is_none());

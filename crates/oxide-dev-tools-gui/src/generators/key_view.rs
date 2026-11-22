@@ -328,17 +328,27 @@ impl Render for KeyView {
             None => length_field,
         };
 
-        let secret_field =
-            ToolField::new("key-secret", rust_i18n::t!("app.generators.key.secret"), Input::new(&self.secret))
-                .help(rust_i18n::t!("app.generators.key.secret_help"));
+        let secret_field = ToolField::new(
+            "key-secret",
+            rust_i18n::t!("app.generators.key.secret"),
+            Input::new(&self.secret)
+                .id("key-secret-input")
+                .aria_label(rust_i18n::t!("app.generators.key.secret")),
+        )
+        .help(rust_i18n::t!("app.generators.key.secret_help"));
         let secret_field = match secret_validation {
             Some(message) => secret_field.validation(message),
             None => secret_field,
         };
 
-        let expiry_field =
-            ToolField::new("key-expiry", rust_i18n::t!("app.generators.key.expiry"), Input::new(&self.expiry))
-                .help(rust_i18n::t!("app.generators.key.expiry_help"));
+        let expiry_field = ToolField::new(
+            "key-expiry",
+            rust_i18n::t!("app.generators.key.expiry"),
+            Input::new(&self.expiry)
+                .id("key-expiry-input")
+                .aria_label(rust_i18n::t!("app.generators.key.expiry")),
+        )
+        .help(rust_i18n::t!("app.generators.key.expiry_help"));
         let expiry_field = match expiry_validation {
             Some(message) => expiry_field.validation(message),
             None => expiry_field,
@@ -394,7 +404,10 @@ impl Render for KeyView {
                 ToolField::new(
                     "key-encoding",
                     rust_i18n::t!("app.generators.key.encoding"),
-                    Select::new(&self.encoding_select).id("key-encoding-select").w_full(),
+                    Select::new(&self.encoding_select)
+                        .id("key-encoding-select")
+                        .accessibility_label(rust_i18n::t!("app.generators.key.encoding"))
+                        .w_full(),
                 )
                 .into_any_element(),
             ],
@@ -402,7 +415,7 @@ impl Render for KeyView {
                 ToolField::new(
                     "key-payload",
                     rust_i18n::t!("app.generators.key.payload"),
-                    Textarea::new(&self.payload),
+                    Textarea::new(&self.payload).aria_label(rust_i18n::t!("app.generators.key.payload")),
                 )
                 .help(rust_i18n::t!("app.generators.key.payload_help"))
                 .into_any_element(),
@@ -451,7 +464,7 @@ impl Render for KeyView {
 mod tests {
     use super::*;
     use gpui_kit::test::TestWindowExt as _;
-    use gpui_kit::{TestAppContext, VisualTestContext, px};
+    use gpui_kit::{Role, TestAppContext, VisualTestContext, px};
 
     fn install(cx: &mut TestAppContext) {
         cx.update(gpui_kit::init);
@@ -464,7 +477,7 @@ mod tests {
     #[gpui_kit::test]
     fn password_tab_renders_all_character_sets_and_generates(cx: &mut TestAppContext) {
         install(cx);
-        let (_view, cx) = cx.add_window_view(KeyView::new);
+        let (view, cx) = cx.add_window_view(KeyView::new);
         let cx: &mut VisualTestContext = cx;
 
         cx.update(|window, cx| {
@@ -476,18 +489,32 @@ mod tests {
             assert!(window.try_find("key-special").is_some());
             assert!(window.try_find("key-payload").is_none());
 
+            // The run button names itself through its visible label.
+            let run = window
+                .try_find((ElementId::from("key"), "generate"))
+                .expect("run button is rendered");
+            assert_eq!(run.role(), Some(Role::Button));
+            assert_eq!(run.label(), Some(rust_i18n::t!("app.common.generate").as_ref()));
+
             window.click((ElementId::from("key"), "generate"), cx);
         });
         cx.update(|window, cx| {
             _ = window.draw(cx);
             assert!(window.try_find((ElementId::from("key-output"), "content")).is_some());
+
+            // The result node is a Status labelled with the generated value.
+            let content = window
+                .try_find((ElementId::from("key-output"), "content"))
+                .expect("output content is rendered");
+            assert_eq!(content.role(), Some(Role::Status));
+            assert_eq!(content.label(), Some(view.read(cx).result.as_ref()));
         });
     }
 
     #[gpui_kit::test]
     fn jwt_tab_shows_claims_fields_and_validates_an_empty_secret(cx: &mut TestAppContext) {
         install(cx);
-        let (_view, cx) = cx.add_window_view(KeyView::new);
+        let (view, cx) = cx.add_window_view(KeyView::new);
         let cx: &mut VisualTestContext = cx;
 
         cx.update(|window, cx| {
@@ -500,6 +527,21 @@ mod tests {
             assert!(window.try_find("key-secret").is_some());
             assert!(window.try_find("key-expiry").is_some());
             assert!(window.try_find("key-lowercase").is_none());
+            // The claims controls carry the field names. The textarea registers
+            // under its state entity id (Textarea has no `.id` builder).
+            let payload = view.read(cx).payload.clone();
+            let payload_input = window
+                .try_find(("input", payload.entity_id()))
+                .expect("the payload textarea is rendered");
+            assert_eq!(payload_input.role(), Some(Role::MultilineTextInput));
+            assert_eq!(payload_input.label(), Some(rust_i18n::t!("app.generators.key.payload").as_ref()));
+            assert_eq!(
+                window
+                    .try_find("key-secret-input")
+                    .expect("the secret input is rendered")
+                    .label(),
+                Some(rust_i18n::t!("app.generators.key.secret").as_ref())
+            );
             // The secret starts empty: inline validation, and the invalid
             // form's run is inert.
             assert!(window.try_find((ElementId::from("key-secret"), "alert-icon")).is_some());
@@ -554,6 +596,13 @@ mod tests {
             _ = window.draw(cx);
             assert!(window.try_find("key-encoding").is_some());
             assert!(window.try_find("key-special").is_none());
+            assert_eq!(
+                window
+                    .try_find("key-encoding-select")
+                    .expect("the encoding select is rendered")
+                    .label(),
+                Some(rust_i18n::t!("app.generators.key.encoding").as_ref())
+            );
         });
     }
 

@@ -378,7 +378,7 @@ impl Render for LoremView {
 mod tests {
     use super::*;
     use gpui_kit::test::TestWindowExt as _;
-    use gpui_kit::{TestAppContext, VisualTestContext};
+    use gpui_kit::{Role, TestAppContext, VisualTestContext};
 
     fn install(cx: &mut TestAppContext) {
         cx.update(gpui_kit::init);
@@ -391,7 +391,7 @@ mod tests {
     #[gpui_kit::test]
     fn words_tab_generates_from_the_core_default(cx: &mut TestAppContext) {
         install(cx);
-        let (_view, cx) = cx.add_window_view(LoremView::new);
+        let (view, cx) = cx.add_window_view(LoremView::new);
         let cx: &mut VisualTestContext = cx;
 
         cx.update(|window, cx| {
@@ -399,11 +399,25 @@ mod tests {
             assert!(window.try_find("lorem-count").is_some());
             assert!(window.try_find("lorem-min-words").is_none());
 
+            // The run button names itself through its visible label.
+            let run = window
+                .try_find((ElementId::from("lorem"), "generate"))
+                .expect("run button is rendered");
+            assert_eq!(run.role(), Some(Role::Button));
+            assert_eq!(run.label(), Some(rust_i18n::t!("app.common.generate").as_ref()));
+
             window.click((ElementId::from("lorem"), "generate"), cx);
         });
         cx.update(|window, cx| {
             _ = window.draw(cx);
             assert!(window.try_find((ElementId::from("lorem-output"), "content")).is_some());
+
+            // The result node is a Status labelled with the generated text.
+            let content = window
+                .try_find((ElementId::from("lorem-output"), "content"))
+                .expect("output content is rendered");
+            assert_eq!(content.role(), Some(Role::Status));
+            assert_eq!(content.label(), Some(view.read(cx).result.as_ref()));
         });
     }
 
