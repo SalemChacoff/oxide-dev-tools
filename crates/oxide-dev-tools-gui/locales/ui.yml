@@ -519,6 +519,29 @@ app:
         en: Input is not valid hex
       validation_utf8:
         en: Decoded data is not valid UTF-8
+    url-codec:
+      encode:
+        en: Encode
+      decode:
+        en: Decode
+      scheme_label:
+        en: Encoding
+      scheme_help:
+        en: Standard percent-encoding, or form encoding where spaces become +.
+      scheme_standard:
+        en: Standard
+      scheme_form:
+        en: Form
+      input_label:
+        en: Input
+      input_help_encode:
+        en: Text to encode. Unicode is encoded as UTF-8.
+      input_help_decode:
+        en: Percent-encoded text to decode. In form mode, + becomes a space.
+      validation_invalid:
+        en: Input is not valid percent-encoded text
+      validation_utf8:
+        en: Decoded data is not valid UTF-8
   settings:
     title:
       en: Settings

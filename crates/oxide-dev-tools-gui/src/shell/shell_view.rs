@@ -27,7 +27,7 @@ use gpui_kit::{
     div, prelude::FluentBuilder as _, px,
 };
 
-use crate::codecs::{Base64View, HexView};
+use crate::codecs::{Base64View, HexView, UrlCodecView};
 use crate::generators::{FakeView, IdView, KeyView, LoremView, RunReporter, SampleView};
 use crate::shared::recent_runs::{RecentRuns, RecentRunsState};
 use crate::shared::registry::{Category, registry};
@@ -57,6 +57,7 @@ pub struct ShellView {
     sample_page: Entity<SampleView>,
     base64_page: Entity<Base64View>,
     hex_page: Entity<HexView>,
+    url_codec_page: Entity<UrlCodecView>,
     _subscriptions: Vec<Subscription>,
 }
 
@@ -91,6 +92,7 @@ impl ShellView {
         let fake_page = cx.new(|cx| FakeView::new(window, cx).on_run(run_reporter.clone()));
         let base64_page = cx.new(|cx| Base64View::new(window, cx).on_run(run_reporter.clone()));
         let hex_page = cx.new(|cx| HexView::new(window, cx).on_run(run_reporter.clone()));
+        let url_codec_page = cx.new(|cx| UrlCodecView::new(window, cx).on_run(run_reporter.clone()));
         let sample_page = cx.new(|cx| SampleView::new(window, cx).on_run(run_reporter));
 
         let recent_runs = cx.new(|cx| {
@@ -152,6 +154,7 @@ impl ShellView {
             sample_page,
             base64_page,
             hex_page,
+            url_codec_page,
             _subscriptions: subscriptions,
         }
     }
@@ -329,6 +332,7 @@ impl ShellView {
             "sample" => self.sample_page.clone().into_any_element(),
             "base64" => self.base64_page.clone().into_any_element(),
             "hex" => self.hex_page.clone().into_any_element(),
+            "url-codec" => self.url_codec_page.clone().into_any_element(),
             _ => {
                 let title = registry(cx)
                     .find(&id)
@@ -685,7 +689,9 @@ mod tests {
 
         cx.update(|window, cx| {
             _ = window.draw(cx);
-            window.click("tool-card-url-codec", cx);
+            // `timestamp` is still unshipped; retarget this check as later
+            // phases replace the placeholder.
+            window.click("tool-card-timestamp", cx);
         });
         cx.update(|window, cx| {
             _ = window.draw(cx);
@@ -695,7 +701,7 @@ mod tests {
                 .try_find("tool-page-title")
                 .expect("the placeholder title renders");
             assert_eq!(title.role(), Some(Role::Heading));
-            assert_eq!(title.label(), Some(rust_i18n::t!("app.tools.codecs.url-codec.title").as_ref()));
+            assert_eq!(title.label(), Some(rust_i18n::t!("app.tools.converters.timestamp.title").as_ref()));
 
             let placeholder = window
                 .try_find("tool-placeholder")
@@ -704,7 +710,7 @@ mod tests {
             assert_eq!(placeholder.label(), Some(rust_i18n::t!("app.shell.placeholder_title").as_ref()));
 
             let detail = window.try_find("detail").expect("the detail area renders");
-            assert_eq!(detail.label(), Some(rust_i18n::t!("app.tools.codecs.url-codec.title").as_ref()));
+            assert_eq!(detail.label(), Some(rust_i18n::t!("app.tools.converters.timestamp.title").as_ref()));
         });
     }
 
@@ -770,6 +776,39 @@ mod tests {
             let tool = window
                 .try_find((ElementId::from("sidebar-tool"), "base64"))
                 .expect("the base64 tool row renders");
+            assert_eq!(tool.selected(), Some(true));
+        });
+    }
+
+    #[gpui_kit::test]
+    fn shipped_url_codec_page_replaces_the_placeholder(cx: &mut TestAppContext) {
+        install(cx);
+        let (_view, cx) = cx.add_window_view(ShellView::new);
+        let cx: &mut VisualTestContext = cx;
+
+        cx.update(|window, cx| {
+            _ = window.draw(cx);
+            window.click("tool-card-url-codec", cx);
+        });
+        cx.update(|window, cx| {
+            _ = window.draw(cx);
+            assert!(window.try_find("tool-page").is_some());
+            // The URL codec page shipped in Phase 7.6 — the placeholder is gone.
+            assert!(window.try_find("url-codec-mode-bar").is_some());
+            assert!(window.try_find("tool-placeholder").is_none());
+
+            let heading = window
+                .try_find((ElementId::from("tool-page"), "title"))
+                .expect("the tool page title renders");
+            assert_eq!(heading.role(), Some(Role::Heading));
+            assert_eq!(heading.label(), Some(rust_i18n::t!("app.tools.codecs.url-codec.title").as_ref()));
+
+            let detail = window.try_find("detail").expect("the detail area renders");
+            assert_eq!(detail.label(), Some(rust_i18n::t!("app.tools.codecs.url-codec.title").as_ref()));
+
+            let tool = window
+                .try_find((ElementId::from("sidebar-tool"), "url-codec"))
+                .expect("the url-codec tool row renders");
             assert_eq!(tool.selected(), Some(true));
         });
     }

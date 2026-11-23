@@ -661,6 +661,10 @@ The project follows a two-crate architecture:
 - [x] Units converter (data storage, data rate, length, time, mass)
 - [x] JSON ↔ YAML ↔ XML conversion
 
+#### Phase 3.1 — Extended codecs (planned)
+- [ ] PEM/PFX (PKCS#12) parsing
+- [ ] ZIP compression
+
 ### Phase 4 — Validators
 - [x] Email validator
 - [x] URL/URI validator
@@ -738,8 +742,8 @@ work goes through the installed agent skills (`ui-workflow` orchestrator:
 #### Phase 7.6 — Codecs UI
 - [x] Base64 encode/decode (standard, URL-safe)
 - [x] Hex encode/decode
-- [ ] URL encode/decode
-- [ ] PEM/PFX parsing and ZIP compression (once the core tools land)
+- [x] URL encode/decode (standard, form)
+- [ ] PEM/PFX parsing and ZIP compression (blocked on the Phase 3.1 core entry points)
 
 #### Phase 7.7 — Text Utilities UI
 - [ ] Case conversion
