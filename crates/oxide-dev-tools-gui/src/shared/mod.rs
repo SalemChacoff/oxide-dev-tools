@@ -22,6 +22,7 @@ pub mod category_item;
 pub mod output_panel;
 pub mod recent_runs;
 pub mod registry;
+pub mod run_seam;
 pub mod save_dialog;
 pub mod settings_panel;
 pub mod tool_card;

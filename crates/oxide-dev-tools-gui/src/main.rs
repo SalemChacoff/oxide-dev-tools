@@ -11,6 +11,7 @@
 //! blank.
 
 pub mod assets;
+pub mod codecs;
 pub mod generators;
 pub mod i18n;
 pub mod shared;

@@ -472,6 +472,30 @@ app:
         en: Saved "%{path}"
       save_failed:
         en: "Couldn't save \"%{path}\": %{error}"
+  codecs:
+    base64:
+      encode:
+        en: Encode
+      decode:
+        en: Decode
+      alphabet_label:
+        en: Alphabet
+      alphabet_help:
+        en: The character set used for encoding and decoding.
+      alphabet_standard:
+        en: Standard
+      alphabet_url_safe:
+        en: URL-safe
+      input_label:
+        en: Input
+      input_help_encode:
+        en: Text to encode. Unicode is encoded as UTF-8.
+      input_help_decode:
+        en: Base64 text to decode. Whitespace is ignored.
+      validation_invalid:
+        en: Input is not valid base64
+      validation_utf8:
+        en: Decoded data is not valid UTF-8
   settings:
     title:
       en: Settings
