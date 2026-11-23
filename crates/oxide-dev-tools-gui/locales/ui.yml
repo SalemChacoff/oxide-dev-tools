@@ -496,6 +496,29 @@ app:
         en: Input is not valid base64
       validation_utf8:
         en: Decoded data is not valid UTF-8
+    hex:
+      encode:
+        en: Encode
+      decode:
+        en: Decode
+      case_label:
+        en: Case
+      case_help:
+        en: Letter case for the hex digits. Decoding is case-insensitive.
+      case_lower:
+        en: Lowercase
+      case_upper:
+        en: Uppercase
+      input_label:
+        en: Input
+      input_help_encode:
+        en: Text to encode. Unicode is encoded as UTF-8.
+      input_help_decode:
+        en: Hex text to decode. Whitespace is ignored.
+      validation_invalid:
+        en: Input is not valid hex
+      validation_utf8:
+        en: Decoded data is not valid UTF-8
   settings:
     title:
       en: Settings

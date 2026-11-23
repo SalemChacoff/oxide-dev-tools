@@ -737,7 +737,7 @@ work goes through the installed agent skills (`ui-workflow` orchestrator:
 
 #### Phase 7.6 — Codecs UI
 - [x] Base64 encode/decode (standard, URL-safe)
-- [ ] Hex encode/decode
+- [x] Hex encode/decode
 - [ ] URL encode/decode
 - [ ] PEM/PFX parsing and ZIP compression (once the core tools land)
 

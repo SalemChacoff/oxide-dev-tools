@@ -8,5 +8,7 @@
 //! recent-runs history stays in sync.
 
 pub mod base64_view;
+pub mod hex_view;
 
 pub use base64_view::Base64View;
+pub use hex_view::HexView;

@@ -27,7 +27,7 @@ use gpui_kit::{
     div, prelude::FluentBuilder as _, px,
 };
 
-use crate::codecs::Base64View;
+use crate::codecs::{Base64View, HexView};
 use crate::generators::{FakeView, IdView, KeyView, LoremView, RunReporter, SampleView};
 use crate::shared::recent_runs::{RecentRuns, RecentRunsState};
 use crate::shared::registry::{Category, registry};
@@ -56,6 +56,7 @@ pub struct ShellView {
     fake_page: Entity<FakeView>,
     sample_page: Entity<SampleView>,
     base64_page: Entity<Base64View>,
+    hex_page: Entity<HexView>,
     _subscriptions: Vec<Subscription>,
 }
 
@@ -89,6 +90,7 @@ impl ShellView {
         let lorem_page = cx.new(|cx| LoremView::new(window, cx).on_run(run_reporter.clone()));
         let fake_page = cx.new(|cx| FakeView::new(window, cx).on_run(run_reporter.clone()));
         let base64_page = cx.new(|cx| Base64View::new(window, cx).on_run(run_reporter.clone()));
+        let hex_page = cx.new(|cx| HexView::new(window, cx).on_run(run_reporter.clone()));
         let sample_page = cx.new(|cx| SampleView::new(window, cx).on_run(run_reporter));
 
         let recent_runs = cx.new(|cx| {
@@ -149,6 +151,7 @@ impl ShellView {
             fake_page,
             sample_page,
             base64_page,
+            hex_page,
             _subscriptions: subscriptions,
         }
     }
@@ -325,6 +328,7 @@ impl ShellView {
             "fake" => self.fake_page.clone().into_any_element(),
             "sample" => self.sample_page.clone().into_any_element(),
             "base64" => self.base64_page.clone().into_any_element(),
+            "hex" => self.hex_page.clone().into_any_element(),
             _ => {
                 let title = registry(cx)
                     .find(&id)
@@ -681,7 +685,7 @@ mod tests {
 
         cx.update(|window, cx| {
             _ = window.draw(cx);
-            window.click("tool-card-hex", cx);
+            window.click("tool-card-url-codec", cx);
         });
         cx.update(|window, cx| {
             _ = window.draw(cx);
@@ -691,7 +695,7 @@ mod tests {
                 .try_find("tool-page-title")
                 .expect("the placeholder title renders");
             assert_eq!(title.role(), Some(Role::Heading));
-            assert_eq!(title.label(), Some(rust_i18n::t!("app.tools.codecs.hex.title").as_ref()));
+            assert_eq!(title.label(), Some(rust_i18n::t!("app.tools.codecs.url-codec.title").as_ref()));
 
             let placeholder = window
                 .try_find("tool-placeholder")
@@ -700,7 +704,40 @@ mod tests {
             assert_eq!(placeholder.label(), Some(rust_i18n::t!("app.shell.placeholder_title").as_ref()));
 
             let detail = window.try_find("detail").expect("the detail area renders");
+            assert_eq!(detail.label(), Some(rust_i18n::t!("app.tools.codecs.url-codec.title").as_ref()));
+        });
+    }
+
+    #[gpui_kit::test]
+    fn shipped_hex_page_replaces_the_placeholder(cx: &mut TestAppContext) {
+        install(cx);
+        let (_view, cx) = cx.add_window_view(ShellView::new);
+        let cx: &mut VisualTestContext = cx;
+
+        cx.update(|window, cx| {
+            _ = window.draw(cx);
+            window.click("tool-card-hex", cx);
+        });
+        cx.update(|window, cx| {
+            _ = window.draw(cx);
+            assert!(window.try_find("tool-page").is_some());
+            // The hex page shipped in Phase 7.6 — the placeholder is gone.
+            assert!(window.try_find("hex-mode-bar").is_some());
+            assert!(window.try_find("tool-placeholder").is_none());
+
+            let heading = window
+                .try_find((ElementId::from("tool-page"), "title"))
+                .expect("the tool page title renders");
+            assert_eq!(heading.role(), Some(Role::Heading));
+            assert_eq!(heading.label(), Some(rust_i18n::t!("app.tools.codecs.hex.title").as_ref()));
+
+            let detail = window.try_find("detail").expect("the detail area renders");
             assert_eq!(detail.label(), Some(rust_i18n::t!("app.tools.codecs.hex.title").as_ref()));
+
+            let tool = window
+                .try_find((ElementId::from("sidebar-tool"), "hex"))
+                .expect("the hex tool row renders");
+            assert_eq!(tool.selected(), Some(true));
         });
     }
 
